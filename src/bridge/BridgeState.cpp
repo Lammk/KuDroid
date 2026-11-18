@@ -182,13 +182,13 @@ extern "C" void kudroid_note_thread_name(const char* name) {
     }
 }
 
-// Signal-handler side: exact/prefix match on the recorded name. Reads only,
-// seqlock-guarded against torn writes (a write in flight reads as unknown,
-// i.e. worker, never as a half-written critical). Deliberately NOT a "Main"
-// substring: that also matched DomainMain/Remain-style names. Observed Unity
-// critical names: UnityMain, RenderThread, UnityGfxDeviceW.
-// The name is copied to a stack buffer with NUL padding first, so the
-// lookahead below can never overread even a full 31-char name.
+// Signal-handler side: exact/prefix match on the recorded name.
+
+
+
+
+
+
 static bool thread_name_marks_critical(unsigned long long tid) {
     if (tid == 0) return false;
     for (auto& slot : g_threadNames) {
@@ -202,7 +202,7 @@ static bool thread_name_marks_critical(unsigned long long tid) {
         if (std::strcmp(n, "UnityMain") == 0 || std::strcmp(n, "MainThread") == 0) return true;
         // Render-thread family by prefix (RenderThread and vendor variants).
         if (std::strncmp(n, "Render", 6) == 0) return true;
-        // Gfx device worker by distinctive infix (UnityGfxDeviceW, ...).
+        // Identify graphics workers by their thread-name infix.
         if (std::strstr(n, "GfxDevice") != nullptr) return true;
         return false;
     }
@@ -333,11 +333,11 @@ extern "C" void kudroid_store_abort_message(const char* msg) {
     g_abortMessage[sizeof(g_abortMessage) - 1] = '\0';
 }
 
-// ── Host Abort Interception ──────────────────────────────────────────────────
-// SIGABRT typically results from an uncaught exception or failed assertion.
-// These handlers record the abort message before termination:
-// 1. Uncaught ObjC exceptions (NSException from ANGLE/Metal/UIKit)
-// 2. Uncaught C++ exceptions (std::terminate / exception::what())
+// Intercept host abort signals for diagnostics.
+
+
+
+
 
 extern "C" const char* kudroid_crash_log_snapshot(void) {
     std::lock_guard<std::mutex> lock(g_crashBufMtx);

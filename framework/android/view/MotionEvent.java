@@ -1,20 +1,20 @@
 package android.view;
 
-/**
- * android.view.MotionEvent — touch and pointer events.
- *
- * The getters here are almost all read from native code rather than from Java. AGDK's
- * GameActivity resolves them by name in initializeNativeCode and calls them to fill its
- * own GameActivityMotionEvent struct, so a missing one is a NoSuchMethodError thrown
- * inside Activity creation — which aborts onCreate before the surface exists, and the app
- * then sits on a black screen with no crash. Twenty-five of these were missing at once for
- * exactly that reason.
- *
- * Values are those of a single-touch capacitive touchscreen, which is what KuDroid
- * presents. Where a concept has no counterpart on iOS (scan codes, edge flags, hardware
- * device IDs) the answer is the one Android gives for "none", not a guess: a guest reading
- * a fabricated non-zero value would act on it.
- */
+/** Describe touch and pointer events. */
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 public final class MotionEvent extends InputEvent {
     /** action: down. */
     public static final int ACTION_DOWN = 0;
@@ -78,13 +78,13 @@ public final class MotionEvent extends InputEvent {
     public static final int CLASSIFICATION_AMBIGUOUS_GESTURE = 1;
     public static final int CLASSIFICATION_DEEP_PRESS = 2;
 
-    /**
-     * Device ID reported for every touch.
-     *
-     * Non-zero on purpose: zero means the virtual/synthetic device on Android, and input
-     * code that filters synthetic events would discard everything KuDroid delivers. Any
-     * stable positive value works, since nothing can look the device up.
-     */
+    /** Device ID reported for every touch. */
+
+
+
+
+
+
     private static final int TOUCHSCREEN_DEVICE_ID = 1;
 
     private final long mDownTime;
@@ -386,13 +386,13 @@ public final class MotionEvent extends InputEvent {
         return mPointerCount;
     }
 
-    /**
-     * Identifier that follows one finger across a gesture.
-     *
-     * Stable for as long as that finger is down, and never reused for a different finger
-     * within one gesture — a guest that tracks pointers by ID (Unity does) matches each
-     * finger's samples to the finger it is holding.
-     */
+    /** Identifier that follows one finger across a gesture. */
+
+
+
+
+
+
     public int getPointerId(int pointerIndex) {
         return mPointerIds[clampIndex(pointerIndex)];
     }
@@ -404,7 +404,7 @@ public final class MotionEvent extends InputEvent {
         return -1;
     }
 
-    /** A finger, since the only input KuDroid synthesises is touch. */
+    /** A finger, since the only input the runtime synthesises is touch. */
     public int getToolType(int pointerIndex) {
         return TOOL_TYPE_FINGER;
     }
@@ -520,12 +520,12 @@ public final class MotionEvent extends InputEvent {
         return 0.0f;
     }
 
-    /**
-     * Contact patch long/short axis in pixels. Unity asks for these on every
-     * touch and died as NoSuchMethodError without them. A fixed plausible
-     * finger width: nothing here measures the real patch, but zero would read
-     * as "no contact" and break pressure-ratio math downstream.
-     */
+    /** Contact patch long/short axis in pixels. */
+
+
+
+
+
     public float getTouchMajor() {
         return 10.0f;
     }

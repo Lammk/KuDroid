@@ -1,27 +1,27 @@
 package java.lang.invoke;
 
-/**
- * A direct handle to one method, optionally with its receiver already bound.
- *
- * KuART has no bytecode generator, so a handle cannot be a synthesised lambda form the way
- * it is on the platform. It is instead a pair — the resolved method and a bound receiver —
- * and invoking it calls that method. Everything a caller can observe about a direct handle
- * (its type, that it invokes the right method, that bindTo drops the leading parameter)
- * behaves the same; what is absent is the ability to compose handles into new ones, which
- * needs a code writer.
- *
- * `artMethod` and `special` are read by native code (LibCore's Invoke_java_lang_invoke_*)
- * by field NAME, so renaming either one breaks dispatch with no compile error.
- *
- * Why this class matters at all: an interface default method cannot be reached by ordinary
- * reflection. Method.invoke on a default method dispatches virtually, so a proxy whose
- * handler is asked to run the default would re-enter the handler and recurse forever. The
- * platform's answer is Lookup.unreflectSpecial, which produces a handle that invokes the
- * method NON-virtually; `special` is that flag. Unity's JNIBridge relies on exactly this
- * path for every default method in an interface it proxies, and with java.lang.invoke
- * absent it printed "Java interface default methods are only supported since Android Oreo"
- * and rethrew — on a runtime reporting API 29, so the version gate was not the problem.
- */
+/** A direct handle to one method, optionally with its receiver already bound. */
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 public abstract class MethodHandle {
 
     // The resolved DexMethod. Written by native code; zero means "not resolved", which

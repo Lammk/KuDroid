@@ -46,6 +46,7 @@ extern void NSSetUncaughtExceptionHandler(void (*handler)(void* exception));
 
 // Cross-unit externs the handler reaches into.
 extern "C" bool bionic_handle_guest_syscall_trap(void* context);
+extern "C" bool bionic_handle_guest_syscall_breakpoint(void* context);
 extern "C" int kudroid_android_log_message(int priority, const char* tag, const char* message);
 #include "kudroid/abi/GuestSignals.h"  // guest_signal_dispatch / has_handler
 #include "kudroid/kuart/MethodResolutionTrace.h"
@@ -235,16 +236,16 @@ void installCrashHandlers(void) {
     }
 
     // Keep whatever was installed before us, per signal.
-    //
-    // SIGTRAP is load-bearing, not merely diagnostic: guest `mrs xN, tpidr_el0` is
-    // rewritten to `BRK #(0x1000+N)` at load time and the handler supplies the TLS
-    // pointer. If a host (LiveContainer, a debugger bridge, a crash reporter) already
-    // has a handler and we replace it without recording it, its own traps are silently
-    // dropped; if it replaces ours, every guest TLS read becomes a fatal trap.
-    //
-    // Chaining is what makes both survive: bionic_handle_tpidr_trap claims only the
-    // BRK immediates KuDroid itself planted, and anything it does not recognise goes to
-    // the previous handler rather than being reported as a KuDroid crash.
+
+
+
+
+
+
+
+
+
+
     const int kSignals[] = {SIGILL, SIGBUS, SIGSEGV, SIGTRAP, SIGABRT, SIGSYS};
     for (int sig : kSignals) {
         struct sigaction previous;

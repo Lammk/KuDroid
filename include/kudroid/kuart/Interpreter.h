@@ -1,7 +1,7 @@
-// KuART Bytecode Interpreter.
-// Replaces ART runtime interpreter (12.8k LOC heavily tied to mirror/ types).
-// Implements DEX opcodes used by guest Java applications:
-// move/const/arithmetic/compare/branch/field/array/invoke/try-catch.
+// Interpret DEX bytecode.
+
+
+
 #ifndef KUDROID_KUART_INTERPRETER_H
 #define KUDROID_KUART_INTERPRETER_H
 
@@ -74,12 +74,12 @@ public:
     // Run <clinit> if class is not yet initialized.
     bool EnsureInitialized(DexClass* klass);
 
-    // ── JIT ──
-    //
-    // Compilation is driven by a per-method call counter and is entirely optional: with
-    // no executable memory (stock iOS without a debugger, LiveContainer JITLess) nothing
-    // is ever compiled and every method runs interpreted, which is the correct answer
-    // rather than a degraded one.
+    // Compile hot methods when executable memory is available.
+
+
+
+
+
 
     // Reuse the previous run's profile, and record this run's into it.
     //
@@ -119,18 +119,18 @@ public:
     // where there is no calling class to report.
     DexClass* CallerClass() const;
 
-    // Print the pending exception as uncaught, with its stack trace. No-op when nothing
-    // is pending.
-    //
-    // Called automatically by Execute() when an exception reaches depth 0 — no Java
-    // frame caught it and it is being handed back to native code. That is the one point
-    // where "uncaught" is a fact rather than a guess.
-    //
-    // The trace deliberately does NOT print at the throw site. Most exceptions a real
-    // app throws are caught and expected: ULTRAKILL looks up an optional class by name
-    // during startup and handles the ClassNotFoundException. Printing a five-frame trace
-    // for each one reads as a fatal error and cost a round of investigation aimed at the
-    // wrong problem.
+    // Print the pending exception as uncaught, with its stack trace.
+
+
+
+
+
+
+
+
+
+
+
     void ReportUncaughtException();
 
     // One entry of the per-thread Java call stack.
@@ -146,35 +146,35 @@ public:
         const DexFrame* frame = nullptr;
     };
 
-    // Java-side call stack of the CURRENT thread, innermost frame first, one entry
-    // per line: "    at com.foo.Bar.baz(Bar.java:12)".
-    //
-    // Without this, an exception thrown deep inside guest bytecode is reported as a
-    // bare "ArrayIndexOutOfBoundsException: index 0 length 0" with no indication of
-    // which method produced it — the failure that stopped Minecraft's
-    // MainActivity.<clinit> could not be located from the log at all.
+    // Format the current Java stack from its innermost frame.
+
+
+
+
+
+
     std::string BuildStackTrace() const;
 
     // Description of the in-flight exception including its stack trace, for callers
     // that have to report an exception they are about to discard (JNI_OnLoad).
     std::string DescribePendingException() const;
 
-    // Per-thread interpreter bookkeeping, for a caller that is about to leave the
-    // interpreter by a route that does not unwind the C++ stack.
-    //
-    // Execute() maintains depth_ and call_stack_ with a RAII scope guard, which
-    // covers a normal return and a C++ exception. It does NOT cover siglongjmp:
-    // the JNI_OnLoad shield in kudroid_bridge.cpp jumps out of a faulting library
-    // from a signal handler, and no destructor runs on the way. Every Execute()
-    // frame entered underneath the shield therefore leaks its entry, leaving
-    // call_stack_ holding pointers to DexFrame objects whose stack storage has been
-    // reclaimed.
-    //
-    // The consequence was worse than a leak. The next exception thrown on that
-    // thread called BuildStackTrace(), which walked the dead entries and dereferenced
-    // a garbage DexMethod — turning a diagnosable Java exception into SIGSEGV inside
-    // the very code meant to explain it. Minecraft's MainActivity.onCreate died this
-    // way with its real exception never printed.
+    // Per-thread interpreter bookkeeping, for a caller that is about to leave the interpreter by a route that does not unwind the C++ stack.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     struct ThreadState {
         size_t depth = 0;
         size_t frames = 0;
@@ -300,7 +300,7 @@ void ClearResolveCaches();
 // Invalidate thread-local resolutions before a class loader releases its classes.
 void ClearFastResolutionCaches();
 
-}  // namespace kuart
-}  // namespace kudroid
+}  // namespace
+}  // namespace
 
 #endif  // KUDROID_KUART_INTERPRETER_H

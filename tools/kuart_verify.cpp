@@ -1,24 +1,24 @@
-// Report every class, method and field a guest APK references that KuART cannot resolve.
-// DEX tables list all references upfront, so ranking them across APKs says what to
-// implement next. Built on the real DexClassLinker, not a separate parser.
-//
-// What this CANNOT see, and why it is not the whole answer:
-//
-//   1. Names resolved from native code. AGDK's initializeNativeCode calls
-//      GetMethodID("getDeviceId", "()I") on MotionEvent; that string lives in the .so, not
-//      in any DEX table. Twenty-five such methods were missing at once and none of them
-//      appear here. Use --jni-scan on the .so for that half.
-//   2. API that exists but is never initialised. ALooper_forThread returned null because
-//      nothing called ALooper_prepare — no symbol is missing, so nothing static can find
-//      it. That class of bug still needs a device.
-//
-// Usage:
-//   kuart_verify <extracted-app-dir> [more dirs...]     one line per unresolved entry
-//   kuart_verify --json <dir>                           machine-readable, for aggregation
-//   kuart_verify --jni-scan <lib.so>                    candidate JNI names in a library
-//
-// The directory is one an APK has already been extracted into (classes*.dex at the top
-// level), which is what APKExtractor produces.
+// Report every class, method and field a guest APK references that the DEX runtime cannot resolve.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 #include "kudroid/KuArtRuntime.h"
 #include "kudroid/kuart/DexClass.h"
@@ -73,12 +73,12 @@ struct Finding {
     std::string signature;  // method signature or field type descriptor
 };
 
-// Only the boot classpath is KuDroid's responsibility. An app's own classes are in its DEX
-// and resolve on their own; a missing one means the APK was extracted incompletely, which
-// is a different problem and would drown out the signal being looked for here.
-//
-// Kept in step with isBootClasspathDescriptor() in DexClassLinker.cpp: anything the linker
-// will auto-stub is something KuDroid is expected to ship.
+// Identify classes belonging to the boot classpath.
+
+
+
+
+
 bool IsBootClasspath(const char* descriptor) {
     if (descriptor == nullptr || descriptor[0] != 'L') return false;
     static const char* kPrefixes[] = {
@@ -201,8 +201,8 @@ bool VerifyApp(const std::filesystem::path& dir, AppResult* result) {
         return false;
     }
 
-    // Skip index 0: that is the embedded framework, and checking KuDroid's own code against
-    // itself would only report gaps between framework classes, not what the app needs.
+    // Exclude the embedded framework from application-reference checks.
+
     for (size_t i = 1; i < linker->NumDexFiles(); ++i) {
         const art::DexFile* dex = linker->DexFileAt(i);
         if (dex == nullptr) continue;

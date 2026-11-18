@@ -1,5 +1,5 @@
-// Minimal reflection for KuART (Class.forName/newInstance/getMethod/invoke).
-// Implemented in C++ directly; framework declares these methods as native.
+// Minimal reflection for the DEX runtime.
+
 #ifndef KUDROID_KUART_DEXREFLECT_H
 #define KUDROID_KUART_DEXREFLECT_H
 
@@ -47,7 +47,7 @@ private:
     std::string last_error_;
 };
 
-}  // namespace kuart
-}  // namespace kudroid
+}  // namespace
+}  // namespace
 
 #endif  // KUDROID_KUART_DEXREFLECT_H

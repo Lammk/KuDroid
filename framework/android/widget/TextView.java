@@ -6,11 +6,11 @@ import android.content.res.ColorStateList;
 import android.graphics.Paint;
 import android.view.View;
 
-/**
- * minimal android.widget.textview implementation.
- *
- * show text. for kudroid minimal framework, text storage and paint.
- */
+/** Store and render styled text. */
+
+
+
+
 public class TextView extends View {
     /**
      * Callback when the user presses the action key on the soft keyboard (Done/Search/...).
@@ -174,7 +174,7 @@ public class TextView extends View {
     }
 
     public TextView(Context context, android.util.AttributeSet attrs) {
-        this(context, attrs, 0);
+        this(context, attrs, com.android.internal.R.attr.textViewStyle);
     }
 
     public TextView(Context context, android.util.AttributeSet attrs, int defStyleAttr) {

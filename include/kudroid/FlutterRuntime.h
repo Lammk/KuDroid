@@ -11,4 +11,4 @@ std::string selectConstrainedFlutterRuntime(const std::string& originalPath,
 
 std::string bundledFlutterRuntimeDirectory();
 
-} // namespace kudroid
+} // namespace

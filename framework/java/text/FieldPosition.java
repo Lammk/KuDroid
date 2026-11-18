@@ -1,12 +1,12 @@
 package java.text;
 
-/**
- * java.text.FieldPosition — which field a formatter wrote, and where.
- *
- * Formatters report the span of one field of interest so callers can highlight it.
- * KuDroid's formatters fill in begin/end when it is cheap and leave them at zero
- * otherwise, which is what the JDK does for fields that were not requested.
- */
+/** Record the position of a formatted field. */
+
+
+
+
+
+
 public class FieldPosition {
     private int myField;
     private int beginIndex;

@@ -158,6 +158,6 @@ bool QueryRegionProt(const void* addr, char cur[4], char max[4],
                      uint64_t* regionBase = nullptr,
                      uint64_t* regionSize = nullptr);
 
-}  // namespace kudroid
+}  // namespace
 
 #endif  // KUDROID_EXECMEMORY_H

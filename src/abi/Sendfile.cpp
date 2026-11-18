@@ -46,7 +46,7 @@ ssize_t sendfileEmulated(int outFd, int inFd, off_t* offset, size_t count) {
     return total ? ssize_t(total) : (failure ? -1 : 0);
 }
 
-} // namespace kudroid
+} // namespace
 
 extern "C" ssize_t bionic_sendfile(int outFd, int inFd, off_t* offset, size_t count) {
 #if defined(__linux__)

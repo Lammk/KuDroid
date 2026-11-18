@@ -55,7 +55,7 @@ private:
     size_t bytes_allocated_ = 0;
 };
 
-}  // namespace kuart
-}  // namespace kudroid
+}  // namespace
+}  // namespace
 
 #endif  // KUDROID_KUART_DEXHEAP_H

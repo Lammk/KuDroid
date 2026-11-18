@@ -285,9 +285,9 @@ class NativeMetalViewController: UIViewController {
                 kudroid_send_lifecycle_event(102)
             }
         })
-        // Android delivers onPause/onResume with app foreground; iOS must mirror it or
-        // Unity never runs OnApplicationPause, so save-on-pause paths (settings commit)
-        // never execute and the engine keeps pumping frames into a suspended process.
+        // Mirror foreground changes through activity pause and resume callbacks.
+
+
         keyboardObservers.append(NotificationCenter.default.addObserver(
             forName: UIApplication.willResignActiveNotification, object: nil, queue: .main
         ) { [weak self] _ in
@@ -444,11 +444,11 @@ class NativeMetalViewController: UIViewController {
                 if reqOri == 0 || reqOri == 6 || reqOri == 8 || reqOri == 11 {
                     // Landscape
                     NSLog("[KuDroid] Guest app requested LANDSCAPE orientation (%d)", reqOri)
-                    // Skip when the scene already sits in this geometry: a
-                    // redundant request triggers the guest's pause/resume
-                    // handshake (a 2s Unity pause timeout per occurrence) for
-                    // no visual change. See the portrait branch for the storm
-                    // this stopped.
+                    // Skip when the scene already sits in this geometry: a redundant request triggers the guest's pause/resume handshake for no visual change.
+
+
+
+
                     if let scene = self.view.window?.windowScene,
                        scene.interfaceOrientation.isLandscape {
                         // Already landscape: skip the redundant request (and the
@@ -464,13 +464,13 @@ class NativeMetalViewController: UIViewController {
                 } else if reqOri == 1 || reqOri == 7 || reqOri == 9 || reqOri == 12 {
                     // Portrait
                     NSLog("[KuDroid] Guest app requested PORTRAIT orientation (%d)", reqOri)
-                    // No-op when the guest re-asserts the orientation the app is
-                    // already showing (ULTRAKILL calls setRequestedOrientation on
-                    // every touch-driven UI transition). A second
-                    // requestGeometryUpdate to the current geometry pauses the
-                    // Unity engine for the 2s handshake that follows and then
-                    // times out — the "Timeout (2000 ms) while trying to pause"
-                    // storm at the end of the last run.
+                    // No-op when the guest re-asserts the orientation the app is already showing.
+
+
+
+
+
+
                     if let scene = self.view.window?.windowScene,
                        scene.interfaceOrientation.isPortrait {
                         // Already portrait: skip the redundant request (and the

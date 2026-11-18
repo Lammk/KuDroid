@@ -26,13 +26,13 @@ public class AssetFileDescriptor implements Parcelable, Closeable {
     public long getLength() { return mLength; }
     public long getDeclaredLength() { return mLength; }
 
-    /**
-     * A stream over exactly this entry's bytes. Android seeks to mStartOffset and caps
-     * reads at mLength; returning a raw stream from byte 0 hands the caller the ZIP
-     * local header (PK\x03\x04) instead of the payload, which is what made FMOD/asset
-     * readers report a corrupt file. The return type must stay FileInputStream for
-     * signature compatibility, hence the subclass rather than a FilterInputStream.
-     */
+    /** A stream over exactly this entry's bytes. */
+
+
+
+
+
+
     public FileInputStream createInputStream() throws IOException {
         return new BoundedFileInputStream(getFileDescriptor(), mStartOffset, mLength);
     }

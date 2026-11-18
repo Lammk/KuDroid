@@ -1543,4 +1543,4 @@ extern "C" const char* kudroid_test_audio(void) {
     return strdup(log.c_str());
 }
 
-} // namespace kudroid
+} // namespace

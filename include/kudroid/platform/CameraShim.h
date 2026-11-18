@@ -2,11 +2,11 @@
 
 #include <cstdint>
 
-// ── android.hardware.Camera, for KuART ───────────────────────────────────────
-//
-// The host (iOS) owns the capture session; this layer carries commands from the guest
-// to it and frames and photos back. Frames are stored as NV21, latest only, and are
-// announced to the guest's main Looper rather than delivered from the capture thread.
+// Frames are stored as NV21, latest only, and are announced to the guest's main Looper rather than delivered from the capture thread.
+
+
+
+
 extern "C" {
 
 // Capture session control, implemented by the host. Every function may be called from

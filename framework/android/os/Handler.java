@@ -1,11 +1,11 @@
 package android.os;
 
-/**
- * minimal android.os.handler implementation.
- *
- * allow posting runnables/messages to a looper. for kudroid minimal framework,
- * messages are sent synchronously when the looper runs.
- */
+/** Allow posting runnables/messages to a looper. */
+
+
+
+
+
 public class Handler {
     private final Looper mLooper;
     private final MessageQueue mQueue;
@@ -19,15 +19,15 @@ public class Handler {
         boolean handleMessage(Message msg);
     }
 
-    /**
-     * default constructor - uses the current thread's looper.
-     *
-     * Was bound to the MAIN looper regardless of calling thread, which put
-     * every background Handler (notably Unity's UnityMain render driver, built
-     * as `new Handler(callback)` on its own thread) onto the UI thread: ticks
-     * dispatched on main, renders ran on main, and the driver's quit message
-     * quit the MAIN looper instead of its own. AOSP binds myLooper() here.
-     */
+    /** Default constructor - uses the current thread's looper. */
+
+
+
+
+
+
+
+
     public Handler() {
         this(findLooper(), null);
     }

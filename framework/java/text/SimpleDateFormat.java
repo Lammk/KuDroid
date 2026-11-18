@@ -6,24 +6,24 @@ import java.util.GregorianCalendar;
 import java.util.Locale;
 import java.util.TimeZone;
 
-/**
- * java.text.SimpleDateFormat — pattern-based date formatting and parsing.
- *
- * Written for KuDroid rather than ported: Apache Harmony's version needs
- * com.ibm.icu.text.DecimalFormat through NumberFormat, and AOSP's is a thin shim over
- * ICU as well. This implements the pattern letters directly against
- * GregorianCalendar.
- *
- * Supported letters (count controls zero-padding, as in the JDK):
- *   G era      y year        M month     d day-of-month   E day-of-week
- *   H hour0-23 k hour1-24    h hour1-12  K hour0-11       a AM/PM
- *   m minute   s second      S millis    D day-of-year    F day-of-week-in-month
- *   w week-of-year  W week-of-month      z/Z time zone
- * Quoted literals ('...' and '' for a single quote) are handled.
- *
- * Unsupported letters are emitted verbatim rather than throwing, so an exotic pattern
- * degrades to slightly wrong text instead of taking down the app that used it.
- */
+/** Format and parse dates using a pattern. */
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 public class SimpleDateFormat extends DateFormat {
 
     private static final String PATTERN_CHARS = "GyMdkHmsSEDFwWahKzZ";

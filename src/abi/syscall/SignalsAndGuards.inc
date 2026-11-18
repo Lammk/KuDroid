@@ -141,25 +141,25 @@ extern "C" pid_t bionic_gettid() {
 
 #ifdef __APPLE__
 // How many bytes from `addr` carry every protection bit in `required`.
-//
-// Returns a LENGTH, not a yes/no, because the kernel this stands in for answers with a
-// length: a read that starts in a committed page and runs into a PROT_NONE reservation
-// returns the readable prefix and no error. Verified against the real syscall on Linux —
-// a 16-byte read straddling the boundary returns 6, not EFAULT. Answering yes/no would
-// either approve the faulting half or reject a request the guest is entitled to have
-// partly served.
-//
-// Protection, not mere mappedness, is the question. Getting that wrong is what turned a
-// probe meant to PREVENT a segfault into the cause of one: a PROT_NONE reservation IS a
-// mapped region — vm_region_64 reports it with a base, a size and protection 0 — so a
-// range check answered "safe to read" for memory that faults on its first byte.
-//
-// That is not an edge case on iOS, it is the common case. Unity reserves address space in
-// half-gigabyte PROT_NONE chunks before committing any of it; the ULTRAKILL log has
-// eleven `mmap(len=536854528, prot=0x0, flags=0x22)` calls in a row, and 0x5500000000 —
-// the address that faulted — has exactly that shape. libunity's own crash reporter probed
-// it, this said yes, and the memcpy took the fault inside _platform_memmove with lr in
-// bionic_syscall.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 static size_t prot_prefix_len(uintptr_t addr, size_t len, vm_prot_t required) {
     if (len == 0) return 0;
     if (addr > static_cast<uintptr_t>(-1) - len) return 0;
@@ -224,26 +224,26 @@ extern "C" long bionic_process_vm_readv(pid_t pid, const struct iovec* local_iov
             if (total == 0) { errno = EFAULT; return -1; }
             return total;
         }
-        // The guest is asking "can I read here?" precisely because it does NOT know, so
-        // the answer has to be established before the memcpy rather than discovered by
-        // faulting during it.
-        //
-        // Protection, not mappedness — the distinction this used to miss, and it cost a
-        // crash: a PROT_NONE reservation is mapped, Unity makes hundreds of gigabytes of
-        // them at startup, and approving one turned libunity's own crash-reporter probe
-        // into a fault inside _platform_memmove.
-        //
-        // The DESTINATION is checked too, which it was not before and which is just as
-        // fatal: a local_iov pointing into a read-only or reserved page faults on the
-        // write side of the same memcpy, at an address that looks like the guest's own
-        // buffer with nothing to suggest this shim chose to write there.
-        //
-        // A partly-accessible range copies its accessible PREFIX, matching the kernel
-        // rather than a convenient simplification. Checked against the real syscall on
-        // Linux: a 16-byte read spanning a committed page and the PROT_NONE mapping after
-        // it returns 6 and no error. Refusing the whole request would make a guest whose
-        // probe legitimately runs off the end of a region conclude the memory is
-        // unreadable when it is not.
+        // Reserve TLS storage for loaded guest modules.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
         size_t copy = prot_prefix_len(reinterpret_cast<uintptr_t>(src), n, VM_PROT_READ);
         const size_t writable = prot_prefix_len(reinterpret_cast<uintptr_t>(dst), copy,
                                                 VM_PROT_WRITE);
@@ -311,10 +311,10 @@ static long emulate_futex_direct(uintptr_t arg1, uintptr_t arg2, uintptr_t arg3,
                 char mod[256] = {0};
                 kudroid_lookup_guest_module(uaddr, mod, sizeof(mod));
                 char msg[352];
-                // tid, because without it this line cannot be joined to anything. The
-                // captured ULTRAKILL log had two futex_wait lines and one stall report,
-                // and no way to tell whether the reported thread was one of the two:
-                // the stall said tid=2844404, these said nothing at all.
+                // Translate socket and resolver structures into host layouts.
+
+
+
                 snprintf(msg, sizeof(msg),
                          "futex_wait uaddr=0x%llx [%s] val=%u op=%d tid=%llu",
                          (unsigned long long)(uintptr_t)uaddr, mod, val, futex_op,

@@ -110,10 +110,10 @@ void kudroid_note_guest_ui_thread(void);
 void kudroid_note_render_thread(void);
 /// The recorded guest UI thread id, or 0 before ActivityThread.main runs.
 unsigned long long kudroid_guest_ui_thread_id(void);
-/// Record this thread's guest name (from prctl PR_SET_NAME) for fault
-/// isolation. Names containing Main/main/Render/GfxDevice mark engine-critical
-/// threads (UnityMain, RenderThread, ...), which are app-fatal like the UI
-/// thread above — a fault there must never be mistaken for a worker fault.
+// Record guest thread names to distinguish critical threads from workers.
+
+
+
 void kudroid_note_thread_name(const char* name);
 
 /// Drop all per-app fault-isolation state (UI/render tids, name slots, worker
@@ -192,19 +192,19 @@ int kudroid_runtime_permission_granted(const char* packageName, const char* perm
 /// allow input.
 int kudroid_audio_capture_active(void);
 
-// ── soft keyboard ────────────────────────────────────────────────────────────
-//
-// The guest asks for a keyboard through InputMethodManager; the host owns the only
-// thing that can produce one. KuDroid has no on-screen keyboard of its own, so the
-// request is forwarded to iOS, which shows the system keyboard for whichever view
-// becomes first responder.
-//
-// Two directions, deliberately separate:
-//   - show/hide travel guest -> host, through the callbacks the host registers.
-//   - typed text travels host -> guest, through kudroid_dispatch_text_input.
-//
-// The callbacks exist because kudroid_core cannot reach UIKit: it is a static library
-// linked into a Swift app, and the view that must become first responder lives there.
+// Forward guest keyboard requests to the host.
+
+
+
+
+
+
+
+
+
+
+
+
 
 /// Registered by the host. `flags` mirrors InputMethodManager.showSoftInput.
 typedef void (*kudroid_soft_input_show_cb)(int flags);
@@ -256,26 +256,26 @@ void kudroid_set_native_lib_dir(const char* dir);
 /// stderr stream (loader, VFS, audio) to the phase that caused them.
 void kudroid_boot_mark(const char* phase);
 
-/// Prefix for one diagnostic trace line: boot-relative time and the guest thread
-/// name, e.g. "[t=12345ms th=UnityMain] ". Shares kudroid_boot_mark's clock origin,
-/// so VFS/audio lines can be placed between the phase marks. Returns a
-/// thread-local buffer that is valid until the next call on the same thread.
+// Return a thread-local diagnostic prefix with boot-relative time and thread name.
+
+
+
 const char* kudroid_trace_stamp(void);
 
-/// Absolute host path of the guest native library called `name`, for
-/// BaseDexClassLoader.findLibrary().
-///
-/// `name` may be the bare library name from android.app.lib_name ("minecraftpe"),
-/// a file name ("libminecraftpe.so"), or a path ending in one. The answer is the
-/// real on-device path — under the iOS app container, not the Android
-/// /data/app/... path the guest otherwise sees — because the caller passes it
-/// straight to dlopen.
-///
-/// Writes into `out` (NUL-terminated) and returns 1 on success. Returns 0 and
-/// leaves `out` untouched when there is no such library, when `out_size` is too
-/// small, or on a null argument. Caller-supplied buffer rather than a returned
-/// pointer: this is reachable from any guest thread, and a shared static would
-/// hand out a string another thread is overwriting.
+// Resolve a library name or path into the caller buffer; return zero on failure.
+
+
+
+
+
+
+
+
+
+
+
+
+
 int kudroid_find_native_library(const char* name, char* out, unsigned long out_size);
 
 #ifdef __cplusplus

@@ -79,12 +79,12 @@ static bool extract_apk_impl(const std::string& apkPath, const std::string& targ
     std::vector<std::uint8_t> arscData;
 
     // Which ABIs the APK ships, so an unsupported one can be named.
-    //
-    // Only arm64-v8a is extracted, because the ELF loader relocates AArch64 only
-    // (R_AARCH64_*). Without this bookkeeping an armeabi-v7a-only APK extracted zero
-    // .so files and the failure surfaced much later as "Library directory does not
-    // exist" — which reads as a KuDroid bug rather than as an APK this build cannot
-    // run.
+
+
+
+
+
+
     std::set<std::string> abisSeen;
     bool extractedArm64Lib = false;
 
@@ -224,19 +224,19 @@ static bool extract_apk_impl(const std::string& apkPath, const std::string& targ
     }
 
     // Keep the APK itself alongside the extracted tree, as base.apk.
-    //
-    // Extracting entries as loose files is not enough for every app. A Unity game
-    // opens its own APK as a ZIP and reads assets/bin/Data/* out of the central
-    // directory — it never looks at loose files — so it needs the archive present at
-    // the path getPackageCodePath() reports, which is /data/app/<pkg>/base.apk.
-    // Without it Unity logs "ApkAddCentralDirectory : Unable to open" and starts with
-    // no scenes, no textures and no audio: a black screen and silence, with no
-    // failure anywhere near the cause.
-    //
-    // Only written for a base APK (extractManifest), not for config splits: they
-    // would each overwrite it, and the base is the one an app expects to find.
-    // Copying rather than moving keeps the caller's file intact — kudroid_install_apk
-    // deletes its own temp copy, and the KDB install path streams from elsewhere.
+
+
+
+
+
+
+
+
+
+
+
+
+
     if (extractManifest) {
         const auto apkDest = std::filesystem::path(targetDirectory) / "base.apk";
         std::error_code copyError;

@@ -12,13 +12,13 @@ static inline unsigned long long current_thread_id() {
 }
 
 static void sync_diag(const char* operation, void* object, void* mutex, int result) {
-    // Time-throttled, not lifetime-capped: a fixed 256-line budget was all
-    // spent in the one-second burst when Unity spawns its 22 Job.Workers, and
-    // the tail of that burst then sat in the crash ring — 177 of the last
-    // ~200 lines before a crash 3 minutes later were thread-sync noise,
-    // pushing out everything the crash actually needed. One line per second
-    // still traces a sync-object story across a whole session while capping
-    // the ring cost at ~8KB/minute.
+    // Throttle contention diagnostics by time.
+
+
+
+
+
+
     static std::atomic<long long> s_nextNs{0};
     const long long nowNs =
         std::chrono::duration_cast<std::chrono::nanoseconds>(
@@ -591,5 +591,5 @@ extern "C" int bionic_pthread_getattr_np(pthread_t thread, void* attr) {
 }
 
 } // namespace
-} // namespace kudroid
+} // namespace
 

@@ -131,5 +131,5 @@ bool Invoke_libcore_io_KuZlib(Interpreter* /*interp*/, const char* name, const D
     return false;
 }
 
-}  // namespace kuart
-}  // namespace kudroid
+}  // namespace
+}  // namespace

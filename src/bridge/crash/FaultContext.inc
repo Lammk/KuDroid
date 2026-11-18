@@ -5,16 +5,16 @@
 // the cost of headroom is minimal while too small a cap turns a survivable batch
 // into an engine shutdown.
 static constexpr int kMaxWorkerRecoveries = 1024;
-// A different shape of storm is a bounded indexing loop: Unity's serialized
-// pointer-relocation pass walks a relocation table and stores one pointer per
-// entry into an output array, e.g.
-//   str x17, [x18, x16, lsl #3]   // x16 = 0..0xfe, x18 = output array
-// When that array field is null the store faults on every iteration and the
-// address advances by 8 each time until the loop terminates. That loop is
-// self-terminating (fixed trip count), so the general 128 budget kills a run
-// that was about to finish. Forward walks at one pc get a separate, larger
-// ceiling; anything that repeats or regresses an address still charges the
-// normal budget and bails, so a genuine infinite loop cannot hide here.
+// Record repeated indexed stores during guest relocation.
+
+
+
+
+
+
+
+
+
 static constexpr int kMaxWalkRecoveries = 8192;
 // Null-base loop is never a reservation walk: below 0x10000 there is nothing
 // to commit, so every skip only pushes the corruption further (observed: a
@@ -316,11 +316,11 @@ static bool worker_budget_peek(WorkerBudget* s, unsigned long long pc,
 }
 
 
-// ── Host Abort Interception ──────────────────────────────────────────────────
-// SIGABRT typically results from an uncaught exception or failed assertion.
-// These handlers record the abort message before termination:
-// 1. Uncaught ObjC exceptions (NSException from ANGLE/Metal/UIKit)
-// 2. Uncaught C++ exceptions (std::terminate / exception::what())
+// Intercept host abort signals for diagnostics.
+
+
+
+
 #if defined(__APPLE__)
 #include <exception>
 extern "C" {

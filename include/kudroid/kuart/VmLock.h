@@ -91,7 +91,7 @@ bool Notify(DexObject* obj, bool all);
 
 }  // namespace Monitor
 
-}  // namespace kuart
-}  // namespace kudroid
+}  // namespace
+}  // namespace
 
 #endif  // KUDROID_KUART_VMLOCK_H

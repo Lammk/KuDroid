@@ -12,4 +12,4 @@ struct SymbolEntry {
 // Generic tracking function for buffer layers
 void trace_shim(const char* message);
 
-} // namespace kudroid
+} // namespace

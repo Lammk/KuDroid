@@ -75,10 +75,10 @@ bool Invoke_java_lang_reflect_Method(Interpreter* interp, const char* name,
         DexObject* receiver = num_args > 1 ? args[1].l : nullptr;
         auto* boxed = num_args > 2 ? reinterpret_cast<DexArray*>(args[2].l) : nullptr;
 
-        // Diagnostic: Unity's JNIBridge reflects every Java call from C# through
-        // here, and when it throws a messageless NoSuchMethodError the only way
-        // to know which method died is this line. The last REFLECT line before
-        // the uncaught trace is the prime suspect. Grep REFLECT in stderr.log.
+        // Trace methods reached through reflection.
+
+
+
         {
             const char* owner = (m->declaring_class != nullptr &&
                                  m->declaring_class->descriptor != nullptr)
@@ -487,10 +487,10 @@ bool Invoke_java_lang_reflect_Proxy(Interpreter* interp, const char* name,
         }
         // `h` is declared by java.lang.reflect.Proxy, which this class extends.
         SetRefField(proxy, "h", "Ljava/lang/reflect/InvocationHandler;", handler);
-        // TEMP DIAGNOSTIC (ULTRAKILL dead Runnable proxies): Unity's native bridge
-        // keeps the C++ peer for `ptr` and the proxy's interfaces must match what the
-        // peer was built for. Log both so a stranded peer can be correlated by ptr.
-        // Remove once the failing peer is identified.
+        // Trace native proxy interfaces and peer bindings.
+
+
+
         if (DexClass* handler_class = linker->ClassOfObject(handler)) {
             if (handler_class->descriptor != nullptr &&
                 std::strstr(handler_class->descriptor, "bitter/jnibridge") != nullptr) {
@@ -796,8 +796,8 @@ bool Invoke_java_lang_invoke_MethodHandles(Interpreter* interp, const char* name
                                "MethodHandles$Lookup(Class,int) is missing");
         return true;
     }
-    // PUBLIC|PRIVATE|PROTECTED|PACKAGE: nothing in KuART enforces access, so a narrower
-    // mode would only make callers take a fallback path for a restriction that is not real.
+    // Expose the supported reflection access modes.
+
     DexValue call_args[3];
     call_args[0] = DexValue::Ref(lookup);
     call_args[1] = DexValue::Ref(caller_class_obj);

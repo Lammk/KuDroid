@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
-# Summarize a KuDroid logs/ capture: frame pacing, render cost, I/O stalls,
-# audio backlog, jar misses. Read-only; run after each on-device test round.
-# Usage: scripts/analyze_logs.sh [logs-dir]   (default: ./logs)
+# Summarize frame pacing, render cost, I/O stalls, and audio backlog.
+
+
 set -euo pipefail
 
 DIR="${1:-./logs}"

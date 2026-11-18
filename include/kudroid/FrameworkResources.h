@@ -32,4 +32,4 @@ bool framework_resource_name(uint32_t id, std::string* type, std::string* entry)
 // Inverse of framework_resource_name.
 bool framework_resource_find(const std::string& type, const std::string& entry, uint32_t* id);
 
-}  // namespace kudroid
+}  // namespace

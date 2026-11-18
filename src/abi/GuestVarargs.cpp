@@ -322,23 +322,23 @@ bool PackPrintf(const Char* format, const GuestVarargs* registers,
     return true;
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Scanning, which is the same ABI problem with the consequences reversed.
-//
-// A guest's sscanf passes OUTPUT POINTERS as its varargs: the first six in x2-x7 and the
-// rest in the overflow area. Apple's callee reads every one of them from the stack, so a
-// forwarded call takes whatever is there and WRITES through it. printf formatted from the
-// wrong place and produced rubbish; scanf stores to the wrong place and corrupts memory.
-//
-// On device Minecraft parses a UUID with
-//   "%8x-%4hx-%4hx-%2hhx%2hhx-%2hhx%2hhx%2hhx%2hhx%2hhx%2hhx"
-// — eleven output pointers. The host wrote to five words of stack that were never
-// pointers, one of which held a jobject: the next JNI call reported clazz=0xf8ec9809, a
-// value no heap pointer can be. Then it stored to 0 and took SIGSEGV.
-//
-// The width and length modifiers are not decoration here. "%2hhx" must store exactly ONE
-// byte; storing four silently overwrites the two fields after it, which is worse than the
-// crash because nothing reports it.
+// Scan formatted input using the guest argument ABI.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 // Where characters come from. A function pointer rather than two copies of the scanner,
 // because fscanf reads a FILE* and this file cannot include <cstdio> — it is compiled
@@ -1052,7 +1052,7 @@ bool GuestVarargsFromVaList(const void* guest_ap, GuestVarargs* out,
     return true;
 }
 
-} // namespace kudroid
+} // namespace
 
 extern "C" size_t kudroid_format_guest_va_list(char* out, size_t size, const char* format,
                                                const void* guest_ap) {
@@ -1354,4 +1354,4 @@ bool UnpackGuestVaListToJvalues(const char* shorty, const void* guest_ap,
     return UnpackGuestVarargsToJvalues(shorty, &regs, firstGp, firstFp, outJvalues, maxOut);
 }
 
-}  // namespace kudroid
+}  // namespace

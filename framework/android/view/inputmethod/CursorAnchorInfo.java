@@ -1,13 +1,13 @@
 package android.view.inputmethod;
 
-/**
- * Where the cursor and the text around it are on screen, for an IME that wants to
- * position itself relative to them.
- *
- * Built through the Builder, as in AOSP — the class is immutable there and apps use
- * the builder form. Nothing consumes the result under KuDroid (there is no IME), so
- * this only has to hold what was set and give it back.
- */
+/** Describe cursor and text geometry for input methods. */
+
+
+
+
+
+
+
 public final class CursorAnchorInfo {
     public static final int FLAG_HAS_VISIBLE_REGION = 0x01;
     public static final int FLAG_HAS_INVISIBLE_REGION = 0x02;

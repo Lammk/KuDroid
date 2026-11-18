@@ -7,24 +7,24 @@ import java.util.List;
 import javax.net.ssl.SSLSession;
 import javax.net.ssl.X509TrustManager;
 
-/**
- * Android's extension over {@link X509TrustManager}, used for certificate pinning.
- *
- * HTTP stacks construct one of these to reach {@code checkServerTrusted} with a
- * hostname, which plain JSSE does not offer. Both okhttp and Microsoft's
- * libHttpClient do it during setup — and because it happens at setup, a failure here
- * disables TLS verification bookkeeping for the whole session rather than one request.
- *
- * The auto-generated stub this replaces had only a no-arg constructor, so
- * {@code new X509TrustManagerExtensions(tm)} resolved to nothing, returned null and
- * left the caller holding an object whose methods all threw. The log line was
- * "Auto-stubbing missing framework method:
- * Landroid/net/http/X509TrustManagerExtensions;-><init>(Ljavax/net/ssl/X509TrustManager;)V".
- *
- * Verification delegates to the wrapped trust manager. KuDroid does not carry its own
- * trust store, so what the platform manager decides is the answer; this class only
- * adds the hostname-aware entry point and the chain accessor around it.
- */
+/** Android's extension over {@link X509TrustManager}, used for certificate pinning. */
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 public class X509TrustManagerExtensions {
 
     private final X509TrustManager mDelegate;
@@ -42,15 +42,15 @@ public class X509TrustManagerExtensions {
         mDelegate = tm;
     }
 
-    /**
-     * Verify the chain and return it, ordered leaf-first.
-     *
-     * `host` is accepted and ignored: the wrapped manager decides trust, and KuDroid
-     * has no separate per-host pinning configuration to consult. Returning the chain
-     * the caller supplied is what pinning code needs — it compares public keys in the
-     * result against its own pin set, so an empty list would silently pass or fail
-     * every pin depending on which way the caller tests it.
-     */
+    /** Verify the chain and return it, ordered leaf-first. */
+
+
+
+
+
+
+
+
     public List<X509Certificate> checkServerTrusted(X509Certificate[] chain, String authType,
             String host) throws CertificateException {
         if (chain == null || chain.length == 0) {
@@ -64,13 +64,13 @@ public class X509TrustManagerExtensions {
         return result;
     }
 
-    /**
-     * Whether the chain was issued by a user-installed CA.
-     *
-     * Always false: KuDroid has no user CA store, so nothing can have come from one.
-     * Apps use this to decide whether to relax pinning for debugging proxies, and
-     * answering true would relax it for every connection.
-     */
+    /** Whether the chain was issued by a user-installed CA. */
+
+
+
+
+
+
     public boolean isUserAddedCertificate(X509Certificate cert) {
         return false;
     }

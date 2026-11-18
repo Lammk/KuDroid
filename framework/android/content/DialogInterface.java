@@ -1,11 +1,11 @@
 package android.content;
 
-/**
- * minimal android.content.dialoginterface implementation.
- *
- * interface for dialog boxes. for kudroid minimal framework, provide constant
- * button and click listener.
- */
+/** Interface for dialog boxes. */
+
+
+
+
+
 public interface DialogInterface {
     /** node: active. */
     public static final int BUTTON_POSITIVE = -1;

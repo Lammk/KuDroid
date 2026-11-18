@@ -1,14 +1,14 @@
 package android.util;
 
-/**
- * minimal android.util.log implementation.
- *
- * maps to native __android_log_print via a jni native method. this is
- * most used android class — nearly every app and game calls log.d/i/w/e.
- *
- * root side implemented in src/shims/syscallshim.cpp (bionic_android_log_print)
- * and exposed to java through jni registration in kudroid bridge.
- */
+/** Maps to native __android_log_print via a jni native method. */
+
+
+
+
+
+
+
+
 public final class Log {
     /** Priority constant for "verbose". */
     public static final int VERBOSE = 2;
@@ -90,15 +90,15 @@ public final class Log {
         return println_native(INFO, tag, msg + '\n' + getStackTraceString(tr));
     }
 
-    /**
-     * Whether a message at this level would be logged.
-     *
-     * Libraries gate expensive work on this — building a string, serialising an
-     * object — so it must exist or that guard throws. KuDroid forwards everything to
-     * stderr and drops nothing, so the honest answer for anything at DEBUG or above
-     * is true. VERBOSE is excluded to match Android's default, where it is off unless
-     * explicitly enabled; claiming it is on would make chatty libraries flood the log.
-     */
+    /** Whether a message at this level would be logged. */
+
+
+
+
+
+
+
+
     public static boolean isLoggable(String tag, int level) {
         return level >= DEBUG;
     }

@@ -5,17 +5,17 @@ import android.view.Display;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * android.media.MediaRouter.
- *
- * KuDroid presents audio through one CoreAudio output with no route selection,
- * so this is a single built-in route that is always selected. Every method is a
- * no-op or returns that route — the point is to keep Unity's
- * {@code bitter.jnibridge} reflection ({@code getSystemService("media_router")}
- * followed by calls on the result) from hitting an auto-stubbed class and
- * throwing {@code NoClassDefFoundError} -> {@code NoSuchMethodError} out of
- * {@code Looper.loop}, which killed {@code ActivityThread.main} for ULTRAKILL.
- */
+/** Describe the selected host audio route. */
+
+
+
+
+
+
+
+
+
+
 public class MediaRouter {
     public static final int ROUTE_TYPE_LIVE_AUDIO = 0x00000002;
     public static final int ROUTE_TYPE_LIVE_VIDEO = 0x00000001;

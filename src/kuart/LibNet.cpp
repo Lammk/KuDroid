@@ -686,5 +686,5 @@ bool Invoke_libcore_io_KuNet(Interpreter* interp, const char* name, const DexVal
     return false;
 }
 
-}  // namespace kuart
-}  // namespace kudroid
+}  // namespace
+}  // namespace

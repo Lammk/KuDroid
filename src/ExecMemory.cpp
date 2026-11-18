@@ -123,27 +123,27 @@ bool TryMapJit(void** out, size_t size) {
     return true;
 }
 
-// ── iOS 26+ TXM/SPTM breakpoint protocol ────────────────────────────────────
-//
-// On the hardware-monitored W^X regimes (iOS 26+, A13+/M1+) a debugger attach is
-// not enough: every executable region must be "prepared" over the debug
-// connection before any instruction is fetched from it. StikDebug attaches with
-// the universal script, which services these traps (x16 selects the command):
-//
-//   mov x16,#1 ; brk #0xf00d   prepare [x0, x0+x1) RX; return the same x0
-//   mov x16,#0 ; brk #0xf00d   detach (the region set is final)
-//
-// The script does NOT allocate when x0 is non-null — it only *prepares* the
-// mapping it is handed (x0==0 asks the server to allocate one, but then the
-// server owns the pages and our writes would not alias them). So the engine must
-// create the RX alias itself (mach_vm_remap of the MAP_JIT backing) and pass it
-// here for preparation. Success is then proven by fetching through the returned
-// address, not by the trap returning.
-//
-// The debugger owns the stop while attached, so the process never sees these
-// traps. An attach WITHOUT the script delivers them to us as SIGTRAP; see
-// bionic_handle_jit26_trap, which steps over them so such a run degrades instead
-// of dying on a breakpoint it never intended to service.
+// Prepare executable regions through the debugger before fetching instructions.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 extern "C" __attribute__((naked, noinline)) void* kudroid_jit26_prepare(void*, size_t) {
     __asm__ volatile(
         "mov x16, #1\n"
@@ -1254,4 +1254,4 @@ bool ExecMemory::Commit(const Region& region, void* code, size_t size) {
     return true;
 }
 
-}  // namespace kudroid
+}  // namespace

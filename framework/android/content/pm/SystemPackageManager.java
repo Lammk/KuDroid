@@ -8,26 +8,26 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-/**
- * KuDroid's package database.
- *
- * On Android a PackageManager is a thin client of the system's package service,
- * which holds what AndroidManifest.xml declared. KuDroid has no system service, so
- * this class IS the database: the native side parses the manifest at launch and
- * registers the results here through {@link #registerComponentMetaData}, and every
- * PackageManager query is answered from that.
- *
- * The manifest data has to arrive before any component runs, because a component can
- * read it during its own construction. AGDK's GameActivity is the case that made this
- * necessary — its onCreate does
- *
- *   getPackageManager().getActivityInfo(getIntent().getComponent(), GET_META_DATA)
- *       .metaData.getString("android.app.lib_name")
- *
- * to learn which .so holds its renderer. Answering that with an empty ActivityInfo
- * leaves the activity with no native library, so the surface it creates stays blank —
- * a failure that looks like a graphics bug and is not one.
- */
+/** Resolve package metadata declared by the manifest. */
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 public class SystemPackageManager extends PackageManager {
 
     /**
@@ -354,8 +354,8 @@ public class SystemPackageManager extends PackageManager {
         PackageInfo pi = new PackageInfo();
         pi.packageName = packageName;
         pi.applicationInfo = getApplicationInfo(packageName, flags);
-        // Manifest values when plumbed, honest fallback otherwise (Unity splits
-        // versionName on "."; null becomes an NPE far from the cause).
+        // Return registered manifest values or platform defaults.
+
         pi.versionName = sVersionName;
         pi.versionCode = sVersionCode;
         pi.firstInstallTime = sFirstInstallTime;
@@ -508,19 +508,19 @@ public class SystemPackageManager extends PackageManager {
         return RuntimePermissions.check(pkgName, permName);
     }
 
-    /**
-     * Whether the device has a named feature.
-     *
-     * "true for everything" is wrong for the features an app acts on rather than merely
-     * reports. FEATURE_GAMEPAD is the clearest: a game told a gamepad is present hides its
-     * touch controls and then receives no input, because nothing here bridges iOS's
-     * GameController.framework.
-     *
-     * Everything not named below still returns true. That default is deliberate: the
-     * overwhelming majority of feature queries gate on graphics or platform capabilities
-     * that KuDroid does provide, and a false answer there turns a working app into one that
-     * refuses to start.
-     */
+    /** Whether the device has a named feature. */
+
+
+
+
+
+
+
+
+
+
+
+
     @Override
     public boolean hasSystemFeature(String name) {
         if (name == null) {
@@ -544,10 +544,10 @@ public class SystemPackageManager extends PackageManager {
                 name.startsWith("android.hardware.camera.capability.")) {
             return false;
         }
-        // Low-latency and pro audio describe guarantees KuDroid cannot make: audio goes
-        // through a CoreAudio queue whose period is not under the guest's control. An app
-        // that believes it has low-latency output sizes its mixer for a deadline it will
-        // miss, which is audible as underruns rather than reported as an error.
+        // Report only audio guarantees supported by the host.
+
+
+
         if (name.equals(FEATURE_AUDIO_LOW_LATENCY) || name.equals(FEATURE_AUDIO_PRO)) {
             return false;
         }
@@ -556,9 +556,9 @@ public class SystemPackageManager extends PackageManager {
 
     @Override
     public boolean hasSystemFeature(String name, int version) {
-        // The versioned form asks whether the feature is available AT LEAST at `version`.
-        // Deferring to the unversioned answer is right for everything KuDroid reports,
-        // because none of the features above are version-graded here.
+        // Check whether a feature meets the requested version.
+
+
         return hasSystemFeature(name);
     }
 
@@ -574,8 +574,8 @@ public class SystemPackageManager extends PackageManager {
         if (intent == null) return null;
         final ComponentName component = intent.getComponent();
         if (component == null) {
-            // An implicit Intent needs intent-filter matching, which KuDroid does not
-            // parse. The only implicit intents answered are URL ones, which the host opens.
+            // Resolve implicit intents against registered filters.
+
             if (android.app.ActivityThread.externalUrl(intent) != null) {
                 ResolveInfo ri = new ResolveInfo();
                 ri.activityInfo = new ActivityInfo();

@@ -1,10 +1,10 @@
 package android.graphics;
 
-/**
- * minimal android.graphics.colorfilter implementation.
- *
- * a color filter for drawing. for kudroid minimal framework, here is an emulation.
- */
+/** A color filter for drawing. */
+
+
+
+
 public class ColorFilter {
     public ColorFilter() {
     }

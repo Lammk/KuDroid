@@ -26,13 +26,13 @@ constexpr uint32_t kPerformanceMaxKhz = 2800000;
 constexpr uint32_t kEfficiencyMaxKhz = 1800000;
 
 // Used only when the platform reports nothing at all.
-//
-// Six, not eight: it is the count on the devices KuDroid targets, and over-reporting is
-// the worse error of the two. An engine that creates eight workers on a four-core device
-// oversubscribes every one of them, while four workers on a six-core device leaves
-// headroom. Two of the six are efficiency cores, matching the asymmetry every phone SoC
-// in this class has — a guest that finds none will schedule background work onto
-// performance cores.
+
+
+
+
+
+
+
 constexpr uint32_t kFallbackTotal = 6;
 constexpr uint32_t kFallbackEfficiency = 2;
 
@@ -187,4 +187,4 @@ void cpu_topology_override_for_test(const CpuTopology& topology) {
     g_valid = true;
 }
 
-}  // namespace kudroid
+}  // namespace

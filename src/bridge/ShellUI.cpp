@@ -29,7 +29,7 @@ float g_metalLayerDensity = 3.0f;
 // Via the standard log pipeline; defined in SyscallShim.cpp, shared with GraphicsShim.
 extern "C" int kudroid_android_log_message(int priority, const char* tag, const char* message);
 
-// ANGLE first-touch must run on the main thread.
+// The graphics backend first-touch must run on the main thread.
 extern "C" void kudroid_gpu_warmup_egl(void);
 extern "C" void* bionic_ANativeWindow_fromSurface(void* env, void* surface);
 extern "C" void kudroid_gpu_rebind_native_windows(void* layer, int width, int height);
@@ -67,14 +67,14 @@ extern "C" void kudroid_set_metal_layer(void* layer, int width, int height, floa
     }
 
     // Move any window the guest already holds onto this layer.
-    //
-    // The shell binds twice: once for the app-wide view at startup, then again when
-    // the guest-app runner installs its own on top. A guest that took its
-    // ANativeWindow between those two calls — Unity does, from
-    // nativeRecreateGfxState — would otherwise keep rendering into the first layer
-    // for the rest of the process, which by then is behind the new one. The result
-    // is a black screen with the guest rendering correctly the whole time and
-    // nothing in any log pointing here.
+
+
+
+
+
+
+
+
     if (layer != nullptr && layer != previousLayer) {
         kudroid_gpu_rebind_native_windows(layer, width, height);
     }

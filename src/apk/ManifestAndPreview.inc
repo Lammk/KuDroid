@@ -448,4 +448,4 @@ std::string APKExtractor::get_package_name(const std::string& apkPath) {
     return stem;
 }
 
-} // namespace kudroid
+} // namespace

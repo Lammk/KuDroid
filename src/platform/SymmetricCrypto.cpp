@@ -161,4 +161,4 @@ bool CryptoRandomBytes(uint8_t* output, size_t length) {
     return false;
 #endif
 }
-}  // namespace kudroid
+}  // namespace

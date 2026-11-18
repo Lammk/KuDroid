@@ -185,10 +185,10 @@ int thread_sample_report(const char* reason) {
         t.state = -1;
         t.is_self = (thread == self);
 
-        // Identity: THREAD_IDENTIFIER_INFO's thread_id is the same 64-bit number
-        // pthread_threadid_np returns, so this line joins to every other diagnostic
-        // KuDroid prints — the blocking-wait registry's tid=, the futex line's, and
-        // the telemetry watchdog's native_thread_id=.
+        // Identify sampled threads using the host thread ID.
+
+
+
         thread_identifier_info_data_t ident;
         std::memset(&ident, 0, sizeof(ident));
         mach_msg_type_number_t identCount = THREAD_IDENTIFIER_INFO_COUNT;
@@ -228,11 +228,11 @@ int thread_sample_report(const char* reason) {
             t.have_regs = true;
         }
 
-        // pthread_getname_np needs a pthread_t, and a Mach port maps back to one only
-        // for threads created through pthread. When it fails the name is simply
-        // absent, which costs little: tid still identifies the thread, and the name is
-        // a convenience — though a valuable one, since the guest sets it
-        // (prctl(PR_SET_NAME, "UnityMain")) and it says what the thread is for.
+        // Resolve host thread names when a pthread handle is available.
+
+
+
+
         const pthread_t handle = pthread_from_mach_thread_np(thread);
         if (handle != nullptr) {
             if (pthread_getname_np(handle, t.name, sizeof(t.name)) != 0) t.name[0] = '\0';
@@ -324,4 +324,4 @@ int thread_sample_report(const char* reason) {
 #endif
 }
 
-}  // namespace kudroid
+}  // namespace

@@ -99,13 +99,13 @@ public class InputDevice {
         return false;
     }
 
-    /**
-     * The character map Unity's input init reads through. Its absence was a
-     * NoSuchMethodError on first device query, aborting the engine's input
-     * setup so later touch dispatches were dropped whole (live: 158 injects
-     * with zero movement in-game). An empty map is what a keyboard-less
-     * touchscreen answers.
-     */
+    /** Return the input device character map. */
+
+
+
+
+
+
     public android.view.KeyCharacterMap getKeyCharacterMap() {
         return android.view.KeyCharacterMap.load(KeyCharacterMap.BUILT_IN_KEYBOARD);
     }
@@ -118,13 +118,13 @@ public class InputDevice {
         return result;
     }
 
-    /**
-     * android.view.InputDevice$MotionRange — native input code enumerates this to
-     * decide whether a device is a usable touchscreen. Without it (missing method
-     * or empty ranges) Unity concludes there is no touchscreen and drops every
-     * touch its own injectEvent receives. Bounds come from the default display so
-     * they match the pixel space MotionEvent coordinates live in.
-     */
+    /** Describe the supported input motion range. */
+
+
+
+
+
+
     public static final class MotionRange {
         private final int mAxis;
         private final int mSource;

@@ -64,4 +64,4 @@ bool provisionSystemFonts(const std::string& androidRoot, const std::string& sou
     return true;
 }
 
-} // namespace kudroid
+} // namespace

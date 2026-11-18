@@ -14,13 +14,13 @@ void vfsTrace(const std::string& message) {
 
 std::string defaultDocumentsDirectory() {
     // HOME, not a computed bundle path.
-    //
-    // This is the fallback for anything that touches the remapper before Swift calls
-    // kudroid_set_documents_dir, and it has to land in the same place that call would.
-    // It does: iOS sets HOME to the app container, and LiveContainer rewrites HOME (and
-    // CFFIXED_USER_HOME, which is what FileManager reads) to the nested per-guest
-    // container before it loads the guest — so both sides agree in either deployment,
-    // and no orphaned android_root is created at a stale path.
+
+
+
+
+
+
+
     const char* home = std::getenv("HOME");
     if (home != nullptr && *home != '\0') return std::string(home) + "/Documents";
     // No HOME at all should not happen on iOS. "." would be the process working

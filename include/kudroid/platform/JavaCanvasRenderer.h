@@ -86,4 +86,4 @@ private:
 #endif
 };
 
-} // namespace kudroid
+} // namespace

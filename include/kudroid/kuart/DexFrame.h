@@ -94,7 +94,7 @@ private:
     DexObject* caught_exception_ = nullptr;
 };
 
-}  // namespace kuart
-}  // namespace kudroid
+}  // namespace
+}  // namespace
 
 #endif  // KUDROID_KUART_DEXFRAME_H

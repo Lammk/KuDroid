@@ -725,5 +725,5 @@ void Interpreter::ReportUncaughtException() {
 
 #include "interpreter/Bytecode.inc"
 
-}  // namespace kuart
-}  // namespace kudroid
+}  // namespace
+}  // namespace

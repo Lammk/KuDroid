@@ -88,6 +88,7 @@ public class ContextThemeWrapper extends ContextWrapper {
         if (mTheme != null) return mTheme;
         Resources r = getResources();
         if (r == null) r = Resources.getSystem();
+        mThemeResource = Resources.selectDefaultTheme(mThemeResource, getApplicationInfo().targetSdkVersion);
         mTheme = r.newTheme();
         Context base = getBaseContext();
         if (base != null) mTheme.setTo(base.getTheme());

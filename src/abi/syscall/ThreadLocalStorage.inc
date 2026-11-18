@@ -121,21 +121,21 @@ extern "C" int bionic_pthread_once(int* guest_once, void (*init_routine)(void)) 
 #include <signal.h>
 
 // Guest signal handling lives in GuestSignals.cpp.
-//
-// It used to live here, in a `struct android_sigaction` that declared bionic's ILP32
-// field order on an LP64 guest. Both layouts are 32 bytes, so nothing failed a size
-// check; what happened instead is that sa_flags was read as the handler pointer.
-// ULTRAKILL's main thread ended up executing at pc=0x18000004 — which is
-// SA_SIGINFO|SA_ONSTACK|SA_RESTART, the flags the guest had passed — spinning at 100%
-// of one core inside _sigtramp, because every fault re-entered the same bad handler.
-// The same bug also replaced KuDroid's SIGSEGV handler with that value, which is why
-// the run produced no crash log at all.
-//
-// Three separate translations are needed and none of them is optional: the struct
-// layout, the signal NUMBER (Linux and Darwin diverge after SIGFPE — guest SIGUSR1 is
-// 10, which is Darwin's SIGBUS), and ownership of the signals KuDroid needs to keep
-// working (SIGTRAP supplies guest TLS, SIGSYS emulates a raw `svc`). Doing that in one
-// place, with the layouts pinned by static_assert, is the point.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 extern "C" int bionic_sigaction(int signum, const void* act, void* oldact) {
     return kudroid::guest_sigaction(signum,
                                     static_cast<const kudroid::GuestSigaction*>(act),
@@ -311,7 +311,7 @@ extern "C" int kudroid_tls_stub_params(int64_t* tsdSlotOffset, int64_t* tlsPoint
 }
 
 } // namespace
-} // namespace kudroid
+} // namespace
 
 namespace kudroid {
 bool bionic_handle_tpidr_trap(void* ucontext) {
@@ -352,7 +352,7 @@ bool bionic_handle_tpidr_trap(void* ucontext) {
 #endif
     return false;
 }
-} // namespace kudroid
+} // namespace
 
 namespace kudroid {
 bool bionic_handle_jit26_trap(void* ucontext) {
@@ -362,8 +362,8 @@ bool bionic_handle_jit26_trap(void* ucontext) {
     ucontext_t* uc = static_cast<ucontext_t*>(ucontext);
     uint32_t* pc = reinterpret_cast<uint32_t*>(uc->uc_mcontext->__ss.__pc);
     const uint32_t inst = *pc;
-    // BRK encoding: 0xD4200000 | (imm16 << 5). The TXM JIT protocol uses
-    // imm16 == 0xf00d; KuDroid's TLS emulation uses 0x1000..0x101f.
+    // Encode register-specific breakpoint instructions.
+
     if ((inst & 0xFFE0001F) == 0xD4200000 && ((inst >> 5) & 0xFFFF) == 0xf00d) {
         // The debug script services this stop while attached, so reaching here
         // means no script is present. Report the operation as unprepared
@@ -464,5 +464,5 @@ bool bionic_handle_sysreg_trap(void* ucontext) {
 #endif
     return false;
 }
-} // namespace kudroid
+} // namespace
 

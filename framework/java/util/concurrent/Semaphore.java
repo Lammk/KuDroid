@@ -37,13 +37,13 @@ public class Semaphore implements Serializable {
         return false;
     }
 
-    /**
-     * Timed acquire. Was absent, so the runtime auto-stubbed it (false
-     * forever) — and Unity's pause handshake, which waits on exactly this
-     * with 2000ms, could never complete: "Timeout while trying to pause",
-     * forced QUIT, then teardown crashed inside nativeDone with workers
-     * still running. Same wait/notify mechanics as acquire().
-     */
+    /** Same wait/notify mechanics as acquire. */
+
+
+
+
+
+
     public boolean tryAcquire(long timeout, java.util.concurrent.TimeUnit unit)
             throws InterruptedException {
         if (unit == null) throw new NullPointerException();
@@ -77,12 +77,12 @@ public class Semaphore implements Serializable {
         return permits;
     }
 
-    /**
-     * Atomically takes all permits. Unity's destroy path calls this to reset
-     * the pause semaphore; was absent (auto-stubbed to constant 0, which reads
-     * as "nothing to drain" and is harmless only by luck — a nonzero permit
-     * left over would let the NEXT acquire pass without waiting).
-     */
+    /** Atomically takes all permits. */
+
+
+
+
+
     public synchronized int drainPermits() {
         int drained = permits;
         permits = 0;

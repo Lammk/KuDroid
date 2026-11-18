@@ -128,5 +128,5 @@ DexValue DexReflect::Invoke(DexMethod* method, DexObject* receiver, const DexVal
     return interpreter_->Execute(method, args, num_args);
 }
 
-}  // namespace kuart
-}  // namespace kudroid
+}  // namespace
+}  // namespace

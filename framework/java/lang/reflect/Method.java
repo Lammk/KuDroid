@@ -1,9 +1,9 @@
 package java.lang.reflect;
 
-/**
- * Handle to KuART's DexMethod. Field `artMethod` is written by native, not by Java
- * corrected.
- */
+/** Handle to the DEX runtime's DexMethod. */
+
+
+
 public final class Method extends AccessibleObject {
 
     private long artMethod;
@@ -34,15 +34,15 @@ public final class Method extends AccessibleObject {
         return getParameterTypes().length;
     }
 
-    /**
-     * True for an interface method that carries a body.
-     *
-     * The three conditions are exactly the platform's: declared in an interface, not
-     * static, and not abstract. A caller uses this to decide whether the method can be
-     * invoked at all before reaching for MethodHandles.Lookup.unreflectSpecial — Unity's
-     * JNIBridge tests it on every method its proxy handler receives, and answering wrongly
-     * either skips a callable default or attempts to call an abstract declaration.
-     */
+    /** True for an interface method that carries a body. */
+
+
+
+
+
+
+
+
     public native boolean isDefault();
 
     /**
@@ -79,15 +79,15 @@ public final class Method extends AccessibleObject {
         return (int) (artMethod ^ (artMethod >>> 32));
     }
 
-    /**
-     * AOSP spelling: "public abstract void java.lang.Runnable.run()".
-     *
-     * Not cosmetic. Unity's native JNIBridge calls this on every proxied method
-     * and parses the result; the old short form ("java.lang.Runnable.run()")
-     * failed its parse and the bridge answered with
-     * NoSuchMethodError("java.lang.Runnable.run()"), which escaped
-     * ActivityThread.main and ended the session.
-     */
+    /** AOSP spelling: "public abstract void java.lang.Runnable.run". */
+
+
+
+
+
+
+
+
     public String toString() {
         StringBuilder sb = new StringBuilder();
         int mod = getModifiers() & Modifier.methodModifiers();

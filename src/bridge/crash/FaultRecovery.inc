@@ -1,16 +1,16 @@
-// Handlers that were installed before KuDroid's, per signal.
-//
-// A plain array indexed by signal number, not a map: this is read from a signal
-// handler, where allocating or taking a lock is not allowed. NSIG covers every signal
-// the platform defines.
+// Retain previously installed handlers for each signal.
+
+
+
+
 static struct sigaction g_previousHandlers[NSIG];
 
-// Hand a fault to whoever had the signal before us.
-//
-// Only reached for faults KuDroid does not own. Restoring the previous disposition and
-// re-raising is what lets a chained handler see the ORIGINAL machine state: calling its
-// function pointer directly would work for an SA_SIGINFO handler but not for a Mach
-// exception port, and re-raising covers both.
+// Forward unhandled faults to the previous signal handler.
+
+
+
+
+
 static bool chainToPreviousHandler(int sig) {
     if (sig <= 0 || sig >= NSIG) return false;
     const struct sigaction& previous = g_previousHandlers[sig];
@@ -250,7 +250,7 @@ FaultSkipPlan fault_decode_skip(uint32_t w, uint64_t pc, uint64_t baseVal,
     return p;
 }
 
-}  // namespace kudroid
+}  // namespace
 
 #if (defined(__aarch64__) || defined(__arm64__)) && defined(__APPLE__)
 namespace {
@@ -375,14 +375,14 @@ bool fault_skip_load_store(ucontext_t* uc, uintptr_t faultAddr, uint64_t* newPcO
                 }
                 return false;
             }
-            // Zero, not a poison value: the register result feeds straight
-            // into later pointer arithmetic, and a poison like 0xDEAD turned
-            // "base + offset" into an unmapped address a few instructions
-            // later (observed live: x12=0xdead then SIGBUS on x14 load in a
-            // Unity Job.Worker). Zero is what the hardware faults read as on
-            // a null page, which is the semantics a faulting load leaves
-            // behind — an engine null-check then treats it as the missing
-            // data it already handles everywhere else.
+            // Produce the register result used for a recovered null load.
+
+
+
+
+
+
+
             uc->uc_mcontext->__ss.__x[p.rt] = 0;
             if (p.isPair) uc->uc_mcontext->__ss.__x[p.rt2] = 0;
         }
@@ -545,11 +545,11 @@ static bool kudroid_try_skip_fault(int /*sig*/, siginfo_t* info, void* ucontext)
                            (unsigned long long)faultAddr,
                            (unsigned long long)newPc);
     if (n > 0) kudroid_persistent_breadcrumb(mark);
-    // Recovered faults otherwise live only in native_breadcrumbs.log, so a storm that
-    // eventually exhausts the per-thread budget looks like a single fatal fault in the
-    // primary crash log (observed: 128 silent skips, then one fatal load in a Unity Job
-    // worker). Mirror the first few and every 16th to kudroid_crash.log so the run-up
-    // is visible where it is actually read. Async-signal-safe: open/write/close only.
+    // Persist recovered-fault details in the primary log.
+
+
+
+
     {
         static std::atomic<unsigned> s_skipLog{0};
         const unsigned seen = s_skipLog.fetch_add(1, std::memory_order_relaxed);

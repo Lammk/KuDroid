@@ -185,4 +185,4 @@ bool Invoke_libcore_io_Memory(Interpreter* interp, const char* name, const DexVa
     return true;
 }
 
-}  // namespace kudroid::kuart
+}  // namespace

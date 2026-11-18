@@ -2,6 +2,7 @@
 // errSSLWouldBlock and the waiting is done in poll() outside the session lock, so one thread
 // can sit in a read while another writes. SecureTransport tops out at TLS 1.2.
 #include "kudroid/platform/TlsSession.h"
+#include "kudroid/abi/SocketAbi.h"
 
 #include <errno.h>
 #include <poll.h>
@@ -133,7 +134,7 @@ int WaitFd(int fd, short events, Clock::time_point deadline, bool bounded) {
         const int rc = ::poll(&p, 1, remaining);
         if (rc > 0) return 1;
         if (rc == 0) return 0;
-        if (errno != EINTR) return -errno;
+        if (errno != EINTR) return -SocketErrnoToGuest(errno);
     }
 }
 
@@ -195,7 +196,7 @@ OSStatus Drive(TlsSession* s, int timeoutMs, Op op, int* failure) {
         }
         const int ready = WaitFd(s->fd, waitRead ? POLLIN : POLLOUT, deadline, bounded);
         if (ready == 0) {
-            *failure = -ETIMEDOUT;
+            *failure = -110;
             return errSSLWouldBlock;
         }
         if (ready < 0) {
@@ -317,7 +318,7 @@ int TlsRead(TlsSession* s, uint8_t* buf, int len, int timeoutMs) {
     if (failure != 0) return failure;
     if (st == errSSLClosedGraceful || st == errSSLClosedNoNotify || s->peerEof) return 0;
     s->lastError = StatusText(st);
-    return st == errSSLClosedAbort ? -ECONNRESET : kTlsProtocolError;
+    return st == errSSLClosedAbort ? -104 : kTlsProtocolError;
 }
 
 int TlsWrite(TlsSession* s, const uint8_t* buf, int len, int timeoutMs) {
@@ -332,8 +333,8 @@ int TlsWrite(TlsSession* s, const uint8_t* buf, int len, int timeoutMs) {
         done += static_cast<int>(processed);
         if (st != noErr) {
             s->lastError = StatusText(st);
-            if (st == errSSLWouldBlock) return -ETIMEDOUT;
-            return s->peerEof ? -EPIPE : (st == errSSLClosedAbort ? -ECONNRESET : kTlsProtocolError);
+            if (st == errSSLWouldBlock) return -110;
+            return s->peerEof ? -EPIPE : (st == errSSLClosedAbort ? -104 : kTlsProtocolError);
         }
         if (processed == 0) break;
     }
@@ -469,4 +470,4 @@ int TlsEvaluateChain(const std::vector<std::vector<uint8_t>>& chain,
     return rc;
 }
 
-}  // namespace kudroid
+}  // namespace

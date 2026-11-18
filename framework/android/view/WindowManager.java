@@ -2,11 +2,11 @@ package android.view;
 
 import android.content.Context;
 
-/**
- * emulate android.view.windowmanager.
- *
- * manage windows. for kudroid minimal framework, here is an emulation.
- */
+/** Provide window-management interfaces. */
+
+
+
+
 public class WindowManager {
     /** layout parameter flag: cannot focus. */
     public static final int FLAG_NOT_FOCUSABLE = 0x00000008;
@@ -105,7 +105,7 @@ public class WindowManager {
         public String packageName;
         /** Window animation style resource, 0 for the default. */
         public int windowAnimations;
-        /** Token identifying the owner; KuDroid has one window so it stays null. */
+        /** Token identifying the owner; the runtime has one window so it stays null. */
         public android.os.IBinder token;
         public int rotationAnimation;
         public int preferredDisplayModeId;

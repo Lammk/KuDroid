@@ -1,18 +1,18 @@
 package android.hardware.input;
 
-/**
- * android.hardware.input.InputManager.
- *
- * KuDroid exposes exactly one input device: the touchscreen (id 1, see
- * android.view.InputDevice). That must be visible HERE too — native game code
- * enumerates devices through this class, and an empty table makes Unity
- * conclude there is no usable touchscreen and drop every touch its own
- * injectEvent receives, even though the Java delivery path works.
- *
- * Every method still has to EXIST. Unity calls getInputDeviceIds() and
- * registerInputDeviceListener() during startup, and a missing method is a
- * NoSuchMethodError that propagates out of Activity creation.
- */
+/** Describe the available input devices. */
+
+
+
+
+
+
+
+
+
+
+
+
 public class InputManager {
 
     public static final String ACTION_QUERY_KEYBOARD_LAYOUTS =

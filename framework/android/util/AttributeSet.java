@@ -1,11 +1,11 @@
 package android.util;
 
-/**
- * minimal android.util.attributeset implementation.
- *
- * a collection of xml attributes. for kudroid minimal framework, here is one
- * simulation returns default values.
- */
+/** A collection of xml attributes. */
+
+
+
+
+
 public interface AttributeSet {
     /**
      * returns the number of attributes.

@@ -22,4 +22,4 @@ int TlsEvaluateChain(const std::vector<std::vector<uint8_t>>&,
     return 1;
 }
 
-}  // namespace kudroid
+}  // namespace

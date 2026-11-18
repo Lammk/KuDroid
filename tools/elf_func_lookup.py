@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
-"""Map a libunity.so address to its function range (.eh_frame) and name PLT calls.
+"""Map addresses to unwind function ranges and imported calls for audit."""
 
-Audit helper for reading crash/trace return addresses: given `from=libunity.so+0x...`
-it reports the enclosing function and its call targets.
-"""
+
+
+
 import bisect
 import struct
 import sys

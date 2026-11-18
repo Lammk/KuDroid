@@ -1,24 +1,24 @@
 // Real CPU topology for the host device.
-//
-// Every surface a guest can read its core count from has to give the same answer, and
-// they did not: /proc/cpuinfo listed 8 processors, /sys/devices/system/cpu/present said
-// 0-7, sysconf(_SC_NPROCESSORS_ONLN) returned std::thread::hardware_concurrency(), and
-// __sched_cpucount was not implemented at all — so it bound to the universal dummy and
-// returned 0. Unity printed "Cores = 0, Memory = 8000mb" and sized its job system from
-// it.
-//
-// Apps do not read these numbers for display. Unity derives worker-thread counts,
-// il2cpp sizes its GC, and any engine with a job system partitions work by core class,
-// so a wrong count either leaves the device idle or oversubscribes it. A wrong count of
-// ZERO makes a job system create no workers at all.
-//
-// big.LITTLE matters separately from the total. An engine schedules latency-sensitive
-// work on the performance cores and background work on the efficiency ones, and it
-// discovers which is which by comparing cpufreq/cpuinfo_max_freq across cores. Only cpu0
-// had a cpufreq directory, so nothing could be classified: hence "0 big (mask: 0x0),
-// 0 little (mask: 0x0)".
-//
-// Nothing here is app-specific: the numbers describe the device.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 #ifndef KUDROID_PLATFORM_CPUINFO_H
 #define KUDROID_PLATFORM_CPUINFO_H
 
@@ -75,6 +75,6 @@ void cpu_topology_reset_for_test();
 // be the one path never executed anywhere before it shipped.
 void cpu_topology_override_for_test(const CpuTopology& topology);
 
-}  // namespace kudroid
+}  // namespace
 
 #endif  // KUDROID_PLATFORM_CPUINFO_H

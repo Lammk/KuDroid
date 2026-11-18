@@ -1,27 +1,27 @@
-// Baseline JIT for KuART: compiles a DEX method to arm64 machine code.
-//
-// Scope is deliberately narrow. This compiles the opcodes that dominate hot arithmetic
-// and control flow — moves, constants, int/long arithmetic, comparisons, branches — and
-// REFUSES everything else. A method containing one unsupported opcode is not compiled at
-// all; it keeps running in the interpreter, which is already correct. That refusal is the
-// design: a JIT that half-handles an opcode produces wrong answers silently, whereas one
-// that declines produces the interpreter's answer slowly.
-//
-// Notably NOT compiled, and why:
-//   - invoke-*      needs the full call protocol (arg marshalling, exception unwind,
-//                   vtable dispatch, <clinit> triggering). The interpreter's version is
-//                   several hundred lines and none of it is hot arithmetic.
-//   - field/array   needs null checks that throw real Java exceptions, and bounds
-//                   checks that must name the index.
-//   - new-*, throw  needs the allocator and the exception machinery.
-//   - float/double  needs the FP register file and NaN-exact comparison semantics.
-// Each is a candidate for later; none is required to make a hot loop fast.
-//
-// Register model: DEX virtual registers stay in the frame's DexValue array in memory,
-// addressed off x0. Values are loaded, operated on, and stored back per instruction.
-// That is slower than allocating vregs to machine registers, but it keeps the frame
-// authoritative at every instruction boundary — which is what lets an uncompiled path
-// bail back to the interpreter mid-method, and what lets a stack trace read the frame.
+// Baseline JIT for the DEX runtime: compiles a DEX method to arm64 machine code.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 #ifndef KUDROID_KUART_JITCOMPILER_H
 #define KUDROID_KUART_JITCOMPILER_H
 
@@ -141,7 +141,7 @@ private:
     static void* AllocateAndCommit(const std::vector<uint32_t>& code);
 };
 
-}  // namespace kuart
-}  // namespace kudroid
+}  // namespace
+}  // namespace
 
 #endif  // KUDROID_KUART_JITCOMPILER_H

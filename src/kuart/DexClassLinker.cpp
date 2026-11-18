@@ -807,5 +807,5 @@ std::string DexClassLinker::DescribeBadObject(const DexObject* obj, const char* 
     return std::string(what) + " is unusable";
 }
 
-}  // namespace kuart
-}  // namespace kudroid
+}  // namespace
+}  // namespace

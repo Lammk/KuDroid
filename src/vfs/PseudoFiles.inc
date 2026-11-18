@@ -1,14 +1,14 @@
 // Device figures a guest can read, rendered into the Linux formats it expects.
-//
-// These used to be string literals: /proc/meminfo said MemTotal 8192000 kB, /proc/cpuinfo
-// listed exactly 8 processors, /sys/.../present said 0-7. Unity reported
-// "Cores = 0, Memory = 8000mb" on a 4 GB iPhone — and 8192000/1024 is 8000 exactly, so
-// that figure came from here rather than from anything measured. MemoryInfo.cpp was
-// already querying the real sysctl; nothing asked it.
-//
-// A wrong number here is not cosmetic. Engines size worker pools from the core count and
-// texture/chunk caches from the memory figure, so over-reporting gets the process killed
-// mid-load and under-reporting makes it run degraded on hardware that could do better.
+
+
+
+
+
+
+
+
+
+
 namespace {
 
 std::string DecimalRange(uint32_t count) {
@@ -17,10 +17,10 @@ std::string DecimalRange(uint32_t count) {
 }
 
 // One /proc/cpuinfo block per core.
-//
-// The feature list and implementer IDs stay fixed — they describe the arm64 ISA level
-// KuDroid presents, not the individual core — but the processor count follows the device.
-// A guest that counts "processor" lines and a guest that reads sysconf must agree.
+
+
+
+
 std::string BuildCpuInfo(const CpuTopology& cpu) {
     // Engines re-read /proc/cpuinfo per worker thread (790 reads in one boot).
     // The content depends only on the topology numbers, so key the cache on
@@ -200,15 +200,15 @@ bool VFSPathRemapper::init_pseudo_files() {
     files.push_back({"proc/stat", BuildProcStat(cpu), true});
 
     // Per-core cpufreq and online entries.
-    //
-    // Only cpu0 had a cpufreq directory before, and that is how the big.LITTLE split went
-    // missing: a guest classifies cores by comparing cpuinfo_max_freq across all of them,
-    // so with one file there was nothing to compare and Unity reported
-    // "0 big (mask: 0x0), 0 little (mask: 0x0)". Every core gets the full set, and the
-    // performance class reports a higher ceiling than the efficiency class.
-    //
-    // The paths are built into std::string and kept alive in `owned` — PseudoFile holds a
-    // const char*, and a temporary would dangle before the write loop runs.
+
+
+
+
+
+
+
+
+
     std::vector<std::string> owned;
     owned.reserve(static_cast<size_t>(cpu.total_cores) * 8);
     for (uint32_t i = 0; i < cpu.total_cores; ++i) {
@@ -274,12 +274,12 @@ bool VFSPathRemapper::init_pseudo_files() {
          "name=\"android.hardware.sensor.compass\" />\n</permissions>\n", false});
 
     // What the device figures came out as, once per process.
-    //
-    // Without this the numbers a guest sees can only be recovered by reading files off the
-    // device, and when they are wrong there is nothing to compare against. The last round
-    // of this investigation had "Memory = 8000mb" from Unity and no KuDroid-side record of
-    // what KuDroid believed — so the 8192000 kB literal had to be found by matching the
-    // arithmetic backwards.
+
+
+
+
+
+
     {
         char line[320];
         std::snprintf(line, sizeof(line),

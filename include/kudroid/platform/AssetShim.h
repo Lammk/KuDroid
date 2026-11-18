@@ -8,17 +8,17 @@ namespace kudroid {
 
 struct SymbolEntry;
 
-// AAssetManager / AAsset / AAssetDir — Bionic asset API backed by the APK's
-// extracted assets/ directory (android_root/data/app/<app>/assets).
-// Games (Unity, Godot, SDL) read packaged files through this API; previously
-// every call resolved to the universal dummy (returned 0), so AAssetManager_open
-// "succeeded" with a null asset and reads produced nothing.
+// Serve native asset APIs from extracted APK assets.
+
+
+
+
 const SymbolEntry* get_asset_symbols(size_t* count);
 
 // Thread-safe copy of the assets dir; prefer over the C accessor below.
 std::string kudroid_get_assets_dir_cpp(void);
 
-} // namespace kudroid
+} // namespace
 
 #ifdef __cplusplus
 extern "C" {

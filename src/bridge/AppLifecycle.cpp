@@ -208,15 +208,15 @@ extern "C" int kudroid_has_jit_entitlement(void) {
 // Return 1 when JIT memory is available, 0 otherwise.
 extern "C" int kudroid_is_jit_enabled(void) {
 #if defined(__APPLE__)
-    // Ask the kernel the way the exec-memory facility does: execute written code
-    // (ADRP + RET) under a fault guard. Every route that grants the permission
-    // ends in fetchable written memory, and a succeeded mprotect alone no longer
-    // proves that — on hardware-W^X regimes it can succeed while the fetch faults.
-    //
-    // The answer is cached — except when a debugger has attached since the last
-    // check. Tools like StikDebug grant JIT permission by attaching after launch,
-    // so the first probe legitimately failed; the newly-set CS_DEBUGGED flag is
-    // the kernel's own signal that its view changed and the probe must run again.
+    // Ask the kernel the way the exec-memory facility does: execute written code under a fault guard.
+
+
+
+
+
+
+
+
     const bool txm = kudroid::ExecMemory::TxmPresent();
     const bool fetchable = kudroid::ExecMemory::IsFetchable();
     unsigned int flags = 0;
@@ -511,15 +511,15 @@ extern "C" JNIEXPORT void JNICALL Java_android_os_PowerManager_00024WakeLock_set
     kudroid_set_keep_screen_on(keepOn ? 1 : 0);
 }
 
-// ── soft keyboard ────────────────────────────────────────────────────────────
-//
-// KuDroid has no keyboard of its own; iOS does. The guest's
-// InputMethodManager.showSoftInput reaches kudroid_show_soft_input, which forwards
-// to a callback the Swift side registers — kudroid_core is a static library and
-// cannot touch UIKit, so the view that becomes first responder has to call back in.
-//
-// Text goes the other way, from the host keyboard into the guest's focused
-// InputConnection, through kuart_dispatch_text_input.
+// Forward soft-keyboard requests to the host.
+
+
+
+
+
+
+
+
 
 static kudroid_soft_input_show_cb s_softInputShow = nullptr;
 static kudroid_soft_input_hide_cb s_softInputHide = nullptr;

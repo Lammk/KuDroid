@@ -1,11 +1,11 @@
 package android.graphics;
 
-/**
- * minimal android.graphics.pixelformat implementation.
- *
- * defines pixel format constants. for kudroid minimal framework, provided
- * opacity constants used by drawable.
- */
+/** Defines pixel format constants. */
+
+
+
+
+
 public class PixelFormat {
     /** opaque. */
     public static final int OPAQUE = -1;

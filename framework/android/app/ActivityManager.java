@@ -261,12 +261,12 @@ public class ActivityManager {
         return new ArrayList<AppTask>();
     }
 
-    /**
-     * Why the process died last time.
-     *
-     * KuDroid keeps no history across launches, so the list is empty — which is also
-     * what Android returns on a first run, a case callers already handle.
-     */
+    /** Return an empty process-exit history. */
+
+
+
+
+
     public List<ApplicationExitInfo> getHistoricalProcessExitReasons(String packageName,
             int pid, int maxNum) {
         return new ArrayList<ApplicationExitInfo>();

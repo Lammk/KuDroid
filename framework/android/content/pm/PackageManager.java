@@ -141,14 +141,14 @@ public abstract class PackageManager {
         return services.isEmpty() ? null : services.get(0);
     }
 
-    /**
-     * Installer of record, or null when unknown.
-     *
-     * Non-abstract with a null default (AOSP declares it abstract, but every
-     * in-repo manager answers the same way and a missing override would only
-     * surface as a late NoSuchMethodError). Unity reads this at startup for
-     * telemetry; null means "unknown", which callers already handle.
-     */
+    /** Installer of record, or null when unknown. */
+
+
+
+
+
+
+
     public String getInstallerPackageName(String packageName) {
         return null;
     }

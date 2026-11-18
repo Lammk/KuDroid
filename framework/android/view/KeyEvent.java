@@ -1,13 +1,13 @@
 package android.view;
 
-/**
- * android.view.KeyEvent — keyboard / hard key events.
- *
- * Like MotionEvent, most of the getters below exist for native callers rather than Java
- * ones: AGDK resolves them by name and calls them to fill its GameActivityKeyEvent, so a
- * missing one throws NoSuchMethodError during Activity creation and stops onCreate before
- * a surface exists. Seven were missing, which is what left Minecraft on a black screen.
- */
+/** Describe keyboard and hardware-key events. */
+
+
+
+
+
+
+
 public class KeyEvent extends InputEvent implements android.os.Parcelable {
     public static final android.os.Parcelable.Creator<KeyEvent> CREATOR =
             new android.os.Parcelable.Creator<KeyEvent>() {

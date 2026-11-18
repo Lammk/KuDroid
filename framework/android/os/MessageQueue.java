@@ -1,11 +1,11 @@
 package android.os;
 
-/**
- * Android MessageQueue implementation for KuDroid.
- *
- * Maintains a linked list of Messages ordered by timestamp (when).
- * Prevents loops/cycles, supports timed wait/notify, and provides clean message cancellation.
- */
+/** Queue messages for the event loop. */
+
+
+
+
+
 public final class MessageQueue {
     private Message mMessages; // head of the queue
     private boolean mQuitting = false;
@@ -23,12 +23,12 @@ public final class MessageQueue {
     private static native void nativeSetMainQueue(long ptr);
     private static native void nativeDrainInput(long ptr);
 
-    /**
-     * Idle callbacks. Unity registers one on the UnityMain queue at startup
-     * (and Choreographer-style pumps use them for vsync-adjacent work); with
-     * no IdleHandler type the registration died as NPE-on-null and took the
-     * whole UnityMain thread down before the first frame.
-     */
+    /** Notify idle handlers when the queue has no ready messages. */
+
+
+
+
+
     public static interface IdleHandler {
         /**
          * Called when the queue has nothing ready to dispatch. Return false
@@ -444,10 +444,10 @@ public final class MessageQueue {
         quitInternal();
     }
 
-    /**
-     * Unconditional quit for KuDroid's own teardown (activity destroy on the way
-     * out). Never called by app code; the guard above stays total for those.
-     */
+    /** Unconditional quit for the runtime's own teardown. */
+
+
+
     void quitInternal() {
         synchronized (this) {
             mQuitting = true;

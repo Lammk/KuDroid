@@ -5,6 +5,16 @@ import android.content.ContextWrapper;
 import java.util.List;
 
 public class LoadingFrameworkTests {
+    private static class MethodParent {
+        private static int diagnostic() { return -1; }
+        private int staticSlot() { return -2; }
+        protected int inherited() { return 7; }
+    }
+    private static class MethodChild extends MethodParent {
+        protected int diagnostic() { return 31; }
+        protected static int staticSlot() { return 32; }
+    }
+    private static class MethodGrandchild extends MethodChild {}
     private static int checks;
     private static void check(boolean value, String message) {
         checks++;
@@ -12,6 +22,10 @@ public class LoadingFrameworkTests {
     }
     public static int run() {
         checks = 0;
+        check(new MethodChild().diagnostic() == 31, "local instance method precedes private ancestor static method");
+        check(new MethodGrandchild().diagnostic() == 31, "inherited instance method precedes private ancestor static method");
+        check(MethodChild.staticSlot() == 32, "local static method precedes private ancestor instance method");
+        check(new MethodChild().inherited() == 7, "ordinary inherited instance dispatch remains valid");
         check("https://example.test".regionMatches(true, 0, "https:", 0, 6), "valid HTTPS scheme recognized");
         check("HTTP://example.test".regionMatches(true, 0, "http:", 0, 5), "scheme case ignored");
         check(!"HTTP:".regionMatches(false, 0, "http:", 0, 5), "case sensitive overload");

@@ -62,7 +62,7 @@ bool bionic_handle_jit26_trap(void* ucontext);
 // Returns true if handled.
 bool bionic_handle_sysreg_trap(void* ucontext);
 
-} // namespace kudroid
+} // namespace
 
 #endif
 

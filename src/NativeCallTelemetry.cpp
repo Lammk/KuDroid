@@ -27,28 +27,28 @@ extern "C" uint64_t kudroid_run_started_ns();
 namespace kudroid {
 namespace {
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Per-thread call stacks.
-//
-// This was one global slot, overwritten by whichever call entered last and never
-// restored on the way out. That single fact produced the most misleading log KuDroid
-// has emitted: ULTRAKILL wedged inside UnityPlayer.nativeRender (call 13), which
-// called back into Java, which called JNIBridge.invoke (call 14). Call 14 completed
-// in 435 microseconds — and then, for the next 47 seconds, every watchdog line
-// carried call 13's elapsed time beside call 14's class, method and stage.
-//
-// So the log said the process was hung in `JNIBridge.invoke at before-result-decode`,
-// which had already returned, while `nativeRender at before-trampoline` — the call
-// that never came back — was never named again after its second line. The thread
-// sampler's reason= field inherited the same wrong name, so all five samples were
-// filed under the wrong method too. Every individual field was plausible; only the
-// combination was a lie, which is why it survived several readings.
-//
-// A stack per thread is the fix, and it has to be a stack rather than a save/restore
-// pair: what the watchdog needs is not merely the outer call's name back, but the
-// ability to say "this thread went in at nativeRender and is now N levels deep",
-// which is the shape of the answer for every nested-call hang.
-// ─────────────────────────────────────────────────────────────────────────────
+// Record per-thread native call stacks.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 // Deep enough for real nesting (native → Java → native → Java …) and small enough
 // that the table costs little. Overflow stops recording deeper frames rather than
@@ -102,13 +102,13 @@ struct Globals {
     std::atomic<bool> started{false};
     std::atomic<uint64_t> next_call_id{1};
 
-    // Set from a signal handler when a thread takes a fatal fault. Only scalars, and
-    // only stores, because that is all a signal handler may do.
-    //
-    // Without this the watchdog cannot tell a hang from a crash, and it defaults to
-    // calling everything a hang: UnityMain faulted, parked in the crash handler, and
-    // the watchdog kept reporting a native call as running when the thread executing
-    // it was dead.
+    // Record fatal thread faults using signal-safe scalar stores.
+
+
+
+
+
+
     std::atomic<int> fatal_signal{0};
     std::atomic<uint64_t> fatal_thread_id{0};
 };
@@ -346,20 +346,20 @@ void watchdog_main() {
     while (g.started.load(std::memory_order_acquire)) {
         std::this_thread::sleep_for(std::chrono::milliseconds(250));
 
-        // A thread has taken a fatal signal. Announce it once, then stop reporting
-        // DURATIONS — but keep the loop alive.
-        //
-        // The durations become lies at that moment: the faulting thread never reaches
-        // native_call_exit, so its stack stays put and the watchdog goes on describing
-        // a call whose thread is gone. That is what reported
-        // `native_call_id=14 native_elapsed_ms=9429` for nine seconds after UnityMain
-        // had already aborted, and it is worse than silence because a reader chases it.
-        //
-        // Returning outright — which is what this did first — throws away the
-        // diagnostics that are still TRUE. The blocking-wait registry is per-thread and
-        // self-clearing, so it keeps working after another thread dies, and a process
-        // that survives a fault its own handler fixed would otherwise run the rest of
-        // the session with no stall detection at all.
+        // Stop timing faulted native calls while retaining blocking-wait diagnostics.
+
+
+
+
+
+
+
+
+
+
+
+
+
         const int fatal = g.fatal_signal.load(std::memory_order_acquire);
         if (fatal != 0 && !fatal_announced) {
             fatal_announced = true;
@@ -389,14 +389,14 @@ void watchdog_main() {
         // turns out to involve a notifier that died.
         blocking_wait_report_idle(/*threshold_ms=*/30000);
 
-        // A load that stopped making I/O progress while the engine keeps rendering:
-        // the loader is wedged somewhere no shim observes, which is exactly the blind
-        // spot the thread sampler exists for and nothing was firing it into. The
-        // ULTRAKILL case: after Addressables resolved its jar: load path, NO path —
-        // fopen, pread, socket, AAsset — saw another byte, and the wedge left no trace
-        // in any log this process writes. Sample every ten seconds until I/O resumes;
-        // the first two samples are the diagnosis (spin = pc moves with cpu_ms
-        // climbing, park = pc frozen with cpu_ms flat).
+        // Sample threads when loading stops making I/O progress.
+
+
+
+
+
+
+
         {
             const uint64_t lastNs = io_last_activity_ns();
             const uint64_t nowNs = static_cast<uint64_t>(
@@ -513,10 +513,10 @@ void watchdog_main() {
         }
         if (!fatal_announced && report.native_active &&
             report.native_elapsed_ms >= next_sample_ms) {
-            // The reason names the OUTERMOST call — the one that has been running for
-            // this long — and, when the thread went deeper, the innermost as well.
-            // Naming only one of them is what filed all five ULTRAKILL samples under
-            // a method that had already returned.
+            // Report every active method in the native call stack.
+
+
+
             char reason[1536];
             if (report.native_stack_depth > 1) {
                 std::snprintf(reason, sizeof(reason), "native-%llums-%s.%s-at-%s-inner-%s.%s",
@@ -742,4 +742,4 @@ void java_call_exit() {
     if (worth_writing) kudroid_persistent_breadcrumb(line);
 }
 
-}  // namespace kudroid
+}  // namespace

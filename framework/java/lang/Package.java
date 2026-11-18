@@ -1,18 +1,18 @@
 package java.lang;
 
-/**
- * java.lang.Package.
- *
- * Returned by Class.getPackage(), which was auto-stubbed because this class did not
- * exist. Libraries call it to read their own version metadata — a common shape is
- * {@code getClass().getPackage().getImplementationVersion()} — so a stub that
- * returned null turned into a NullPointerException one call later.
- *
- * KuDroid loads DEX, which carries no package manifest, so the version and vendor
- * strings are genuinely unknown and reported as null. That is the same answer a JVM
- * gives for a package built without manifest attributes, so callers already handle
- * it; the name, which IS known, is real.
- */
+/** Describe the package associated with a class. */
+
+
+
+
+
+
+
+
+
+
+
+
 public class Package {
 
     private final String name;

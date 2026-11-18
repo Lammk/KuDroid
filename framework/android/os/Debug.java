@@ -16,14 +16,14 @@ public final class Debug {
     /** Bytes this process may still allocate. */
     private static native long nativeAvailableMemory();
 
-    /**
-     * Per-process memory breakdown, in kilobytes.
-     *
-     * KuDroid runs one process with no split between a managed and a native heap, so
-     * everything is reported as native PSS and the Dalvik share is zero. Inventing a
-     * split would be a made-up number in a field apps sum up and act on; the total
-     * is what they actually use.
-     */
+    /** Per-process memory breakdown, in kilobytes. */
+
+
+
+
+
+
+
     public static class MemoryInfo implements Parcelable {
         public int dalvikPss;
         public int dalvikPrivateDirty;

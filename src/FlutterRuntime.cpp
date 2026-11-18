@@ -373,4 +373,4 @@ std::string bundledFlutterRuntimeDirectory() {
     return {};
 }
 
-} // namespace kudroid
+} // namespace

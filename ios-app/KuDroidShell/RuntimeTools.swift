@@ -9,7 +9,7 @@ import Combine
 import UniformTypeIdentifiers
 
 func runJniJvmTest() -> String {
-    // KuART embeds framework.dex in the binary so no jar path is needed.
+    // The DEX runtime embeds framework.dex in the binary so no jar path is needed.
     guard let cString = kudroid_test_jvm("") else { return "Error: null result" }
     let log = String(cString: cString)
     free(UnsafeMutablePointer(mutating: cString))

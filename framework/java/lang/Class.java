@@ -1,9 +1,9 @@
 package java.lang;
 
-/**
- * Class object. KuART allocates a separate DexClassObject for each class
- * This class does not have field instances; All information is obtained through native.
- */
+/** Expose class metadata through native reflection. */
+
+
+
 public final class Class<T> implements java.lang.reflect.Type, java.lang.reflect.GenericDeclaration {
 
     private Class() {
@@ -91,15 +91,15 @@ public final class Class<T> implements java.lang.reflect.Type, java.lang.reflect
         return getName().replace('$', '.');
     }
 
-    /**
-     * Source-style type name: "int" for primitives, "java.lang.String[]" for
-     * arrays, getName() otherwise.
-     *
-     * Native getName() returns raw descriptors ("I", "[Ljava/lang/String;"),
-     * which is what JNI uses but not what Method.toString() must print — AOSP
-     * spells them the way source does, and Unity's JNIBridge parses that
-     * spelling, so the conversion lives here rather than in every caller.
-     */
+    /** Source-style type name: "int" for primitives, "java.lang.String[]" for arrays, getName otherwise. */
+
+
+
+
+
+
+
+
     public String getTypeName() {
         if (isArray()) {
             return getComponentType().getTypeName() + "[]";
@@ -166,21 +166,21 @@ public final class Class<T> implements java.lang.reflect.Type, java.lang.reflect
         throw new NoSuchMethodException(getName() + "." + name);
     }
 
-    /**
-     * A public method by name and parameter types, from this class OR any interface
-     * it implements.
-     *
-     * The interface half is not optional. This used to walk only getSuperclass(),
-     * and a Proxy created for Runnable declares nothing itself while Proxy and
-     * Object declare no run() either — so run() was invisible and Unity's JNIBridge
-     * concluded the method did not exist, threw NoSuchMethodError("Runnable.run()")
-     * through JNI ThrowNew, cleared it, and rethrew an empty one from
-     * bitter.jnibridge.a.invoke. Nothing named the real problem.
-     *
-     * The class chain is searched first, all of it, before any interface: a class's
-     * own body always beats an inherited declaration, which is the same precedence
-     * DexClass::FindVirtualMethod applies on the invoke side.
-     */
+    /** A public method by name and parameter types, from this class OR any interface it implements. */
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     public java.lang.reflect.Method getMethod(String name, Class<?>... parameterTypes)
             throws NoSuchMethodException {
         Class<?> c = this;
@@ -224,13 +224,13 @@ public final class Class<T> implements java.lang.reflect.Type, java.lang.reflect
         return null;
     }
 
-    /**
-     * Every public method of this class, its superclasses AND its interfaces.
-     *
-     * Callers enumerate this to decide whether a method exists at all — Unity's
-     * JNIBridge does exactly that for the interfaces it proxies — so leaving the
-     * interface methods out reports a Runnable proxy as having no run().
-     */
+    /** Every public method of this class, its superclasses AND its interfaces. */
+
+
+
+
+
+
     public java.lang.reflect.Method[] getMethods() {
         java.util.ArrayList<java.lang.reflect.Method> out =
                 new java.util.ArrayList<java.lang.reflect.Method>();

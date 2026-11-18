@@ -108,8 +108,8 @@ bool Invoke_java_lang_System(Interpreter* interp, const char* name, const DexVal
         return true;
     }
     if (std::strcmp(name, "exit") == 0) {
-        // The guest shares the process with the iOS host, so exiting would kill
-        // KuDroid itself. Ignore gracefully.
+        // The guest shares the process with the iOS host, so exiting would kill the runtime itself.
+
         std::fprintf(stderr, "[KuART][System] System.exit(%d) called -> ignored to prevent app shutdown\n", args[0].i);
         return true;
     }
@@ -343,8 +343,8 @@ bool Invoke_java_lang_String(Interpreter* interp, const DexMethod* method,
                                    "offset " + std::to_string(offset));
             return true;
         }
-        // Bytes are taken as UTF-8 directly; KuART stores strings as UTF-8 so no
-        // charset decoding step is needed for the only encoding Android uses.
+        // Read string bytes using the requested encoding.
+
         const auto* data = reinterpret_cast<const char*>(bytes + 1);
         InitStringFrom(linker, args[0].l,
                        std::string(data + offset, static_cast<size_t>(count)));

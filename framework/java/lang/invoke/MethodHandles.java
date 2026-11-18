@@ -1,29 +1,29 @@
 package java.lang.invoke;
 
-/**
- * Factory for MethodHandles.
- *
- * Lookup is what apps actually reach for, and the shape they use is narrow: take a
- * java.lang.reflect.Method and turn it into a handle, usually via unreflectSpecial so an
- * interface default method can be invoked non-virtually.
- *
- * The lookup class and access mode are recorded but not enforced. There is no module system
- * and no security manager in KuART, so every member is already reachable — refusing a
- * lookup would report a restriction that does not exist, and callers respond to a refusal
- * by taking a fallback path that also does not work here.
- *
- * The two-argument constructor is deliberately present and accessible. On the platform it is
- * private, and the standard way to obtain a Lookup with private access to an arbitrary class
- * is to reflect on it:
- *
- *   Constructor c = Lookup.class.getDeclaredConstructor(Class.class, int.class);
- *   c.setAccessible(true);
- *   Lookup lookup = (Lookup) c.newInstance(someClass, Lookup.PRIVATE);
- *
- * Any library doing this needs getDeclaredConstructor to MATCH on (Class, int) — which is
- * why the primitive class literals had to be fixed first: int.class was null, so the
- * parameter comparison could never succeed and this constructor was unreachable.
- */
+/** Convert reflected methods into direct invocation handles. */
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 public class MethodHandles {
 
     public static final class Lookup {
@@ -103,14 +103,14 @@ public class MethodHandles {
         }
     }
 
-    /**
-     * A Lookup on the CALLER's class, with full access.
-     *
-     * The platform derives the lookup class from the call stack. KuART's interpreter knows
-     * its caller, so the native implementation reports the real one rather than a
-     * placeholder — a Lookup whose lookupClass() lied would break libraries that pass it to
-     * in() or compare it.
-     */
+    /** A Lookup on the CALLER's class, with full access. */
+
+
+
+
+
+
+
     public static native Lookup lookup();
 
     public static Lookup publicLookup() {

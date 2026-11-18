@@ -138,15 +138,15 @@ Slot* acquire_slot() {
 }  // namespace
 
 const void* guest_return_address(int frames) {
-    // Walk the frame chain looking for the first address inside a loaded guest
-    // module. The immediate return address is almost always KuDroid's own wrapper —
-    // bionic_futex reached through emulate_futex_direct, for instance — and a report
-    // naming that says nothing: every futex wait in the process comes from there.
-    //
-    // Every step is bounded by the calling thread's REAL stack, not by a plausibility
-    // check. This runs on a thread that is about to block, and a diagnostic that
-    // segfaults is worse than no diagnostic — which is exactly what the earlier version
-    // did once a caller with a different frame shape appeared.
+    // Walk the frame chain looking for the first address inside a loaded guest module.
+
+
+
+
+
+
+
+
 #if defined(__aarch64__) || defined(__x86_64__)
     if (frames < 1) frames = 1;
     if (frames > 12) frames = 12;
@@ -267,15 +267,15 @@ int blocking_wait_report_stalled(uint64_t threshold_ms) {
         const uint64_t elapsed_ms = (now - started) / 1000000ull;
         if (elapsed_ms < threshold_ms) continue;
 
-        // A wait still inside the bound it asked for is not stalled, however long
-        // that bound is.
-        //
-        // This is what kept the captured ULTRAKILL log from being readable: the only
-        // stall reported was an idle AssetGarbageCollectorHelper that had asked to
-        // wait and was waiting, while the main thread — genuinely wedged, 36 seconds
-        // into a nativeRender that never returned — produced nothing. One false line
-        // and one missing line, and the false one is worse: it is what a reader
-        // chases.
+        // A wait still inside the bound it asked for is not stalled, however long that bound is.
+
+
+
+
+
+
+
+
         const uint64_t budget = s.budget_ms.load(std::memory_order_acquire);
         if (budget != 0 && elapsed_ms < budget) continue;
 
@@ -436,4 +436,4 @@ void blocking_wait_reset_for_test() {    for (int i = 0; i < kMaxSlots; ++i) {
     t_slot = nullptr;
 }
 
-}  // namespace kudroid
+}  // namespace

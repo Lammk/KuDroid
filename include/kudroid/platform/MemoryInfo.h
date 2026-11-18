@@ -1,13 +1,13 @@
 // Real system memory figures for the host device.
-//
-// The framework used to report fixed numbers (2 GB available, 192 MB heap class),
-// which is worse than it looks: apps size caches, texture atlases and world chunks
-// from these values, so a constant is either far above what the device can give —
-// and the app gets killed mid-load — or far below, and it runs degraded on hardware
-// that could do better. Minecraft reads ActivityManager.MemoryInfo during startup
-// for exactly this reason.
-//
-// Nothing here is app-specific: the numbers describe the device.
+
+
+
+
+
+
+
+
+
 #ifndef KUDROID_PLATFORM_MEMORYINFO_H
 #define KUDROID_PLATFORM_MEMORYINFO_H
 
@@ -46,15 +46,15 @@ struct SystemMemory {
 SystemMemory query_system_memory();
 
 // Per-app heap budget in megabytes, the unit ActivityManager.getMemoryClass uses.
-//
-// Derived from the process limit when the platform reports one, otherwise from
-// total RAM using the same tiering Android applies, so the answer stays sane on a
-// device KuDroid has not seen.
+
+
+
+
 int memory_class_mb();
 
 // The larger budget an app gets with android:largeHeap="true".
 int large_memory_class_mb();
 
-}  // namespace kudroid
+}  // namespace
 
 #endif  // KUDROID_PLATFORM_MEMORYINFO_H

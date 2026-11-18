@@ -1,6 +1,6 @@
-// JNIEnv for KuART: bridge between DEX bytecode and game native code.
-// Replaces ~230 ART vtable functions; maps JNI handles to KuART pointers.
-// Local refs are per-frame; global refs live in a separate table.
+// JNIEnv for the DEX runtime: bridge between DEX bytecode and game native code.
+
+
 #ifndef KUDROID_KUART_DEXJNIENV_H
 #define KUDROID_KUART_DEXJNIENV_H
 
@@ -30,16 +30,16 @@ constexpr unsigned kJniGpRegs = 8;
 #endif
 constexpr unsigned kJniFpRegs = 8;
 
-}  // namespace kuart
-}  // namespace kudroid
+}  // namespace
+}  // namespace
 
 extern "C" {
 // Append a SIGKILL-surviving breadcrumb to the host log directory.
 void kudroid_persistent_breadcrumb(const char* line);
-// Calls `fn` with the given register files. See src/kuart/jni_trampoline.S for
-// the contract; `gp` and `fp` must each have 8 initialised slots. The integer
-// return comes back directly, the float/double return is written to *fp_ret as
-// raw bits (nullptr to discard).
+// Calls `fn` with the given register files.
+
+
+
 uint64_t kudroid_jni_call(const void* fn, const uint64_t* gp, unsigned ngp,
                           const uint64_t* fp, unsigned nfp, uint64_t* fp_ret);
 // Same as kudroid_jni_call, but appends `nstack` 8-byte stack slots after the
@@ -143,31 +143,31 @@ private:
     Interpreter* interpreter_ = nullptr;
     SymbolLookup symbol_lookup_ = nullptr;
 
-    // One DexJniEnv serves every guest thread (see KuArtRuntime), so the
-    // GLOBAL table below is shared across threads — UnityMain, the UI
-    // thread posting touch events, FMOD's mixer — and every accessor takes
-    // global_refs_mutex_ (the jni_globals_lock_ of this runtime). An
-    // unguarded std::unordered_set insert from two threads corrupts buckets
-    // into garbage pointers (observed: AddGlobalRef fault on a touch event).
-    // Leaf-level only: no other lock is ever held across these calls, so no
-    // lock ordering exists to violate.
-    //
-    // Local frames and the pending exception are NOT here: like ART's
-    // JNIEnvExt/ExceptionState they are thread-confined (thread_local in
-    // DexJniEnv.cpp), lock-free, and invisible across threads. The
-    // interpreter's own pending_exception_ is already thread_local, and the
-    // Set/pending/Clear trio below forwards to it — both slots are TLS so
-    // the merge stays thread-confined on every thread.
+    // Protect global JNI references shared across guest threads.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     std::unordered_set<DexObject*> global_refs_;
     mutable std::mutex global_refs_mutex_;
 
     std::string last_error_;
 };
 
-// True while Unity's JNIBridge.invoke runs, enabling scoped JNI tracing.
+// Enable scoped JNI bridge tracing.
 bool JnibridgeTraceActive();
 
-}  // namespace kuart
-}  // namespace kudroid
+}  // namespace
+}  // namespace
 
 #endif  // KUDROID_KUART_DEXJNIENV_H

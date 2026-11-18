@@ -72,9 +72,9 @@ public class ContextWrapper extends Context {
         return new SharedPreferencesImpl(name, dir);
     }
     public Object getSystemService(String name) { return mBase != null ? mBase.getSystemService(name) : super.getSystemService(name); }
-    // The Class overload has to delegate too, or a wrapped Context answers the two
-    // overloads from different objects. Activity is a ContextWrapper, so this is the
-    // path Unity's getSystemService(WindowManager.class) actually takes.
+    // Delegate manager lookup consistently across overloads.
+
+
     public Object getSystemService(Class<?> serviceClass) { return mBase != null ? mBase.getSystemService(serviceClass) : super.getSystemService(serviceClass); }
     public String getSystemServiceName(Class<?> serviceClass) { return mBase != null ? mBase.getSystemServiceName(serviceClass) : super.getSystemServiceName(serviceClass); }
     public int checkSelfPermission(String permission) { return mBase != null ? mBase.checkSelfPermission(permission) : PackageManager.PERMISSION_GRANTED; }

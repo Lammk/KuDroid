@@ -214,5 +214,5 @@ bool Invoke_libcore_io_KuTls(Interpreter* /*interp*/, const char* name, const De
     return false;
 }
 
-}  // namespace kuart
-}  // namespace kudroid
+}  // namespace
+}  // namespace

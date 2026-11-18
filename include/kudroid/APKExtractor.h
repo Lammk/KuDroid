@@ -84,9 +84,9 @@ struct ManifestInfo {
     // falls back to looking here.
     std::vector<MetaDataEntry> applicationMetaData;
 
-    // Every activity the manifest declares, in declaration order. This is the
-    // authoritative list: Android launches what the manifest says, so KuDroid can
-    // walk real entries instead of inventing names like "<pkg>.Main".
+    // Every activity the manifest declares, in declaration order.
+
+
     std::vector<ActivityEntry> activities;
 
     // Meta-data of `activityName`, falling back to <application>'s.
@@ -170,4 +170,4 @@ public:
     static const std::string& lastError();
 };
 
-} // namespace kudroid
+} // namespace

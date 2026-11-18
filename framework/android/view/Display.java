@@ -165,15 +165,15 @@ public class Display {
         return false;
     }
 
-    /**
-     * Nanoseconds by which this display's vsync is offset from the timestamp Choreographer
-     * reports.
-     *
-     * Zero, and that is the honest answer rather than a placeholder: KuDroid presents through
-     * CoreAnimation, which hands out the frame deadline directly, so there is no separate
-     * hardware offset to correct for. An invented non-zero value would make a frame pacer
-     * aim slightly early or late on every frame.
-     */
+    /** Nanoseconds by which this display's vsync is offset from the timestamp Choreographer reports. */
+
+
+
+
+
+
+
+
     public long getAppVsyncOffsetNanos() {
         return 0L;
     }
@@ -189,13 +189,13 @@ public class Display {
         return rate > 0.0f ? (long) (1000000000.0f / rate) : 16666666L;
     }
 
-    /**
-     * Whether this display can show more than sRGB.
-     *
-     * False. iOS devices with a P3 panel do exist, but KuDroid's swapchain and the Metal
-     * layer behind it are configured for sRGB — claiming wide gamut would have the app
-     * submit P3 content that is then displayed as sRGB, which shifts every colour.
-     */
+    /** Whether this display can show more than sRGB. */
+
+
+
+
+
+
     public boolean isWideColorGamut() {
         return false;
     }

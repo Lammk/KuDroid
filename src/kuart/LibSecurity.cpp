@@ -117,4 +117,4 @@ bool Invoke_libcore_io_KuCrypto(Interpreter* interp, const char* name, const Dex
         return true;
     }
 }
-}  // namespace kudroid::kuart
+}  // namespace

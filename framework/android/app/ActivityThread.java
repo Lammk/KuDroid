@@ -104,14 +104,14 @@ public final class ActivityThread {
         return (t != null) ? t.mApplication : null;
     }
 
-    /**
-     * The Activity this thread launched, or null before it exists.
-     *
-     * KuDroid runs one Activity, so "the current Activity" is unambiguous here in a way it
-     * is not on Android. Exposed because code that was handed no Context asks for one this
-     * way — Fragment.getActivity() with no fragment manager to attach it, and SDKs that
-     * reach for an Activity to show UI over.
-     */
+    /** The Activity this thread launched, or null before it exists. */
+
+
+
+
+
+
+
     public static Activity currentActivity() {
         ActivityThread t = sCurrentActivityThread;
         return (t != null) ? t.mInitialActivity : null;
@@ -573,8 +573,8 @@ public final class ActivityThread {
     }
 
     public static void main(String[] args) {
-        // KuART keeps its Java heap and static fields between shell sessions.
-        // Clear only state owned by this guest UI thread before preparing a new run.
+        // Reset UI-thread state before preparing another run.
+
         if (Looper.getMainLooper() == null || Looper.getMainLooper().isQuitting()) {
             Looper.resetMainLooperForRelaunch();
             android.view.Choreographer.resetForRelaunch();
@@ -734,7 +734,7 @@ public final class ActivityThread {
         return false;
     }
 
-    /** Packages KuDroid itself is responsible for shipping (the boot classpath). */
+    /** Identify classes belonging to the boot classpath. */
     private static final String[] BOOT_PACKAGES = {
         "java.", "javax.", "android.", "androidx.", "dalvik.", "sun.", "libcore.",
         "com.android.", "org.json.", "org.xml.sax.", "org.w3c.dom.", "org.xmlpull.",
@@ -790,16 +790,16 @@ public final class ActivityThread {
         return dotted;
     }
 
-    /**
-     * If this failure was caused by a class KuDroid does not ship, return that class
-     * name; otherwise null.
-     *
-     * The distinction decides what to do next, and getting it wrong is what produced a
-     * blank screen: a missing framework class is KuDroid's own gap, so moving on to the
-     * next manifest candidate just lands on some SDK Activity (a billing proxy, an OAuth
-     * browser shim) that renders nothing. A genuinely wrong candidate — an app class that
-     * does not exist — is the only case where trying the next one helps.
-     */
+    /** If this failure was caused by a class the runtime does not ship, return that class name; otherwise null. */
+
+
+
+
+
+
+
+
+
     private static String frameworkGapOf(Throwable t) {
         for (Throwable c = t; c != null; c = c.getCause()) {
             final String type = c.getClass().getName();
@@ -841,19 +841,19 @@ public final class ActivityThread {
         String resolvedName = null;
 
         // Candidates come from AndroidManifest.xml, resolved by the C++ layer.
-        //
-        // Nothing is guessed here any more. This used to append invented names built
-        // from the package prefix (".Main", ".ui.MainActivity", ".Home"...), which
-        // could only ever succeed by coincidence and otherwise filled the log with
-        // ClassNotFoundException for classes no app ever declared. Android launches
-        // what the manifest declares; so does KuDroid.
+
+
+
+
+
+
         if (candidates == null || candidates.length == 0) {
             android.util.Log.e("ActivityThread", "No activity candidates supplied");
         }
 
-        // Names of framework classes KuDroid does not ship, collected while trying
-        // candidates. If the FIRST (launcher) candidate fails only because of these,
-        // the app is not at fault and no other candidate will do better.
+        // Names of framework classes the runtime does not ship, collected while trying candidates.
+
+
         java.util.ArrayList<String> frameworkGaps = new java.util.ArrayList<String>();
 
         for (int i = 0; candidates != null && i < candidates.length; i++) {
@@ -890,12 +890,12 @@ public final class ActivityThread {
                         "FRAMEWORK CLASS MISSING: " + gap +
                         " (add it under framework/ and rebuild framework.dex)");
 
-                // The launcher activity is the one the app is designed to start. When
-                // it fails on a KuDroid gap, walking the rest of the manifest only
-                // reaches SDK activities — billing proxies, OAuth browser shims,
-                // notification trampolines — none of which draw the app's UI. Stopping
-                // here keeps the real cause on screen instead of burying it behind a
-                // blank Activity that happened to load.
+                // The launcher activity is the one the app is designed to start.
+
+
+
+
+
                 if (i == 0) {
                     android.util.Log.e("ActivityThread",
                             "Launcher activity '" + name + "' needs framework classes KuDroid " +
@@ -1028,15 +1028,15 @@ public final class ActivityThread {
         return null;
     }
 
-    /**
-     * On-screen report of why the app did not start.
-     *
-     * This replaces a mock "file explorer" that showed hardcoded folder names: it looked
-     * like something was working while telling nothing about the actual failure. What is
-     * useful on a blank screen is the name of the activity that was tried, the exception
-     * that stopped it, and above all which framework classes KuDroid still has to
-     * implement — that list is exactly the next piece of work.
-     */
+    /** On-screen report of why the app did not start. */
+
+
+
+
+
+
+
+
     private void showDiagnosticScreen(Activity host, String attempted, Throwable error) {
         android.widget.LinearLayout root = new android.widget.LinearLayout(host);
         root.setBackgroundColor(0xFF101014);

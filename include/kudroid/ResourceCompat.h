@@ -10,4 +10,4 @@ namespace kudroid {
 int resource_compat_cli(const std::vector<std::string>& args,
                         std::string* output, std::string* error);
 
-}  // namespace kudroid
+}  // namespace

@@ -12,4 +12,4 @@ int VerifyRsaSignature(const char* algorithm, const uint8_t* der, size_t der_len
                        const uint8_t* message, size_t message_length,
                        const uint8_t* signature, size_t signature_length);
 
-}  // namespace kudroid
+}  // namespace

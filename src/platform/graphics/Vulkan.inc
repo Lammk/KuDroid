@@ -1,16 +1,16 @@
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Vulkan ↔ MoltenVK translation
-//
-// Android games request the Android-specific surface extension
-// (VK_KHR_android_surface / vkCreateAndroidSurfaceKHR). MoltenVK on iOS only
-// provides VK_EXT_metal_surface / vkCreateMetalSurfaceEXT. We intercept
-// vkGetInstanceProcAddr and translate the surface creation call.
-//
-// Because bionic_ANativeWindow_fromSurface returns g_metalLayer (a CAMetalLayer)
-// directly, the "window" pointer the game passes IS the CAMetalLayer — no
-// struct unwrapping needed.
-// ─────────────────────────────────────────────────────────────────────────────
+// Translate native surface extensions for the host backend.
+
+
+
+
+
+
+
+
+
+
+
 
 // Minimal Vulkan types (opaque handles + result codes).
 typedef uint32_t VkResult;
@@ -147,7 +147,7 @@ VkTapEntry g_vkTaps[] = {
      reinterpret_cast<void**>(&s_realCreateSwapchain)},
 };
 
-// Resolve through MoltenVK on demand; null when the game never uses the name.
+// Resolve through the Vulkan backend on demand; null when the game never uses the name.
 PFN_vkVoidFunction lookupVkTap(const char* name) {
     if (name == nullptr) return nullptr;
     for (auto& tap : g_vkTaps) {
@@ -164,7 +164,7 @@ PFN_vkVoidFunction lookupVkTap(const char* name) {
 }  // namespace
 static std::atomic<uint64_t> s_submitCount{0};
 
-// Intercept vkCreateInstance: translate Android surface extension to iOS MoltenVK surface extension
+// Translate surface extensions when creating Vulkan instances.
 extern "C" VkResult bionic_vkCreateInstance(const VkInstanceCreateInfo* pCreateInfo,
                                             const VkAllocationCallbacks* pAllocator,
                                             VkInstance* pInstance) {
@@ -185,7 +185,7 @@ extern "C" VkResult bionic_vkCreateInstance(const VkInstanceCreateInfo* pCreateI
         for (uint32_t i = 0; i < pCreateInfo->enabledExtensionCount; ++i) {
             const char* ext = pCreateInfo->ppEnabledExtensionNames[i];
             if (strcmp(ext, "VK_KHR_android_surface") == 0) {
-                // Translate to MoltenVK iOS surface extensions
+                // Translate to the Vulkan backend iOS surface extensions.
                 extList.push_back("VK_MVK_ios_surface");
                 extList.push_back("VK_EXT_metal_surface");
             } else {
@@ -299,7 +299,7 @@ extern "C" VkResult bionic_vkCreateAndroidSurfaceKHR(VkInstance instance,
         }
     }
 
-    // 2. Try MoltenVK's iOS function: vkCreateIOSSurfaceMVK
+    // Try the Vulkan backend's iOS function: vkCreateIOSSurfaceMVK.
     auto createIOSSurface = (PFN_vkCreateIOSSurfaceMVK)real(instance, "vkCreateIOSSurfaceMVK");
     if (createIOSSurface) {
         VkIOSSurfaceCreateInfoMVK iosInfo = {};
@@ -333,8 +333,8 @@ extern "C" VkResult bionic_vkCreateAndroidSurfaceKHR(VkInstance instance,
     return -1;
 }
 
-// Intercept vkGetInstanceProcAddr: translate Android surface calls, forward
-// everything else to MoltenVK.
+// Intercept vkGetInstanceProcAddr: translate Android surface calls, forward everything else to the Vulkan backend.
+
 extern "C" PFN_vkVoidFunction bionic_vkGetInstanceProcAddr(VkInstance instance, const char* pName) {
     if (!pName) return nullptr;
     if (strcmp(pName, "vkCreateInstance") == 0) {
@@ -473,9 +473,9 @@ extern "C" uint32_t bionic_vkAcquireNextImageKHR(void* device, void* swapchain, 
     return r;
 }
 
-// Diagnostic: submit count proves whether Unity draws (submit>0) or only
-// clear-presents (submit==0). Command-buffer counts are left to validation
-// layers; only the batch count is observed here.
+// Count native graphics submissions.
+
+
 extern "C" uint32_t bionic_vkQueueSubmit(void* queue, uint32_t submit_count,
                                          const void* submits, void* fence) {
     const uint64_t n =
@@ -539,11 +539,11 @@ extern "C" uint32_t bionic_vkCreateSwapchainKHR(void* device, const void* create
     return r;
 }
 
-// Diagnostic: surface capabilities MoltenVK reports. Unity reads these through
-// vkGetInstanceProcAddr (bypassing the device-proc tap), so this hook lives on
-// the instance-proc path. VkSurfaceCapabilitiesKHR 64-bit layout:
-// minCount(0) maxCount(4) currentExtent(8: w,h) supportedTransforms(36)
-// currentTransform(40).
+// Report surface capabilities returned by the backend.
+
+
+
+
 extern "C" uint32_t bionic_vkSurfaceCaps(void* phys, void* surface, void* caps) {
     const uint32_t r =
         s_realSurfaceCaps != nullptr ? s_realSurfaceCaps(phys, surface, caps) : 0xFFFFFFFDu;
@@ -707,10 +707,10 @@ void* get_vk_func(const char* name) {
     if (strcmp(name, "vkEnumerateInstanceExtensionProperties") == 0) {
         return (void*)&bionic_vkEnumerateInstanceExtensionProperties;
     }
-    // Submit/acquire/present/swapchain resolve through raw dlsym as well as the
-    // proc-addr hooks; tap them on every path or Unity's route stays invisible.
-    // Resolve the real function on demand so this path works even when the game
-    // never queries the proc-addr hooks for these names.
+    // Trace swapchain operations across direct and procedure-based calls.
+
+
+
     if (strcmp(name, "vkQueueSubmit") == 0 || strcmp(name, "vkQueuePresentKHR") == 0 ||
         strcmp(name, "vkAcquireNextImageKHR") == 0 || strcmp(name, "vkCreateSwapchainKHR") == 0) {
         void* mvk = get_mvk_handle();

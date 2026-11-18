@@ -4,7 +4,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.concurrent.TimeUnit;
 
-/** A native process. KuDroid cannot start one, so instances only exist as subclasses. */
+/** The runtime cannot start one, so instances only exist as subclasses. */
 public abstract class Process {
     public Process() {}
 

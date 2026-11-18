@@ -95,7 +95,7 @@ void release_monitor_state(DexObject* obj, const std::shared_ptr<MonitorState>& 
 
 thread_local uint32_t t_thread_id = 0;
 
-// KuART id to OS tid mapping for diagnostics.
+// The DEX runtime id to OS tid mapping for diagnostics.
 constexpr uint32_t kMaxKuartThreads = 256;
 std::atomic<uint64_t> g_os_tid_by_kuart_id[kMaxKuartThreads];
 
@@ -109,7 +109,7 @@ uint64_t os_thread_id() {
 #endif
 }
 
-// OS tid for KuART id, or 0 when unknown.
+// OS tid for the DEX runtime id, or 0 when unknown.
 uint64_t os_tid_for(uint32_t id) {
     if (id == 0 || id >= kMaxKuartThreads) return 0;
     return g_os_tid_by_kuart_id[id].load(std::memory_order_relaxed);
@@ -322,5 +322,5 @@ bool Notify(DexObject* obj, bool all) {
 
 }  // namespace Monitor
 
-}  // namespace kuart
-}  // namespace kudroid
+}  // namespace
+}  // namespace

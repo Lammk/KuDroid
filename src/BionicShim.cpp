@@ -24,11 +24,11 @@ extern "C" int kudroid_android_log_message(int priority, const char* tag, const 
 
 namespace kudroid {
 namespace {
-// Trace used to be thread_local: entries written on a thread nobody flushed
-// (FMOD's file thread, asset workers) never reached any report, so the exact
-// path a failing subsystem took was invisible in the logs. A mutex-guarded
-// global ring keeps the last entries from every thread; ";\n" is an unlikely
-// boundary so consumers splitting on it stay correct.
+// A mutex-guarded global ring keeps the last entries from every thread; ";\n" is an unlikely boundary so consumers splitting on it stay correct.
+
+
+
+
 constexpr size_t kShimTraceRing = 64;
 std::mutex gShimTraceMtx;
 std::string gShimTraceRing[kShimTraceRing];
@@ -244,15 +244,15 @@ void* resolve_bionic_symbol(const char* name, bool allowDummy) {
             char msg[256];
             snprintf(msg, sizeof(msg), "missing symbol bound to dummy: %s", name);
             trace_shim(msg);
-            // Mirror to standard logs (android_logs.txt + crash buffer) — previously
-            // is only in the shim trace so it disappears when looking for relocation
-            // unresolved (which is Discord's SIGILL suspect in init).
-            //
-            // Priority 5 (warn), not 2 (verbose). This line is the record that a guest
-            // is about to call something KuDroid does not implement, and it is often
-            // the only warning before the failure it causes: six of these named the
-            // AChoreographer functions whose absence stopped ULTRAKILL dead, and at
-            // verbose they sat among thousands of routine dlsym lines.
+            // Report diagnostics at warning level.
+
+
+
+
+
+
+
+
             kudroid_android_log_message(5, "BionicShim", msg);
             resolved = reinterpret_cast<void*>(&kudroid_universal_dummy);
         }
@@ -288,4 +288,4 @@ const char* bionic_shim_trace() {
     return joined.c_str();
 }
 
-} // namespace kudroid
+} // namespace

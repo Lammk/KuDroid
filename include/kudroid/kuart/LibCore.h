@@ -32,15 +32,15 @@ bool LibCoreHasMethod(const DexMethod* method);
 // Discard queued callback contexts after the frame scheduler stops.
 size_t LibCoreDiscardFrameCallbacks(Interpreter* interp);
 
-// libcore.io.KuNet natives (src/kuart/LibNet.cpp): the sockets and DNS behind java.net.
+// Libcore.io.KuNet natives: the sockets and DNS behind java.net.
 bool Invoke_libcore_io_KuNet(Interpreter* interp, const char* name, const DexValue* args,
                              size_t num_args, DexValue* result);
 
-// libcore.io.KuZlib natives (src/kuart/LibZip.cpp): zlib streams and checksums.
+// Libcore.io.KuZlib natives: zlib streams and checksums.
 bool Invoke_libcore_io_KuZlib(Interpreter* interp, const char* name, const DexValue* args,
                               size_t num_args, DexValue* result);
 
-// libcore.io.KuTls natives (src/kuart/LibTls.cpp): TLS sessions behind javax.net.ssl.
+// Libcore.io.KuTls natives: TLS sessions behind javax.net.ssl.
 bool Invoke_libcore_io_KuTls(Interpreter* interp, const char* name, const DexValue* args,
                              size_t num_args, DexValue* result);
 
@@ -71,7 +71,7 @@ bool LibCoreUnboxValue(Interpreter* interp, const char* descriptor, DexObject* o
 using LoadLibraryCallback = int (*)(const char* libname);
 void LibCoreSetLoadLibraryCallback(LoadLibraryCallback cb);
 
-}  // namespace kuart
-}  // namespace kudroid
+}  // namespace
+}  // namespace
 
 #endif  // KUDROID_KUART_LIBCORE_H

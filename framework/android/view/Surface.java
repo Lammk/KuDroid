@@ -3,12 +3,12 @@ package android.view;
 import android.graphics.Canvas;
 import android.graphics.Rect;
 
-/**
- * Standard stub of android.view.Surface for KuDroid.
- *
- * mNativeObject stores the pointer to the underlying KuDroidNativeWindow (ANativeWindow)
- * which links to the CAMetalLayer for hardware-accelerated 3D rendering.
- */
+/** Represent a rendering surface. */
+
+
+
+
+
 public class Surface {
     public static final int ROTATION_0 = 0;
     public static final int ROTATION_90 = 1;

@@ -1,9 +1,5 @@
 #!/usr/bin/env python3
-"""Compare the FSB5 hex prefixes KuDroid served (stderr.log) with the real APK bytes.
-
-Audit tool: proves whether the VFS hands FMOD correct file content at every
-detected blob, or whether some reads straddle/miss the intended file region.
-"""
+"""Compare served audio-bank prefixes with their original APK bytes."""
 import re
 import struct
 import sys
@@ -31,7 +27,7 @@ with open(LOG, "r", errors="replace") as fh:
 
 print(f"served FSB5 records: {len(rows)}")
 
-# The device path is the same layout, but KuDroid lowercases names for lookup.
+# Lowercase names when looking up served asset paths.
 zf = zipfile.ZipFile(APK)
 byname = {n.lower(): n for n in zf.namelist()}
 

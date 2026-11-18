@@ -1,17 +1,17 @@
 package java.util;
 
-/**
- * java.util.Calendar — abstract base for calendar field arithmetic.
- *
- * Written for KuDroid rather than ported: Apache Harmony's Calendar calls
- * com.ibm.icu.util.Calendar in its locale constructor, and there is no ICU on the
- * device. The field model and the get/set/add/roll contract follow the JDK, which is
- * what callers depend on; the calendar arithmetic itself lives in GregorianCalendar.
- *
- * Field values are held in a fixed array and converted to and from a millisecond
- * instant lazily, matching the JDK's behaviour where set() marks fields dirty and the
- * next get() recomputes.
- */
+/** Provide calendar field arithmetic. */
+
+
+
+
+
+
+
+
+
+
+
 public abstract class Calendar implements Cloneable, Comparable<Calendar> {
 
     public static final int ERA = 0;

@@ -9,20 +9,20 @@ import android.content.res.AssetManager;
 import android.content.res.Resources;
 import java.io.File;
 
-/**
- * The base Context every component is attached to.
- *
- * ContextWrapper falls back to a fixed "com.kudroid.app" package name when it has
- * no base context, so every path derived from it (files dir, cache dir, shared
- * preferences, external storage) pointed at a directory unrelated to the app being
- * run. An app that writes a file and reads it back still worked, but anything
- * comparing getPackageName() against its own identity — license checks, intent
- * targeting, provider authorities, crash reporters — saw the wrong answer.
- *
- * This is the root of the context chain: it takes the package name the manifest
- * declared and derives the standard Android paths from it, so nothing is specific
- * to any one app.
- */
+/** The base Context every component is attached to. */
+
+
+
+
+
+
+
+
+
+
+
+
+
 public class ApplicationContext extends Context {
 
     private final String mPackageName;

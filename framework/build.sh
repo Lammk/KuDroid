@@ -1,17 +1,17 @@
 #!/usr/bin/env bash
-# ─────────────────────────────────────────────────────────────────────────────
-# Build KuDroid's minimal android framework classes into framework.dex.
-#
-# KuART loads DEX directly (no more dex2jar/JVM) so the output is .dex, not
-# .jar. Build chain: javac → .class → d8 → framework.dex → ​​embedded into C++ header.
-#
-# Use:
-#   ./build.sh # javac + d8 + embed include/kudroid/framework_dex_bytes.h
-#   ./build.sh --no-embed # only builds framework.dex, does not generate headers
-#
-# Requirements: JDK (javac) on PATH or JAVA_HOME, and d8 from Android SDK.
-# Without d8, the script WARNS and keeps the prebuilt header (does not fail the C++ build).
-# ─────────────────────────────────────────────────────────────────────────────
+# Compile framework classes into DEX and optionally embed them.
+
+
+
+
+
+
+
+
+
+
+
+
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
@@ -130,9 +130,9 @@ if [[ -z "$JAVA_FILES" ]]; then
 fi
 echo "Compile $(echo "$JAVA_FILES" | wc -l | tr -d ' ') Java file..."
 
-# framework/java/** is the self-written libcore (java.lang.Object, String, ...). Must give
-# javac completely removes the JDK's rt.jar, otherwise it says "duplicate class" and all references
-# The java.* reference will point to the JDK and not to the KuDroid version.
+# Compile core classes against the framework boot classpath.
+
+
 EMPTY_BOOTCLASSPATH="$BUILD_DIR/empty-bootclasspath"
 mkdir -p "$EMPTY_BOOTCLASSPATH"
 
@@ -143,15 +143,17 @@ mkdir -p "$EMPTY_BOOTCLASSPATH"
     -bootclasspath "$EMPTY_BOOTCLASSPATH" \
     -d "$CLASSES_DIR" $JAVA_FILES
 
+python3 "$ROOT_DIR/scripts/run-command.py" --timeout 60 python3 "$ROOT_DIR/scripts/fetch-legacy-http.py" --classes "$CLASSES_DIR"
+
 # ── .class → .dex ────────────────────────────────────────────────────────────
 CLASS_FILES=$(find "$CLASSES_DIR" -name '*.class' | sort)
 echo "d8: $(echo "$CLASS_FILES" | wc -l | tr -d ' ') class → framework.dex"
 
-# min-api 29 (Android 10, the exact ART version that KuART ports from): from API 24 and up
-# Up to d8 there is NO desugar default/static interface method anymore, so no need for --lib
-# points to the JDK — but passing --lib to the new JDK causes d8 to die because of the major version.
-# Kotlin support: merge the pinned stdlib + coroutines jars so Kotlin apps
-# resolve kotlin.*/kotlinx.* at runtime (no overlap with framework sources).
+# Keep native interface methods and merge pinned Kotlin dependencies.
+
+
+
+
 KOTLIN_JARS=""
 for kj in "$ROOT_DIR/third_party/kotlin/kotlin-stdlib-1.9.24.jar" \
           "$ROOT_DIR/third_party/kotlin/kotlinx-coroutines-core-jvm-1.8.0.jar"; do

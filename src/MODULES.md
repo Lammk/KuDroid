@@ -5,6 +5,7 @@ Owned source files have a 2,000-line limit. Run `timeout 120 python3 scripts/che
 | Entry point | Implementation modules |
 | --- | --- |
 | `src/abi/SyscallShim.cpp` | `src/abi/syscall/`: logging, pthreads, file metadata, memory, direct syscalls, descriptors, sockets, signals, loader, events, TLS, properties, libc, semaphores, fortify and symbol registration |
+| `src/elf_loader.cpp` | `src/elf/GuestMappings.inc`: copied module mapping metadata for process-map snapshots |
 | `src/platform/GraphicsShim.cpp` | `src/platform/graphics/`: windows/layers, procedure lookup, EGL display/surfaces, Vulkan, GLES forwarding, stack ABI and symbol registration |
 | `src/kuart/LibCore.cpp` | `src/kuart/libcore/`: strings/objects, reflection, Java language operations, files/SQL, Android graphics/services, memory/resources |
 | `src/kuart/Interpreter.cpp` | `src/kuart/interpreter/`: resolution/invocation and bytecode execution |

@@ -2,13 +2,13 @@ package android.content;
 
 import android.os.Bundle;
 
-/**
- * minimal android.content.intent implementation.
- *
- * describes an operation to be performed (for example, starting an activity). for
- * kudroid minimal framework, we store component/class names and any
- * any additional packages.
- */
+/** Describe an operation to perform. */
+
+
+
+
+
+
 public class Intent implements android.os.Parcelable, Cloneable {
     /** activity action. */
     public static final String ACTION_MAIN = "android.intent.action.MAIN";

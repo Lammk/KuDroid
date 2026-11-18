@@ -1,6 +1,7 @@
 #include "kudroid/BionicShim.h"
 #include "kudroid/kudroid_bridge.h"
 #include "kudroid/abi/SyscallShim.h"
+#include "kudroid/ElfSyscalls.h"
 #include "kudroid/abi/Sendfile.h"
 #include "kudroid/abi/TimerDeadline.h"
 #include "kudroid/abi/SocketAbi.h"

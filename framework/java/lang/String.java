@@ -1,9 +1,9 @@
 package java.lang;
 
-/**
- * Immutable strings. The real data is in KuART's DexString (raw UTF-8).
- * is not a Java field, so all character access is via native.
- */
+/** Access strings stored by the DEX runtime. */
+
+
+
 public final class String implements CharSequence, Comparable<String> {
 
     public String() {

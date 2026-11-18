@@ -119,6 +119,7 @@ add_library(kudroid_core STATIC
     src/APKExtractor.cpp
     src/BionicShim.cpp
     src/VFSPathRemapper.cpp
+    src/platform/ProcessMaps.cpp
     src/platform/SystemFonts.cpp
     src/bionic_log_trampoline.S
     src/elf_loader.cpp
@@ -126,6 +127,7 @@ add_library(kudroid_core STATIC
     src/ElfAliasStore.cpp
     src/ExecMemory.cpp
     src/elf_x18.cpp
+    src/elf_syscalls.cpp
     src/library_manager.cpp
     src/FlutterRuntime.cpp
     src/AlignedVmReservations.cpp
@@ -253,7 +255,7 @@ if(APPLE)
 else()
     find_package(SQLite3 QUIET)
     if(SQLite3_FOUND)
-        target_link_libraries(kudroid_core PUBLIC SQLite3::SQLite3)
+        target_link_libraries(kudroid_core PUBLIC SQLite::SQLite3)
         target_compile_definitions(kudroid_core PRIVATE KUDROID_HAVE_SQLITE3=1)
     endif()
 endif()
@@ -1052,6 +1054,18 @@ endif()
 
 if(NOT CMAKE_SYSTEM_NAME STREQUAL "iOS")
     find_package(Threads REQUIRED)
+    add_executable(test_native_window_geometry tests/test_native_window_geometry.cpp)
+    target_link_libraries(test_native_window_geometry PRIVATE kudroid_core)
+    add_executable(test_process_maps tests/test_process_maps.cpp)
+    target_link_libraries(test_process_maps PRIVATE kudroid_core)
+    add_executable(test_raw_syscalls tests/test_raw_syscalls.cpp src/elf_syscalls.cpp src/abi/SocketAbi.cpp)
+    target_include_directories(test_raw_syscalls PRIVATE include)
+    add_executable(test_java_only_launch tests/test_java_only_launch.cpp)
+    target_link_libraries(test_java_only_launch PRIVATE kudroid_core art_dex)
+    target_include_directories(test_java_only_launch PRIVATE include)
+    add_executable(test_native_callbacks tests/test_native_callbacks.cpp)
+    target_link_libraries(test_native_callbacks PRIVATE kudroid_core art_dex Threads::Threads)
+    target_include_directories(test_native_callbacks PRIVATE include)
     add_executable(test_es31_compat tests/test_es31_compat.cpp src/platform/Es31Compat.cpp)
     target_include_directories(test_es31_compat PRIVATE include)
     add_executable(test_egl_capabilities tests/test_egl_capabilities.cpp)

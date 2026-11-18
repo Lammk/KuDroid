@@ -201,15 +201,15 @@ public final class Configuration implements Parcelable, Comparable<Configuration
         smallestScreenWidthDp = o.smallestScreenWidthDp;
         densityDpi = o.densityDpi;
     }
-    /**
-     * The locales, as {@link android.os.LocaleList}.
-     *
-     * AOSP changed the signature at API 24 from {@code Locale getLocale()} to
-     * {@code LocaleList getLocales()}. This used to declare the new NAME with the
-     * old TYPE, so any app built for API 24+ (Unity targets 30+) failed to resolve
-     * {@code getLocales()Landroid/os/LocaleList;} through JNIBridge reflection —
-     * a NoSuchMethodError out of the main Handler with no other trace.
-     */
+    /** The locales, as {@link android.os.LocaleList}. */
+
+
+
+
+
+
+
+
     public android.os.LocaleList getLocales() { return locale == null ? new android.os.LocaleList() : new android.os.LocaleList(locale); }
     /** Pre-24 spelling, kept for old callers. */
     public Locale getLocale() { return locale; }

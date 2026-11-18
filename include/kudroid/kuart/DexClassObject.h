@@ -16,7 +16,7 @@ public:
     DexClass* represented = nullptr;
 };
 
-}  // namespace kuart
-}  // namespace kudroid
+}  // namespace
+}  // namespace
 
 #endif  // KUDROID_KUART_DEXCLASSOBJECT_H

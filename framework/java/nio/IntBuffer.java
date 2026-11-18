@@ -1,15 +1,15 @@
 package java.nio;
 
-/**
- * java.nio.IntBuffer — int view over a backing array.
- *
- * FMOD's callback path builds its interleaved sample buffer here
- * (ByteBuffer.asIntBuffer on the engine side of the bridge), so a missing
- * class turns every sound install into NoClassDefFoundError and the mixer
- * ends up handing Unity a null string. Follows the shape of LongBuffer: the
- * abstract shell exists for instanceof/casts, wrap() returns the anonymous
- * implementation that actually runs.
- */
+/** Expose an integer view over a backing array. */
+
+
+
+
+
+
+
+
+
 public abstract class IntBuffer extends Buffer implements Comparable<IntBuffer> {
     final int[] hb;
     final int offset;

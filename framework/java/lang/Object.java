@@ -1,9 +1,9 @@
 package java.lang;
 
-/**
- * Root of all classes. KuART allocates objects according to the DexObject layout so this class
- * Do not declare any field instances.
- */
+/** Root of all classes. */
+
+
+
 public class Object {
 
     public Object() {

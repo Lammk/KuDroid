@@ -1,25 +1,25 @@
-// OAT: KuART's ahead-of-time cache, on disk beside the app's DEX.
-//
-// Android's oat file holds compiled native code for a whole DEX. KuART's holds
-// something narrower and more useful for an interpreter: the RESULT of work that is
-// expensive to redo and cheap to store — which methods are hot enough to compile, and
-// which the JIT already refused and why.
-//
-// That is the difference that matters on a phone. A cold start re-discovers hotness by
-// interpreting thousands of iterations of every loop before the counter trips; with a
-// profile from the previous run those methods are compiled on first call instead. And a
-// method the compiler refused is not re-attempted every launch — the refusal is a
-// property of the bytecode, so it is stable across runs.
-//
-// Machine code is deliberately NOT stored. Doing so requires the file to be signed or
-// the pages to be verified, because a writable file mapped executable is arbitrary code
-// execution; and the compiled code embeds absolute addresses of runtime structures that
-// differ per launch under ASLR. Recompiling from the profile costs microseconds per
-// method and needs neither.
-//
-// Staleness is checked with the DEX checksum, not a timestamp. An APK reinstalled with
-// the same mtime and different content is a real case (repacked builds), and a stale
-// profile would name methods by an index that now refers to something else.
+// OAT: the DEX runtime's ahead-of-time cache, on disk beside the app's DEX.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 #ifndef KUDROID_KUART_OATFILE_H
 #define KUDROID_KUART_OATFILE_H
 
@@ -104,7 +104,7 @@ private:
     std::unordered_map<Key, MethodState, KeyHash> entries_;
 };
 
-}  // namespace kuart
-}  // namespace kudroid
+}  // namespace
+}  // namespace
 
 #endif  // KUDROID_KUART_OATFILE_H

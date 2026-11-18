@@ -1,5 +1,5 @@
-// KuART Runtime: the single entry point that KuDroid uses to run Java bytecode.
-// Replaces dex2jar -> classes.jar -> Avian JVM pipeline. KuART interprets DEX directly.
+// Expose the Java runtime entry points.
+
 #ifndef KUDROID_KUART_RUNTIME_H
 #define KUDROID_KUART_RUNTIME_H
 
@@ -156,37 +156,37 @@ void kuart_media_drain_pending(void);
 void kuart_host_events_drain(void);
 
 // Take the in-flight Java exception of the CALLING thread, if any, and clear it.
-//
-// A native library called from Java (System.loadLibrary -> JNI_OnLoad) can call
-// back into Java and leave an exception pending. JNI requires the native side to
-// check and clear it; libraries that ignore the rule leave the exception in place,
-// and the interpreter then reports it as if the Java call that triggered the
-// library had thrown. That is what stopped Minecraft: an exception raised inside a
-// JNI_OnLoad callback surfaced from System.loadLibrary, which the app only guards
-// with catch(UnsatisfiedLinkError), so MainActivity.<clinit> died.
-//
-// Returns 1 when an exception was taken; `out` (may be null) receives a
-// human-readable description with the Java stack trace, valid until the next call
-// on the same thread.
+
+
+
+
+
+
+
+
+
+
+
+
 int kuart_take_pending_exception(const char** out);
 
-// Save/restore the interpreter's per-thread bookkeeping around a call that may
-// leave by a route which does not unwind the C++ stack.
-//
-// The JNI_OnLoad shield in kudroid_bridge.cpp siglongjmps out of a library that
-// faults mid-callback. If that library had called back into Java, the interpreter
-// frames it entered are skipped over without running their destructors, so the
-// interpreter keeps believing they are live: its call-stack vector retains
-// pointers into reclaimed C++ stack, and its depth counter never comes back down.
-//
-// The stale entries are not merely untidy. The next exception on that thread
-// renders a stack trace from them and dereferences freed memory — a SIGSEGV inside
-// the diagnostic path, which is how Minecraft's MainActivity.onCreate failure
-// stayed invisible. Bracket the guarded call with these and the interpreter is
-// consistent again whichever way the call came back.
-//
-// `out_state` is an opaque scratch area owned by the caller; KUART_THREAD_STATE_WORDS
-// is sized with headroom so adding another counter does not change the ABI.
+// Preserve interpreter state across calls that bypass C++ unwinding.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 #define KUART_THREAD_STATE_WORDS 4
 void kuart_save_thread_state(size_t out_state[KUART_THREAD_STATE_WORDS]);
 void kuart_restore_thread_state(const size_t state[KUART_THREAD_STATE_WORDS]);

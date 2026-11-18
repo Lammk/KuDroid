@@ -220,4 +220,4 @@ bool EmulateElfAliasStore(uint32_t instruction, uintptr_t fault,
     state.pc += 4;
     return true;
 }
-}  // namespace kudroid
+}  // namespace

@@ -3,14 +3,14 @@ package android.view;
 import android.graphics.Canvas;
 import android.graphics.Rect;
 
-/**
- * Minimum stub of android.view.SurfaceHolder for KuDroid.
- *
- * Classic Android games (MCPE etc.) declared
- *   class MainActivity extends SurfaceView implements SurfaceHolder.Callback2
- * so the JVM is required to resolve this interface when loading the class — missing it
- * causes ClassNotFoundException even before onCreate runs.
- */
+/** Manage surface lifecycle callbacks. */
+
+
+
+
+
+
+
 public interface SurfaceHolder {
     /** Surface buffer type. */
     public static final int SURFACE_TYPE_NORMAL = 0;

@@ -92,6 +92,6 @@ struct GuestHostent {
 int HostentCopy(const GuestHostent& src, int guestAddrType, GuestHostent* dst, char* buf,
                 size_t buflen);
 
-}  // namespace kudroid
+}  // namespace
 
 #endif

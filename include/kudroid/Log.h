@@ -1,11 +1,11 @@
 #pragma once
 
-// KuDroid's standard log pipeline — ONE place that defines how to log:
-// write to stdout ([AndroidLog][tag]: ...), file kudroid_android_logs.txt and
-// crash buffer (kudroid_crash.log "log up to crash"). All shims/cores use KLOG
-// instead of scattered fprintf/logAndroidMessage itself.
-//
-// Level matches Android log priorities (android/log.h).
+// Write diagnostics to the standard output, log file, and crash buffer.
+
+
+
+
+
 
 namespace kudroid {
 namespace log {
@@ -22,10 +22,10 @@ enum Level {
 void set_verbose(bool enabled);
 bool verbose_enabled();
 
-// Gate the per-JNI-call enter/exit lines (KuARTNative, FMOD, JNIBridge, ...).
-// One line pair per call at 60fps is thousands of lines a second — the log
-// pipeline itself was a visible fraction of frame cost. Default matches
-// verbose: on only for KUDROID_LOG_JNI=1 or kudroid_log_set_jni(true).
+// Control per-call JNI tracing.
+
+
+
 void set_jni(bool enabled);
 bool jni_enabled();
 
@@ -47,14 +47,14 @@ void write(Level level, const char* tag, const char* fmt, ...)
 
 } // namespace log
 
-// Shortening used in code already in the kudroid namespace (eg shims):
-// KLOG(kDebug, ...) instead of KLOG(kudroid::log::kDebug, ...).
+// Expose the logging macro.
+
 using log::kDebug;
 using log::kInfo;
 using log::kWarn;
 using log::kError;
 
-} // namespace kudroid
+} // namespace
 
 // Always write by level (regardless of verbose).
 #define KLOG(level, tag, ...) \

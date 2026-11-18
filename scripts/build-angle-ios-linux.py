@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Cross-build pinned ANGLE iOS libraries with the installed Darwin SDK."""
+"""Cross-build pinned graphics libraries with the installed Darwin SDK."""
 
 import argparse
 import hashlib

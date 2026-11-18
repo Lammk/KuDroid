@@ -152,6 +152,25 @@ extern "C" int bionic_close(int fd) {
     if (net_fd(fd)) {
         net_fd_set(fd, false);
         if (net_trace_take()) std::fprintf(stderr, "[KuDroidNet] close fd=%d\n", fd);
+#if defined(__APPLE__)
+        static std::atomic<unsigned> errorSamples{0};
+        if (errorSamples.fetch_add(1, std::memory_order_relaxed) < 12 &&
+            kudroid_guest_library_open && kudroid_guest_library_symbol) {
+            const int saved = errno;
+            char module[256]{};
+            if (kudroid::kudroid_lookup_guest_module(__builtin_return_address(0), module, sizeof(module))) {
+                if (char* offset = std::strrchr(module, '+')) *offset = 0;
+                void* library = kudroid_guest_library_open(module);
+                auto peek = library ? reinterpret_cast<unsigned long (*)()>(
+                    kudroid_guest_library_symbol(library, "ERR_peek_error")) : nullptr;
+                if (peek) {
+                    const unsigned long error = peek();
+                    if (error) std::fprintf(stderr, "[KuDroidNet] TLS error at socket close fd=%d code=0x%lx\n", fd, error);
+                }
+            }
+            errno = saved;
+        }
+#endif
     }
 #ifdef __APPLE__
     {

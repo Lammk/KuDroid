@@ -150,9 +150,9 @@ public class TypedArray {
         int id = getResourceId(index, 0);
         return id == 0 ? null : getResources().getTextArray(id);
     }
-    // A drawable KuDroid cannot load yet (bitmap, selector, shape, ...) reads as "no
-    // drawable" instead of aborting the view that asked for it; the first occurrence of
-    // each resource is logged so the unsupported kinds can be found.
+    // Return null and log unavailable drawable resources.
+
+
     public android.graphics.drawable.Drawable getDrawable(int index) {
         TypedValue v = value(index);
         if (v != null && v.type >= TypedValue.TYPE_FIRST_COLOR_INT && v.type <= TypedValue.TYPE_LAST_COLOR_INT)

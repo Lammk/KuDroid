@@ -119,20 +119,20 @@ size_t vfs_fread(void* buf, size_t size, size_t count, FILE* stream) {
             ktraceLine("[KuDroidApkF] fread total=%lluMB t=%llums\n",
                          total / (1024 * 1024), ms);
         }
-        // Magic sniff: FMOD rejects every bank it is handed ("Error loading
-        // file") while meshes from the same APK render. The bytes are read
-        // from the buffer just filled — zero extra I/O — and ftell is
-        // userspace. Starts past 4MB of flow so startup probing (EOCD,
-        // central directory, catalog) does not consume the budget.
-        //
-        // Sampled every 16MB of flow, not "first 30": a fixed early budget was
-        // all eaten by bundle streaming before the audio-clip loads began, so
-        // the one window that mattered (Cannot load audio data at 17:31:27)
-        // had no samples left. A per-flow rate keeps samples landing across
-        // the whole session — audio included — at the same small log volume.
-        // The offset is mapped back to its ZIP entry via the in-memory index,
-        // so the line names the file the guest is actually reading, not just
-        // four bytes at a mystery offset.
+        // Inspect bounded audio-bank headers.
+
+
+
+
+
+
+
+
+
+
+
+
+
         static std::atomic<unsigned long long> s_nextSniff{4ULL * 1024 * 1024};
         static std::atomic<int> s_magicCount{0};
         if (hotTrace && total >= s_nextSniff.load(std::memory_order_relaxed) && s_magicCount.load() < 64 &&
@@ -187,12 +187,12 @@ size_t vfs_fread(void* buf, size_t size, size_t count, FILE* stream) {
                     FsbWindow* w = fsb_window_at(wit->second, start, pos);
                     if (w != nullptr) {
                         matched = true;
-                        // The FMOD parse sequence lives or dies between these reads,
-                        // and an absent data-read is the fact that convicts the
-                        // parser (it stopped asking) over the stream (it served
-                        // wrong bytes). Budget per blob, not per process: a
-                        // process-global budget is spent by the first clips of the
-                        // bank and every later clip then loads unobserved.
+                        // Trace reads used by the audio-bank parser.
+
+
+
+
+
                         if (hotTrace && fsb_window_log_read(*w)) {
                             ktraceLine(
                                          "[KuDroidFmod] in-blob read sid=%d off=%ld size=%zu pos=%ld "
@@ -208,14 +208,14 @@ size_t vfs_fread(void* buf, size_t size, size_t count, FILE* stream) {
                 if (!matched) vfs_fsb_note_unmatched(pit->second.c_str(), n * size);
             }
         }
-        // FSB5 probe: Unity hands an AudioClip's FSB slice to FMOD from the
-        // resource it just read. If a read begins at an FSB5 header, record
-        // the exact geometry so we can tell "FMOD was given good bytes and
-        // still failed" from "Unity never streamed the FSB at all". The
-        // served line names the containing ZIP entry plus its method and
-        // size: a deflated slice served raw, or a slice whose entry span is
-        // wrong, is instantly visible. Rate-limited: an FSB header appears
-        // once per clip load.
+        // Inspect the audio-bank slice passed to the decoder.
+
+
+
+
+
+
+
         static std::atomic<int> s_fsbCount{0};
         // Archive streams only: the window map below is keyed by archive path,
         // so a hit on any other stream can never be accounted, and a
@@ -274,10 +274,10 @@ size_t vfs_fread(void* buf, size_t size, size_t count, FILE* stream) {
                 std::string entry;
                 uint16_t method = 0xFFFF;
                 uint32_t usize = 0;
-                // Distance from the blob to its ZIP entry's bounds. A blob that
-                // runs past the entry end is a slice FMOD can never read whole,
-                // which is the one geometry that turns a valid FSB5 into
-                // "Error loading file" without the bytes being wrong.
+                // Distance from the blob to its ZIP entry's bounds.
+
+
+
                 long long entryOff = -1;
                 if (describe && start >= 0) {
                     std::string archivePath;
@@ -330,14 +330,14 @@ size_t vfs_fread(void* buf, size_t size, size_t count, FILE* stream) {
                             std::snprintf(hex + o, sizeof(hex) - o, "%02x", hitPtr.front()[i]));
                     }
                 }
-                // Sample header (first numSamples u64s after the 60-byte FSB5
-                // v1 header): bit 0 = next-chunk flag, bits 1-4 = frequency,
-                // bit 5 = channels-1, bits 6-33 = dataOffset/16, bits 34-63 =
-                // sample count (python-fsb5 __init__.py). The chunk list
-                // follows: u32 [next:1][size:24][type:7], VORBISDATA (11)
-                // carries crc32 + unknown. Verifying crc membership and
-                // chunk presence turns "valid header, FMOD fails" into a
-                // parse-level fact.
+                // Sample header: bit 0 = next-chunk flag, bits 1-4 = frequency, bit 5 = channels-1, bits 6-33 = dataOffset/16, bits 34-63 = sample count.
+
+
+
+
+
+
+
                 char sampleDesc[160] = "n/a";
                 // 76 bytes reach: 60-byte header + u64 sample field + chunk
                 // word + VORBISDATA crc. The old guard demanded blobTotal+28
@@ -392,10 +392,10 @@ size_t vfs_fread(void* buf, size_t size, size_t count, FILE* stream) {
                                  entry.empty() ? "(none)" : entry.c_str(),
                                  trace_caller_text(caller));
                 }
-                // Decisive follow-up: when FMOD accepts the bank it streams
-                // through THIS handle; when it rejects the slice it reads
-                // little or nothing on it. Keyed by handle so unrelated
-                // concurrent streams cannot mask the FSB stream's reads.
+                // Track reads performed after audio-bank validation.
+
+
+
                 {
                     std::lock_guard<std::mutex> vlock(g_freadVolMtx);
                     const auto pit2 = g_freadPaths.find(stream);
@@ -504,9 +504,9 @@ size_t vfs_fread(void* buf, size_t size, size_t count, FILE* stream) {
             ktraceLine("[KuDroidIO] big fread bytes=%zu\n", n * size);
         }
     }
-    // Audio thread on a stream that is not the archive: FMOD also reads banks it
-    // opened itself (extracted cache, loose .fsb/.bank). Traced so a failing
-    // createSound keeps a complete picture whichever file it actually read from.
+    // Trace audio files opened directly by decoder workers.
+
+
     if (!apk && audio_trace_take(-1)) {
         ktraceLine("[KuDroidApkS] sid=-1 AUDIO fread want=%zu got=%zu pos=%ld\n", size * count,
                      n * size, std::ftell(stream));

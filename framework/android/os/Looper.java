@@ -51,10 +51,10 @@ public final class Looper {
             return sMainLooper;
         }
     }
-    /**
-     * Clears the main Looper retained by KuDroid's host VM between app runs.
-     * ThreadLocal.remove() only affects the current (owning) guest thread.
-     */
+    /** Clears the main Looper retained by the runtime's host VM between app runs. */
+
+
+
     public static void resetMainLooperForRelaunch() {
         synchronized (Looper.class) {
             sMainLooper = null;
@@ -92,11 +92,11 @@ public final class Looper {
     }
     public void quit() { mQueue.quit(); }
     public void quitSafely() { mQueue.quit(); }
-    /**
-     * KuDroid teardown only (activity destroy on the way out): quits even the
-     * main looper. The guarded quit() above stays total for app code, exactly
-     * like AOSP where the main looper can never be quit by an app.
-     */
+    /** The runtime teardown only: quits even the main looper. */
+
+
+
+
     public void quitForTeardown() {
         android.util.Log.e("KuLooperQuit", "teardown quit looper of " + mThread.getName());
         mQueue.quitInternal();

@@ -93,4 +93,4 @@ bool decodeAndroidPackedRela(const uint8_t* data, size_t size,
     return true;
 }
 
-} // namespace kudroid
+} // namespace

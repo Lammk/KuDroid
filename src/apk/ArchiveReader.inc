@@ -270,7 +270,7 @@ static int iconPriority(const std::string& name) {
     else if (lower.find("nodpi") != std::string::npos) score += 35;
     else if (lower.find("drawable") != std::string::npos || lower.find("mipmap") != std::string::npos) score += 15;
 
-    // Priority is given to standard icon names of Android & Unity
+    // Choose an application icon from the APK resources.
     if (lower.find("ic_launcher_foreground") != std::string::npos) score += 85;
     else if (lower.find("ic_launcher") != std::string::npos) score += 100;
     else if (lower.find("app_icon") != std::string::npos || lower.find("appicon") != std::string::npos) score += 95;

@@ -125,13 +125,13 @@ func appVersion() -> String {
 
 func setupLogDir() {
     // Resolved through the process's container, never hardcoded.
-    //
-    // This is what makes KuDroid work unchanged inside LiveContainer, which runs a
-    // guest app as a dylib in its own process and rewrites HOME/CFFIXED_USER_HOME to
-    // a nested per-guest container before loading it. `urls(for: .documentDirectory)`
-    // goes through those variables, so it yields the guest's own Documents in both
-    // deployments — and every guest path (android_root, the extracted APK, the .so
-    // files) hangs off this one value.
+
+
+
+
+
+
+
     if let docs = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first {
         kudroid_set_log_dir(docs.path)
         kudroid_set_documents_dir(docs.path)

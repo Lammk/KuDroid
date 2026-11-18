@@ -13,17 +13,17 @@
 namespace kudroid {
 namespace {
 
-// The directory holding KuDroid's own binary, from dladdr on a function inside it.
-//
-// This is the fallback for the case where even @loader_path does not apply — dlopen
-// on a path containing '/' does not expand @loader_path in some historical dyld
-// versions, and an absolute path always works. dladdr reports the image that
-// contains the address, which under LiveContainer is the guest's own binary rather
-// than LiveContainer's, so this agrees with @loader_path by construction.
+// The directory holding the runtime's own binary, from dladdr on a function inside it.
+
+
+
+
+
+
 std::string ownImageDirectory() {
     Dl_info info = {};
-    // The address of a function defined in THIS translation unit, so the image found
-    // is the one KuDroid was linked into.
+    // The address of a function defined in THIS translation unit, so the image found is the one the runtime was linked into.
+
     if (dladdr(reinterpret_cast<const void*>(&ownImageDirectory), &info) == 0 ||
         info.dli_fname == nullptr) {
         return std::string();
@@ -41,9 +41,9 @@ void* dlopen_bundled_framework(const char* relativePath, int flags) {
 
     std::vector<std::string> candidates;
 
-    // 1. @loader_path — relative to KuDroid's own image. Correct under LiveContainer
-    //    without relying on its dyld patch, and identical to @executable_path for a
-    //    normal install.
+    // Resolve paths relative to the current image.
+
+
     candidates.emplace_back(std::string("@loader_path/Frameworks/") + relativePath);
 
     // 2. The same directory as an absolute path, for dyld versions that decline to
@@ -53,9 +53,9 @@ void* dlopen_bundled_framework(const char* relativePath, int flags) {
         candidates.emplace_back(ownDir + "/Frameworks/" + relativePath);
     }
 
-    // 3. @executable_path — what this used to try first. Kept because a framework may
-    //    legitimately live beside the MAIN executable rather than beside KuDroid's
-    //    image, which is the case when KuDroid is embedded in a larger host app.
+    // Try frameworks beside the main executable.
+
+
     candidates.emplace_back(std::string("@executable_path/Frameworks/") + relativePath);
 
     // 4. The leaf name alone, so an already-loaded image is found by dyld's cache of
@@ -69,9 +69,9 @@ void* dlopen_bundled_framework(const char* relativePath, int flags) {
         }
     }
 
-    // Report every path that was tried. "entry point not found" alone does not say
-    // whether the framework is absent, unreadable, or was looked for in the wrong
-    // place — and under LiveContainer the wrong place is the likely answer.
+    // Report every path that was tried.
+
+
     KLOG(kError, "KuDroidGPU", "could not load %s; tried %zu paths:", relativePath,
          candidates.size());
     for (const std::string& candidate : candidates) {
@@ -85,4 +85,4 @@ void* dlopen_bundled_framework(const char* relativePath, int flags) {
     return nullptr;
 }
 
-}  // namespace kudroid
+}  // namespace

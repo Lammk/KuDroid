@@ -1,9 +1,9 @@
 // C++ structures replacing java.lang.Class / Field / Method of libcore.
-//
-// AOSP represents them via mirror::Class, mirror::ArtField, mirror::ArtMethod —
-// structures heavily coupled to ART GC and object model. KuDroid does not port
-// libcore, using pure C++ structs holding only what interpreter needs: field layout,
-// vtable for virtual dispatch, and pointer to code_item in DEX.
+
+
+
+
+
 #ifndef KUDROID_KUART_DEXCLASS_H
 #define KUDROID_KUART_DEXCLASS_H
 
@@ -135,13 +135,13 @@ public:
     art::Primitive::Type primitive_type = art::Primitive::kPrimNot;
     DexClass* component_type = nullptr;  // used when is_array == true
 
-    // Synthesised placeholder for a boot-classpath class KuDroid does not ship
-    // yet (see DexClassLinker::FindClass). A stub has no dex_file, no methods and
-    // no fields, so anything that would hand a stub instance to real code must
-    // refuse instead: Class.forName throws ClassNotFoundException and
-    // new-instance throws NoClassDefFoundError. Without this flag a stub looks
-    // like a valid class, and the failure surfaces much later as a
-    // ClassCastException in unrelated code.
+    // Synthesised placeholder for a boot-classpath class the runtime does not ship yet.
+
+
+
+
+
+
     bool is_stub = false;
 
     // Synthesised by Proxy.newProxyInstance: subclasses java.lang.reflect.Proxy and
@@ -162,6 +162,7 @@ public:
     // Lookup within this class and traverse superclasses.
     DexMethod* FindVirtualMethod(const char* name, const char* signature);
     DexMethod* FindDirectMethod(const char* name, const char* signature);
+    DexMethod* FindMethod(const char* name, const char* signature);
     DexField* FindInstanceField(const char* name, const char* type_descriptor);
     DexField* FindStaticField(const char* name, const char* type_descriptor);
 
@@ -171,7 +172,7 @@ public:
     std::string PrettyName() const;
 };
 
-}  // namespace kuart
-}  // namespace kudroid
+}  // namespace
+}  // namespace
 
 #endif  // KUDROID_KUART_DEXCLASS_H

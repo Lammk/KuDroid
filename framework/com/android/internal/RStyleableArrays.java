@@ -914,7 +914,7 @@ final class RStyleableArrays {
             0x0101019d,  // startColor
             0x0101019e,  // endColor
             0x0101019f,  // useLevel
-            0x010101a0,  // angle
+            0x010101a0,  // Rotation angle.
             0x010101a1,  // type
             0x010101a2,  // centerX
             0x010101a3,  // centerY

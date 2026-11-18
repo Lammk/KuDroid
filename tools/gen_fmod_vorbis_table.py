@@ -1,25 +1,25 @@
 #!/usr/bin/env python3
-"""Dump FMOD's built-in Vorbis setup table out of a libunity.so.
+"""Extract Vorbis setup entries and rebase their payload pointers."""
 
-FMOD keeps the Vorbis codebooks (the "setup" packets an FSB5 bank references by
-CRC) in a table of 32-byte entries inside libunity.so. The lookup loop is
-recognisable by its shape:
 
-    ldur  w9, [x28, #-4]     ; entry->crc   (entry stride 0x20, x28 = entry+0x10)
-    cmp   w9, w25            ; w25 = wanted crc
-    b.eq  found
-    add   x8, x8, #1
-    cmp   x8, #<count>       ; 161 for Unity 2021
-    add   x28, x28, #0x20
-    b.cc  loop
 
-The table base and count are decoded from that sequence, so nothing here is
-tied to one Unity build. The entries hold pointers into .rodata; those regions
-are copied verbatim into one blob and the pointers are rebased to it.
 
-Output: separate payload and entry modules in src/platform/fmod, or a
-directory passed as the second argument.
-"""
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 import struct
 import sys
@@ -121,7 +121,7 @@ def main():
         fo = vaddr_to_file(segs, table_start + i * ENTRY_SIZE)
         p1, len1, crc, p2, off2, len2 = struct.unpack_from("<QIIQii", data, fo)
         entries.append((p1, len1, crc, p2, off2, len2))
-    # The blob keeps libunity's own layout for the setup regions: one flat copy
+    # Preserve setup-region layout in the payload copy.
     # starting at the first entry's p1. Every pointer is rebased onto it, so
     # offsets are addr - blob_base. p1 is the short per-entry patch and p2 is
     # the shared setup template; len1 is the reconstructed setup length while

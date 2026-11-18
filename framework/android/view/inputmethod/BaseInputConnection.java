@@ -6,23 +6,23 @@ import android.text.SpannableStringBuilder;
 import android.view.KeyEvent;
 import android.view.View;
 
-/**
- * The default InputConnection an app subclasses to receive IME edits.
- *
- * Apps extend this and override only the few methods they care about — Minecraft's
- * does exactly that, overriding commitText and sendKeyEvent and inheriting the rest
- * — so every method here needs behaviour that is correct on its own, not a stub
- * returning zero. A getTextBeforeCursor that always returned null, for instance,
- * makes an IME believe the field is empty and re-send text the app already has.
- *
- * The editable buffer is real: composing text, deletion and selection all operate on
- * it. That keeps the two sides consistent even with no IME attached, which matters
- * because the app reads back what it wrote.
- *
- * This class was previously an auto-generated stub with a no-arg constructor only,
- * so {@code super(view, fullEditor)} in the app's subclass resolved to an auto-stub
- * and the connection was never wired to its view.
- */
+/** The default InputConnection an app subclasses to receive IME edits. */
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 public class BaseInputConnection implements InputConnection {
 
     private final View mTargetView;
@@ -50,13 +50,13 @@ public class BaseInputConnection implements InputConnection {
 
     public boolean isFullEditor() { return mFullEditor; }
 
-    /**
-     * The buffer being edited.
-     *
-     * AOSP returns the target view's own Editable when there is one; KuDroid's View
-     * has no text storage, so this connection owns the buffer. Subclasses that keep
-     * their own text override the accessors instead.
-     */
+    /** The buffer being edited. */
+
+
+
+
+
+
     public Editable getEditable() { return mEditable; }
 
     public static final int getComposingSpanStart(android.text.Spannable text) { return -1; }
@@ -213,14 +213,14 @@ public class BaseInputConnection implements InputConnection {
         return mBatchDepth > 0;
     }
 
-    /**
-     * Deliver a key event to the target view.
-     *
-     * AOSP routes it through the view hierarchy; KuDroid's View has no key
-     * dispatch, so returning true reports it as handled rather than dropping it
-     * silently. An app that overrides this — which is the usual reason to subclass —
-     * never reaches here anyway.
-     */
+    /** Deliver a key event to the target view. */
+
+
+
+
+
+
+
     @Override
     public boolean sendKeyEvent(KeyEvent event) { return event != null; }
 

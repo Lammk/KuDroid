@@ -64,14 +64,14 @@ public class Logger {
 
     public boolean getUseParentHandlers() { return useParentHandlers; }
 
-    /**
-     * The parent logger.
-     *
-     * KuDroid keeps no logger hierarchy — getLogger() hands out a fresh instance —
-     * so every logger's parent is the global one, except the global logger itself
-     * which has none. Returning the global logger rather than null matters because
-     * callers walk the chain and a null at the first step ends the walk immediately.
-     */
+    /** Return the logger parent. */
+
+
+
+
+
+
+
     public Logger getParent() {
         return this == global ? null : global;
     }

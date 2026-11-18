@@ -636,5 +636,5 @@ JitEntry JitCompiler::Compile(const DexMethod* method, std::string* reason) {
     return reinterpret_cast<JitEntry>(code);
 }
 
-}  // namespace kuart
-}  // namespace kudroid
+}  // namespace
+}  // namespace

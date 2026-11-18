@@ -137,21 +137,21 @@ bool ReadFile(const std::filesystem::path& path, std::vector<uint8_t>* out) {
     return static_cast<bool>(f.read(reinterpret_cast<char*>(out->data()), size));
 }
 
-// Class belongs to the framework/SDK, not the app's code. Used to filter the list
-// of candidate Activities.
-//
-// Only packages that cannot possibly own an app's launcher are listed. This is a
-// stricter bar than it looks: a class excluded here never reaches the scoring pass at
-// all, so it can never be chosen even as a last resort. The list used to carry
-// "Lcom/unity3d/", which owns com.unity3d.player.UnityPlayerActivity — the declared
-// launcher of essentially every Unity game — and a blanket "Lorg/", which removes
-// every app published under org.*. Both made the DEX-scan fallback find zero
-// candidates for whole categories of app.
-//
-// Third-party SDK packages are deliberately NOT excluded here. They are handled by
-// the scoring pass in kudroid_bridge.cpp, which can rank them last while still
-// keeping them as a fallback — a soft penalty is right for "probably not the
-// launcher", whereas removal is only right for "cannot be app code".
+// Class belongs to the framework/SDK, not the app's code.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 bool IsSystemOrSdkClass(const std::string& descriptor) {
     static const char* kPrefixes[] = {
         // The boot classpath. An app cannot declare classes in these.
@@ -591,8 +591,8 @@ extern "C" JavaVM* kuart_get_javavm(void) {
 extern "C" jint kuart_get_env(JavaVM* vm, void** env, jint version) {
     (void)version;
     if (g_rt == nullptr || g_rt->jni == nullptr || env == nullptr) return JNI_ERR;
-    // A single JNIEnv for every thread: KuART doesn't have a real, universal Java thread yet
-    // bytecode runs on the calling thread.
+    // Use the calling thread for bytecode execution.
+
     (void)vm;
     *env = g_rt->jni->env();
     return JNI_OK;
@@ -603,14 +603,14 @@ extern "C" size_t kuart_num_dex_files(void) {
 }
 
 // The live class linker, for tools that need to ask it questions the C API does not cover.
-//
-// Exposed for tools/kuart_verify, which walks every method and field reference in a guest's
-// DEX and reports what cannot be resolved. That has to run against the REAL linker: a
-// separate DEX parser would answer "what would my model of KuART fail to resolve", and the
-// question worth answering is what KuART itself fails to resolve.
-//
-// Not part of KuArtRuntime.h, because nothing in the app should reach inside the runtime
-// like this — the declaration lives with the tool that uses it.
+
+
+
+
+
+
+
+
 extern "C" kudroid::kuart::DexClassLinker* kuart_debug_linker(void) {
     return g_rt != nullptr && g_rt->ready ? &g_rt->linker : nullptr;
 }
@@ -1050,9 +1050,9 @@ extern "C" void kuart_restore_thread_state(const size_t state[KUART_THREAD_STATE
     Interpreter::RestoreThreadState(restored);
 }
 
-// ── standard JNI entry point that the guest's native code calls ────────────────────────────
-// Game engines (Unity, MCPE...) call JNI_GetCreatedJavaVMs directly from static
-// initializer to get the VM. BionicShim maps these symbols to the shim table.
+// Expose the created Java VM to native callers.
+
+
 
 extern "C" jint JNI_GetCreatedJavaVMs(JavaVM** vm_buf, jsize buf_len, jsize* num_vms) {
     JavaVM* vm = kuart_get_javavm();
@@ -1063,8 +1063,8 @@ extern "C" jint JNI_GetCreatedJavaVMs(JavaVM** vm_buf, jsize buf_len, jsize* num
 
 extern "C" jint JNI_CreateJavaVM(JavaVM** p_vm, void** p_env, void* vm_args) {
     (void)vm_args;
-    // KuART has only ONE VM, created at kuart_init. Guest calls CreateJavaVM and returns
-    // Existing VM instead of building a new one — building two VMs will split the linker class in half.
+    // Return the single initialized Java VM.
+
     if (!kuart_is_ready() && !kuart_init("")) return JNI_ERR;
     if (p_vm != nullptr) *p_vm = kuart_get_javavm();
     if (p_env != nullptr) kuart_get_env(kuart_get_javavm(), p_env, JNI_VERSION_1_6);

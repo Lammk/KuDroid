@@ -67,7 +67,7 @@ public:
     }
 };
 
-}  // namespace kuart
-}  // namespace kudroid
+}  // namespace
+}  // namespace
 
 #endif  // KUDROID_KUART_DEXOBJECT_H

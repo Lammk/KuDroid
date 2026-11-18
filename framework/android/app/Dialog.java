@@ -17,14 +17,14 @@ import android.view.Window;
 import android.view.WindowManager;
 import android.view.accessibility.AccessibilityEvent;
 
-/**
- * Base class for dialogs.
- *
- * Owns a Window whose callback is the dialog itself, which is what AppCompat and Material
- * dialogs require. KuDroid does not give a dialog its own surface: the window and its
- * decor view exist so content can be built and inspected, but nothing is attached to the
- * screen.
- */
+/** Base class for dialogs. */
+
+
+
+
+
+
+
 public class Dialog implements DialogInterface, Window.Callback, KeyEvent.Callback {
     private Activity mOwnerActivity;
     private final Context mContext;

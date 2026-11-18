@@ -85,4 +85,4 @@ void reset_resource_table_cache();
 bool resource_analyze_bytes(const uint8_t* bytes, size_t size,
                             ResourceTableAnalysis* analysis, std::string* error);
 
-}  // namespace kudroid
+}  // namespace

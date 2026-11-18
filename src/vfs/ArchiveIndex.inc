@@ -1,11 +1,11 @@
-// ── jar:/file:archive!/entry fallback: extract straight out of the archive ZIP ──
-//
-// The three loose-file candidates above assume every asset was extracted to disk.
-// A Unity game that ships its whole content stream inside the APK (Addressables
-// over Play Asset Delivery) has entries that exist in no loose directory: the URL
-// then 404s and the engine boots to a splash with nothing to load — ULTRAKILL's
-// GameBuildSettings.json was exactly this, and the 500 MB behind it never flowed.
-// The archive is a ZIP that is already on disk, so the entry can be served from it.
+// Extract requested entries directly from the asset archive.
+
+
+
+
+
+
+
 
 constexpr uint64_t kJarEntryMaxUncompressed = 512ull * 1024 * 1024;  // 512 MB cap
 
@@ -195,17 +195,17 @@ uint64_t zip_extract_entry(const std::string& archivePath, const std::string& en
         if (std::fread(comp.data(), 1, hit.csize, f) != hit.csize) return 0;
     }
 
-    // Stream to a side file and rename over the destination only after the
-    // bytes verify: a crash or kill mid-extract must never leave a partial
-    // file that the next run serves as good. That was the "loads a few
-    // segments then dies forever after" shape — one torn 108MB bundle cached
-    // once, trusted on every later hit by mere existence. Chunked 1MB writes
-    // also cap RAM (the old code held compressed+output fully: ~1GB for
-    // data.unity3d). Resume is at file granularity and automatic: a torn run
-    // leaves only the .part orphan, and the next open re-extracts from the
-    // archive. Byte-level resume across runs would need a crash-safe offset
-    // journal for a local-disk copy that takes seconds — not worth the
-    // failure modes it adds.
+    // Verify streamed assets before atomically replacing cached files.
+
+
+
+
+
+
+
+
+
+
     const std::string part = destPath + ".part";
     std::remove(part.c_str());
     std::FILE* out = std::fopen(part.c_str(), "wb");

@@ -553,7 +553,7 @@ public enum BlendMode {
                     return PorterDuff.Mode.DARKEN;
                 case LIGHTEN:
                     return PorterDuff.Mode.LIGHTEN;
-                // b/73224934 PorterDuff Multiply maps to Skia Modulate
+                // Map multiplicative blending to modulation.
                 case MODULATE:
                     return PorterDuff.Mode.MULTIPLY;
                 case SCREEN:

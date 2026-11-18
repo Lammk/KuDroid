@@ -2,13 +2,13 @@
 
 #include <cstdint>
 
-// ── android.media.AudioRecord, for KuART ─────────────────────────────────────
-//
-// Microphone capture. Reached from LibCore when the interpreter hits AudioRecord's
-// native methods, not by a guest relocation. `rec` is the handle _create returned; 0 is
-// never valid. Samples are always 16-bit interleaved; the Java side converts to other
-// encodings. Errors follow AudioRecord's constants (-2 ERROR_BAD_VALUE,
-// -3 ERROR_INVALID_OPERATION, -6 ERROR_DEAD_OBJECT).
+// Capture microphone samples for Java audio input.
+
+
+
+
+
+
 extern "C" {
 
 // Smallest workable buffer in bytes, or a negative error when the parameters are invalid.

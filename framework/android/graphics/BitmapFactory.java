@@ -13,12 +13,12 @@ public class BitmapFactory {
     public BitmapFactory() {}
 
     public static class Options {
-        /**
-         * Measure only: decode* returns null and fills in outWidth/outHeight.
-         *
-         * Apps use this to pick inSampleSize before committing memory, so it has to
-         * be honoured by whatever decoder KuDroid grows later.
-         */
+        /** Measure only: decode* returns null and fills in outWidth/outHeight. */
+
+
+
+
+
         public boolean inJustDecodeBounds;
 
         /** Subsampling factor; 1 or less means full resolution. */

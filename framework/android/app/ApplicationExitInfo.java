@@ -1,14 +1,14 @@
 package android.app;
 
-/**
- * Why a previous instance of the process ended.
- *
- * KuDroid keeps no state across launches, so ActivityManager returns an empty list
- * and these values are never observed in practice. The class still has to exist and
- * be constructible: apps reference the reason constants at their class-initialiser
- * level, and a missing class there is a NoClassDefFoundError during startup rather
- * than at the point the history would be read.
- */
+/** Why a previous instance of the process ended. */
+
+
+
+
+
+
+
+
 public final class ApplicationExitInfo implements android.os.Parcelable {
 
     public static final int REASON_UNKNOWN = 0;

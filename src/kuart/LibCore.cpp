@@ -296,7 +296,7 @@ bool LibCoreInvoke(Interpreter* interp, const DexMethod* method, const DexValue*
     if (std::strcmp(desc, "Llibcore/io/KuCrypto;") == 0) {
         return Invoke_libcore_io_KuCrypto(interp, name, args, num_args, result);
     }
-    // AudioTrack is the Java audio path used by FMOD.
+    // Bridge Java audio output to the host.
     if (std::strcmp(desc, "Landroid/media/MediaPlayer;") == 0) {
         return Invoke_android_media_MediaPlayer(name, args, num_args, result);
     }
@@ -429,5 +429,5 @@ bool LibCoreUnboxValue(Interpreter* interp, const char* descriptor, DexObject* o
     return UnboxValue(interp, descriptor, obj, out);
 }
 
-}  // namespace kuart
-}  // namespace kudroid
+}  // namespace
+}  // namespace

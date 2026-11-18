@@ -16,4 +16,4 @@ int AesCbc(bool encrypt, const uint8_t* key, size_t key_length,
            size_t input_length, std::vector<uint8_t>* output);
 bool CryptoRandomBytes(uint8_t* output, size_t length);
 
-}  // namespace kudroid
+}  // namespace

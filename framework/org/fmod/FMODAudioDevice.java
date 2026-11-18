@@ -6,10 +6,10 @@ import android.media.AudioRecord;
 import android.media.AudioTrack;
 import java.nio.ByteBuffer;
 
-/**
- * FMOD AudioDevice wrapper for Android.
- * Handles audio playback thread and JNI callbacks to FMOD C runtime.
- */
+/** Bridge the audio device to host playback. */
+
+
+
 public class FMODAudioDevice implements Runnable {
     private volatile boolean mRunning = false;
     private Thread mThread;
@@ -59,11 +59,11 @@ public class FMODAudioDevice implements Runnable {
         return mRunning;
     }
 
-    /**
-     * Start capturing the microphone and feed it to FMOD through fmodProcessMicData.
-     * Returns the capture buffer size in bytes, or 0 when recording could not start
-     * (no permission, or no input), which keeps output initialization unaffected.
-     */
+    /** Capture microphone samples for the native audio callback. */
+
+
+
+
     public synchronized int startAudioRecord(int sampleRate, int channelConfig, int audioFormat) {
         if (mRecorder != null) return 0;
         final int minBuf = AudioRecord.getMinBufferSize(sampleRate, channelConfig, audioFormat);

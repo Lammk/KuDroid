@@ -1,11 +1,11 @@
 package android.graphics.drawable;
 
-/**
- * minimal android.graphics.drawable.drawable implementation.
- *
- * a generic drawable. for kudroid minimal framework, here is one
- * simulation base class.
- */
+/** Provide the base drawing abstraction. */
+
+
+
+
+
 public abstract class Drawable {
     public Drawable() {
     }

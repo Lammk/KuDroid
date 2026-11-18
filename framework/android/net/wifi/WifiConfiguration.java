@@ -1,11 +1,11 @@
 package android.net.wifi;
 
-/**
- * emulate android.net.wifi.wificonfiguration.
- *
- * Describes the wifi network configuration. for kudroid minimal framework,
- *This is a simulation.
- */
+/** Describes the wifi network configuration. */
+
+
+
+
+
 public class WifiConfiguration {
     /** security: open. */
     public static final int SECURITY_OPEN = 0;

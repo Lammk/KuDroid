@@ -902,10 +902,10 @@ extern "C" const char* kudroid_jni_massive_so_test(const char* path) {
     return strdup(log.c_str());
 }
 
-// GPU .so execution test — loads ARM64 ELF test module via ELF loader,
-// intercepting dlopen/dlsym calls to GPU libraries via BionicShim to map
-// directly to iOS native graphics (MoltenVK / ANGLE).
-// ─────────────────────────────────────────────────────────────────────────────
+// Run a native graphics test module through the ELF loader.
+
+
+
 
 extern "C" const char* kudroid_gpu_vulkan_so_test(const char* path) {
     std::string log;
@@ -1044,9 +1044,9 @@ extern "C" const char* kudroid_load_apk(const char* apkPath) {
     kudroid::LibraryManager& libManager = globalLibraryManager();
     std::string libDir = targetDir + "/lib/" KUDROID_DEVICE_ABI;
 
-    // ── KuART ──────────────────────────────────────────────────────────────
-    // Load embedded framework.dex + APK classes*.dex.
-    // No DEX-to-JAR conversion: KuART directly executes DEX bytecode.
+    // Load embedded framework and application DEX files.
+
+
     kuart_set_symbol_lookup([](const char* symbol) -> void* {
         return globalLibraryManager().resolveGlobalSymbol(symbol);
     });
@@ -1077,8 +1077,8 @@ extern "C" const char* kudroid_load_apk(const char* apkPath) {
     return strdup(log.c_str());
 }
 
-// KuART DEX loading verification: parse and report contents.
-// Returns malloc'ed log string; caller must free().
+// Verify and describe DEX contents.
+
 extern "C" const char* kudroid_translate_dex(const char* dexPath) {
     if (!dexPath || !*dexPath) {
         return strdup("[kudroid_dex] ERROR: null DEX path\n");
@@ -1087,7 +1087,7 @@ extern "C" const char* kudroid_translate_dex(const char* dexPath) {
     std::string log;
     log += "[kudroid_dex] Loading DEX with KuART: " + std::string(dexPath) + "\n";
 
-    // Load DEX directory — KuART indexes all classes*.dex within the directory.
+    // Load all DEX files from a directory.
     const std::string dir = std::filesystem::path(dexPath).parent_path().string();
     if (!kuart_init(dir.c_str())) {
         log += "[kudroid_dex] LOAD FAILED: " + std::string(kuart_last_error()) + "\n";

@@ -176,22 +176,22 @@ SystemMemory query_system_memory() {
     out.measured = out.total_bytes > 0 && out.available_bytes > 0;
 
     // Memory pressure, judged against what this PROCESS may still allocate.
-    //
-    // The previous test was `vm.free_count < 256 MiB`, which is permanently true on
-    // iOS: the kernel keeps almost nothing on the free list and serves allocations
-    // from the inactive and purgeable lists instead. So every log line in the captured
-    // ULTRAKILL session carried low_memory=1 while reporting available=1.2 GB and
-    // process_headroom=2.0 GB beside it — three fields, one contradicting the other
-    // two, on 188 consecutive lines.
-    //
-    // That is not merely noise. The same flag is what ActivityManager.MemoryInfo
-    // reports through nativeIsLowMemory(), so a guest reading it drops its caches and
-    // runs degraded on a device with two spare gigabytes.
-    //
-    // jetsam kills on the per-process footprint, so the process limit is the figure
-    // that decides whether this app is in trouble. An eighth is the point where iOS
-    // starts sending memory warnings in practice, and it is a fraction rather than a
-    // constant because the limit itself scales with the device.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     if (out.process_available_bytes > 0) {
         const uint64_t footprint_limit =
             out.process_available_bytes + out.process_resident_bytes;
@@ -277,4 +277,4 @@ int large_memory_class_mb() {
     return large;
 }
 
-}  // namespace kudroid
+}  // namespace

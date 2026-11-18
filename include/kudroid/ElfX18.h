@@ -63,4 +63,4 @@ TlsStubStats elf_tls_stub_rewrite(void* writeBase, const void* execBase, std::ui
 // Kill-switch: KUDROID_X18_REWRITE=0 disables the pass (logs once).
 bool elf_x18_enabled();
 
-}  // namespace kudroid
+}  // namespace

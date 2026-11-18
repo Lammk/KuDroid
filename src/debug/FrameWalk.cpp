@@ -107,4 +107,4 @@ bool FrameWalker::next() {
     return true;
 }
 
-}  // namespace kudroid
+}  // namespace

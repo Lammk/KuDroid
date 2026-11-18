@@ -1125,4 +1125,4 @@ int64_t ReadSample(ByteSource& source, const Track& track, size_t sampleIndex, u
 }
 
 }  // namespace media
-}  // namespace kudroid
+}  // namespace

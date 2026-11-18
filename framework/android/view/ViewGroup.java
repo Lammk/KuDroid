@@ -2,12 +2,12 @@ package android.view;
 
 import android.content.Context;
 
-/**
- * minimal android.view.viewgroup implementation.
- *
- * a view contains other views. for kudroid minimal framework, this
- * Provides basic child management.
- */
+/** Contain and arrange child views. */
+
+
+
+
+
 public class ViewGroup extends View implements ViewParent {
     @Override
     protected void dispatchCancelPendingInputEvents() {
@@ -786,13 +786,13 @@ public class ViewGroup extends View implements ViewParent {
         if (parent != null) parent.clearChildFocus(this);
     }
 
-    /**
-     * Focus navigation, which KuDroid does not implement.
-     *
-     * Returns null — "nothing to move to" — rather than an arbitrary view. A wrong answer
-     * would move focus somewhere the user did not ask for, which is worse than focus not
-     * moving at all.
-     */
+    /** Focus navigation, which the runtime does not implement. */
+
+
+
+
+
+
     @Override
     public View focusSearch(View v, int direction) {
         return null;

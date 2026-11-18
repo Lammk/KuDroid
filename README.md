@@ -1,5 +1,7 @@
 # KuDroid
 
+For Windows build scripts, regression tests, xtool installation, and iPhone USB/file access, see [WINDOWS.md](WINDOWS.md).
+
 > **KuDroid is not an emulator.**
 
 ### What is KuDroid?

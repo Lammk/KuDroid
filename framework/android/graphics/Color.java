@@ -1,11 +1,11 @@
 package android.graphics;
 
-/**
- * minimal android.graphics.color implementation.
- *
- * provides color constants and conversion helpers. for framework
- * kudroid's minimum, implementing common argb helpers.
- */
+/** Provides color constants and conversion helpers. */
+
+
+
+
+
 public class Color {
     public static final int BLACK = 0xFF000000;
     public static final int WHITE = 0xFFFFFFFF;

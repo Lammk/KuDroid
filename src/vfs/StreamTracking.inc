@@ -7,19 +7,19 @@ std::atomic<uintptr_t> g_apkStreams[kTrackedStreams];
 std::atomic<int> g_apkStreamFd[kTrackedStreams] = {};
 std::atomic<off_t> g_apkStreamSize[kTrackedStreams] = {};
 // One cursor per FILE*, not one per thread.
-//
-// A C FILE has exactly one file position, and bionic serialises every operation
-// on it behind an internal lock, so two guest threads sharing a FILE* take turns
-// advancing the same cursor. The guest depends on that: Unity hands FMOD the
-// loader's own handle for an FSB slice and both threads read it (observed live --
-// sid=2 read by Loading.PreloadManager and by the FMOD nonblocking thread), and
-// each thread's next implicit fread has to continue where the stream actually is.
-// A per-thread cursor gave each thread a private position instead, so a thread
-// picking up the stream mid-slice continued from a stale offset and read
-// well-formed bytes from the wrong place -- FMOD's "Error loading file" with no
-// short read anywhere in the trace. An authoritative cursor under a per-stream
-// lock reproduces the host's semantics, and the lock also makes each op's
-// read-then-advance atomic, which the old shared atomic could not do.
+
+
+
+
+
+
+
+
+
+
+
+
+
 std::atomic<off_t> g_apkStreamPos[kTrackedStreams] = {};
 std::atomic<int> g_apkStreamEof[kTrackedStreams] = {};
 std::atomic<int> g_apkStreamErr[kTrackedStreams] = {};
@@ -39,10 +39,10 @@ constexpr int kAudioOpCapPerStream = 400;
 constexpr int kAudioOpBudget = 3000;
 std::atomic<int> g_audioStreamOps[kTrackedStreams] = {};
 std::atomic<int> g_audioOpsTraced{0};
-// The decoder's own threads get a separate budget: the preload burst spends the
-// shared one in its first seconds, after which a clip load that fails for a
-// file-level reason would be untraceable for the rest of the session. FMOD's I/O
-// is what names the geometry it was handed, so it stays visible on its own cap.
+// Bound descriptor tracing separately for audio workers.
+
+
+
 constexpr int kFmodOpCapPerStream = 120;
 constexpr int kFmodOpBudget = 800;
 std::atomic<int> g_fmodStreamOps[kTrackedStreams] = {};
@@ -178,33 +178,33 @@ static int apk_stream_id(FILE* f) {
     return apk_stream_id(f) >= 0;
 }
 
-// Read volume per FILE path: bulk flow through fread (Unity's main read path)
-// shows here. The hot read path takes NO lock: each thread batches into a
-// thread-local slot keyed by stream, merged under the mutex at 256KB or on
-// stream change. A global fclose epoch guards FILE* address reuse — without
-// it a recycled address would silently attribute bytes to the dead file's
-// path. Open/close stay locked (rare); only the merge path locks.
+// Read volume per FILE path: bulk flow through fread shows here.
+
+
+
+
+
 std::mutex g_freadVolMtx;
 std::map<FILE*, std::string> g_freadPaths;
 std::map<std::string, std::pair<uint64_t, uint64_t>> g_freadVol;
 std::atomic<uint64_t> g_freadVolTotal{0};
 uint64_t g_freadVolNextLog = 5ULL * 1024 * 1024;
 std::atomic<uint64_t> g_freadEpoch{0};
-// Post-FSB5 follow-up countdowns keyed per FILE* (probe in vfs_fread): the
-// FMOD bank stream's next reads must be logged on that stream's own budget,
-// not a global one — interleaved reads on unrelated handles (zip-walk
-// 30-byte local-header probes on a second base.apk handle) ate the global
-// counter and the probe showed the wrong stream.
+// Track follow-up reads by stream handle.
+
+
+
+
 std::map<FILE*, int> g_fsbFollowup;
 
-// Audio-blob coverage, keyed by (archive, [blobStart, blobEnd)).
-//
-// Unity hands FMOD one FSB5 slice per clip and reads it out of the .resource
-// entry in 2048-byte chunks, re-opening base.apk for almost every chunk. A
-// per-FILE* chain therefore breaks on nearly every read and reported every
-// blob as TRUNCATED -- a handle-churn artifact, not a fact about the bytes.
-// The window is the stable thing, so coverage is counted per window across all
-// handles and the verdict names the blob FMOD was actually handed.
+// Track coverage of audio blobs by stream and offset.
+
+
+
+
+
+
+
 constexpr int kFsbBlock = 2048;
 // How long a blob may go untouched before it is announced SHORT and retired. Long
 // enough to cover a clip the guest loads later (a bank is walked in order, so early

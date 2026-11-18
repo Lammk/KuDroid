@@ -343,10 +343,10 @@ static void buildTouchEventLocked(int32_t baseAction, int32_t primaryId, int32_t
     ev.downTime = g_motionDownTime;
     if (finalAction == 1 || finalAction == 3) g_motionDownTime = 0;
 
-    // Coalesce MOVE floods in the NDK queue: replace the pending MOVE instead of
-    // enqueuing another event per touch. Unity drains the queue every frame and
-    // interpolates; intermediate positions are dead weight. DOWN/UP/CANCEL always
-    // enqueue — ordering there is semantic.
+    // Coalesce MOVE floods in the NDK queue: replace the pending MOVE instead of enqueuing another event per touch.
+
+
+
     const bool is_move = (finalAction & 0xff) == 2;  // ACTION_MOVE
     bool replaced = false;
     if (is_move && !g_inputQueue.events.empty()) {
@@ -377,10 +377,10 @@ static void buildTouchEventLocked(int32_t baseAction, int32_t primaryId, int32_t
 // the Java path (not ready, native queue attached, or gated out).
 static uint64_t forward_touch_to_java_activity(int action, const BionicInputEvent& ev) {
     if (kuart_is_ready() != 1) return 0;
-    // When a native looper is attached, the NDK AInputQueue path already delivers this
-    // event; forwarding it again would dispatch it to Java twice, and every MOVE would
-    // take the VM lock against the render loop. The Java forward exists for titles that
-    // never attach the native queue (the common Unity case).
+    // Deliver input through the active native queue without duplicating Java dispatch.
+
+
+
     if (g_inputQueue.attached.load()) return 0;
     const bool is_move = (action & 0xff) == 2;  // ACTION_MOVE
     if (is_move && kudroid_touch_source_gate_allow_move() != 1) return 0;
@@ -474,9 +474,9 @@ extern "C" void kudroid_inject_touch_event_multi(float x, float y, int32_t actio
 
     wakeInputLooper();
 
-    // Forward touch events to Java Activity (e.g. Unity uGUI buttons like "Skip Tutorial").
-    // Non-move events (DOWN, UP, CANCEL) are always forwarded to ensure UI clicks trigger.
-    // MOVE events are rate-gated by NativeTouchGate to avoid stalling the render loop.
+    // Forward input events to the active queue.
+
+
     const uint64_t forwarded_ns = forward_touch_to_java_activity(ev.action, ev);
     touch_telemetry(touch_now_ns() - inject_start, forwarded_ns);
 }
@@ -1199,4 +1199,4 @@ const SymbolEntry* get_input_symbols(size_t* count) {
     return kInputSymbols;
 }
 
-} // namespace kudroid
+} // namespace

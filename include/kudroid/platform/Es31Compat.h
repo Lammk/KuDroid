@@ -5,13 +5,13 @@
 
 namespace kudroid {
 
-// GLES 3.1 compatibility for a 3.0 host driver (ANGLE over Metal stops at 3.0).
-//
-// Some engines ship only "#version 310 es" shaders and pick them by the version the
-// driver reports. For an opted-in package the reported version is raised to 3.1 and
-// every 3.1 shader that is expressible in 3.0 is rewritten to "#version 300 es".
-// Shaders that need real 3.1 features are never touched, so they fail exactly as
-// they would without the shim instead of failing in a different way.
+// GLES 3.1 compatibility for a 3.0 host driver.
+
+
+
+
+
+
 
 enum class ShaderDowngrade {
     NotApplicable,  // not a 3.1/3.2 shader; left as is
@@ -33,4 +33,4 @@ const char* gles31_advertise_version(const char* value, unsigned name);
 // True when `pkg` is listed in `listText` (one package per line, '#' starts a comment).
 bool gles31_package_listed(std::string_view listText, std::string_view pkg);
 
-}  // namespace kudroid
+}  // namespace

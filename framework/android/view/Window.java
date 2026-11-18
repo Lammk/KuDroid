@@ -7,12 +7,12 @@ import android.widget.FrameLayout;
 
 import java.util.ArrayList;
 
-/**
- * minimal android.view.window implementation.
- *
- * represents a window. for kudroid minimal framework, here is an emulation
- * provides basic window management.
- */
+/** Manage window content and surface state. */
+
+
+
+
+
 public class Window {
     public static final int FEATURE_OPTIONS_PANEL = 0;
     public static final int FEATURE_NO_TITLE = 1;
@@ -182,21 +182,21 @@ public class Window {
         return mContentView;
     }
 
-    /**
-     * The root view of the window.
-     *
-     * Never null. Returning null — which happened whenever setContentView had not run
-     * yet — breaks the standard idiom, which is to chain straight off it without a
-     * check:
-     *
-     *   WindowCompat.setDecorFitsSystemWindows(window, false)
-     *       -> window.getDecorView().getSystemUiVisibility()
-     *
-     * That is androidx code, it runs during onCreate on essentially every modern app,
-     * and it is where Minecraft's launch failed with a NullPointerException. Creating
-     * the decor view on demand is also what AOSP does — installDecor() runs before any
-     * caller can observe a null.
-     */
+    /** The root view of the window. */
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     public View getDecorView() {
         return ensureDecorView();
     }
@@ -528,14 +528,14 @@ public class Window {
     public void setTitle(CharSequence title) {
     }
 
-    /**
-     * The pixel format the window's surface should use.
-     *
-     * A no-op on KuDroid: the surface is a CAMetalLayer whose format is fixed at
-     * bgra8Unorm by the host, and there is no path to renegotiate it. Recorded rather
-     * than discarded so getFormat() reports back what the app asked for — an app that
-     * sets RGBA_8888 and reads it back to confirm should not see 0.
-     */
+    /** The pixel format the window's surface should use. */
+
+
+
+
+
+
+
     private int mFormat = android.graphics.PixelFormat.OPAQUE;
 
     public void setFormat(int format) {
@@ -626,7 +626,7 @@ public class Window {
         mAttributes = params;
     }
 
-    /** Size the window; KuDroid runs everything full-screen, so this only records intent. */
+    /** Size the window; the runtime runs everything full-screen, so this only records intent. */
     public void setLayout(int width, int height) {
         final WindowManager.LayoutParams params = getAttributes();
         params.width = width;

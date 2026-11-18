@@ -1,6 +1,6 @@
 package android.media;
 
-/** The codecs KuDroid's media layer accepts (see MediaShim); software decoders in effect. */
+/** List supported media decoders. */
 public final class MediaCodecList {
     public static final int REGULAR_CODECS = 0;
     public static final int ALL_CODECS = 1;

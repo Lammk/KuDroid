@@ -290,7 +290,7 @@ void PermissionManager::setAppPermissionsFromJson(const std::string& packageName
     saveConfigLocked();
 }
 
-} // namespace kudroid
+} // namespace
 
 // C Bridge APIs
 extern "C" {

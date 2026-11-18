@@ -1,6 +1,6 @@
 package java.lang.reflect;
 
-/** Handle to KuART's DexField; `artField` written by native. */
+/** Handle to the DEX runtime's DexField; `artField` written by native. */
 public final class Field extends AccessibleObject {
 
     private long artField;

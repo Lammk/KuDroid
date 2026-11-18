@@ -58,6 +58,6 @@ std::string TlsLastError(TlsSession* session);
 int TlsEvaluateChain(const std::vector<std::vector<uint8_t>>& chain,
                      const std::vector<std::vector<uint8_t>>& anchors, std::string* error);
 
-}  // namespace kudroid
+}  // namespace
 
 #endif

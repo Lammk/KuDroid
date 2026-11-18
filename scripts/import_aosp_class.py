@@ -1,12 +1,5 @@
 #!/usr/bin/env python3
-"""Copy Apache-2.0 AOSP sources into framework/, dropping hidden-API annotations.
-
-usage: import_aosp_class.py android/util/Property.java [...]
-
-Sources come from third_party/aosp/platform_frameworks_base; the license header is kept.
-The result usually still needs hand edits where the class touches framework internals
-that KuDroid does not have.
-"""
+"""Copy framework sources, preserving licenses and removing hidden API annotations."""
 import os
 import re
 import sys

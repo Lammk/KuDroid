@@ -61,4 +61,4 @@ inline uint32_t ModulatePixelAlpha(uint32_t pixel, int alpha) {
     return (pixel & 0xffffff) | (((pixel >> 24) * std::clamp(alpha, 0, 255) + 127) / 255 << 24);
 }
 
-}  // namespace kudroid
+}  // namespace

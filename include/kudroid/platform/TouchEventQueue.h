@@ -192,4 +192,4 @@ private:
     bool accepting_ = false;
 };
 
-}  // namespace kudroid
+}  // namespace

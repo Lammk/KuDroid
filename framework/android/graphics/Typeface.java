@@ -1,10 +1,10 @@
 package android.graphics;
 
-/**
- * minimal android.graphics.typeface implementation.
- *
- * represents a font. for kudroid minimal framework, here is an emulation.
- */
+/** Represent fonts and font styles. */
+
+
+
+
 public class Typeface {
     public static final int NORMAL = 0;
     public static final int BOLD = 1;

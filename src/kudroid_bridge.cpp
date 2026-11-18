@@ -64,11 +64,11 @@ extern "C" void kudroid_boot_mark(const char* phase) {
 }
 
 // Prefix for one diagnostic line: boot-relative time plus the guest thread name.
-// bionic_prctl(PR_SET_NAME) forwards the guest's name to the host thread, so the
-// name is the guest's own ("UnityMain", "FMOD stream thread", "Job.Worker 3") and
-// a trace line can be attributed to the engine thread that produced it. Without
-// this the stderr stream has no time and no thread, and its lines cannot be put
-// next to a Unity log line at all.
+
+
+
+
+
 extern "C" const char* kudroid_trace_stamp(void) {
     static thread_local char buf[80];
     char name[64] = "?";
@@ -162,7 +162,7 @@ extern "C" void kudroid_set_log_paths(const char* dir, const char* logDirectory)
     const char* stamp = kudroid_build_stamp();
     writeLogFile("kudroid_version.txt", std::string(stamp) + "\n");
 
-    // KuART's classes.log belongs with the other diagnostics, not in Documents.
+    // Store missing-class diagnostics beside the other logs.
     std::string classesLogPath = (std::filesystem::path(g_logDir) / "classes.log").string();
     kuart_set_missing_class_log_path(classesLogPath.c_str());
 
@@ -277,7 +277,7 @@ extern "C" void kudroid_clear_all_logs(void) {
     const char* stamp = kudroid_build_stamp();
     writeLogFile("kudroid_version.txt", std::string(stamp) + "\n");
 
-    // 7. Reset KuART's missing classes log path
+    // Reset the DEX runtime's missing classes log path.
     std::string classesLogPath = (std::filesystem::path(g_logDir) / "classes.log").string();
     kuart_set_missing_class_log_path(classesLogPath.c_str());
 }

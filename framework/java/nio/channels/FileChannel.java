@@ -21,8 +21,8 @@ public abstract class FileChannel implements ByteChannel, SeekableByteChannel, I
     public boolean isOpen() { return true; }
     public void close() throws IOException { releaseLocks(); }
 
-    // File locks. KuDroid is one process, so locks are tracked per file within it: overlapping
-    // requests on the same file fail the way the JDK fails them.
+    // The runtime is one process, so locks are tracked per file within it: overlapping requests on the same file fail the way the JDK fails them.
+
 
     private static final java.util.HashMap<Object, java.util.ArrayList<FileLock>> LOCKS =
             new java.util.HashMap<Object, java.util.ArrayList<FileLock>>();

@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
-# Android reference capture for the FMOD/Sound investigation (adb, no root).
-#
-# Runs the game inside Waydroid and records whether the platform itself can
-# create its FMOD sounds. Separates "our host shim hands FMOD something bad"
-# from "this repacked APK is already broken on real Android".
-#
-# Artifacts: /tmp/wdref/logcat.txt
-# Usage: bash tools/waydroid_fmod_ref.sh [capture_seconds]
+# Capture Android audio initialization logs through ADB.
+
+
+
+
+
+
+
 set -u
 
 DEV=192.168.240.112:5555

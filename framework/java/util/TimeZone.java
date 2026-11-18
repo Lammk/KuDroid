@@ -1,15 +1,15 @@
 package java.util;
 
-/**
- * java.util.TimeZone — minimal implementation backed by the host's UTC offset.
- *
- * Real TimeZone reads the zoneinfo database and applies DST rules per instant.
- * KuDroid has no zoneinfo, so this exposes a fixed offset supplied by the runtime.
- * That is accurate for formatting timestamps and for code that only asks for
- * getDefault()/getRawOffset(), which is what apps do at startup — and it is far
- * better than the class being absent, which made TimeZone.getDefault() return null
- * and blow up as an unexplained NullPointerException in the caller.
- */
+/** Represent a time zone using the host offset. */
+
+
+
+
+
+
+
+
+
 public class TimeZone {
     /** Milliseconds east of UTC, filled in by the runtime. */
     private static native int native_getDefaultRawOffset();

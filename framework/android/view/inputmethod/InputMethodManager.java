@@ -5,22 +5,22 @@ import android.os.IBinder;
 import android.os.ResultReceiver;
 import android.view.View;
 
-/**
- * The soft-keyboard manager.
- *
- * KuDroid has no keyboard of its own, so show/hide are forwarded to the host, which
- * raises the platform keyboard. Text typed there comes back in through
- * {@link #deliverText} and is applied to whichever InputConnection is currently
- * registered — see {@link #setCurrentInputConnection}.
- *
- * Activity and editor state belongs to one guest run. These values are cleared when
- * that Activity is destroyed so a later app launch cannot inherit the old editor.
- *
- * Obtained through {@code getSystemService(Context.INPUT_METHOD_SERVICE)}. That
- * mapping was missing while this class existed, which an app cannot tell apart from
- * the class being absent: Minecraft's onCreate threw
- * {@code RuntimeException("Can't get IMM")} and the whole Activity launch failed.
- */
+/** The runtime has no keyboard of its own, so show/hide are forwarded to the host, which raises the platform keyboard. */
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 public final class InputMethodManager {
     public static final int SHOW_IMPLICIT = 0x0001;
     public static final int SHOW_FORCED = 0x0002;

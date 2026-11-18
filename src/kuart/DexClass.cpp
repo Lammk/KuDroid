@@ -95,6 +95,19 @@ DexMethod* DexClass::FindDirectMethod(const char* name, const char* signature) {
     return nullptr;
 }
 
+DexMethod* DexClass::FindMethod(const char* name, const char* signature) {
+    // Search each declaring class before considering its ancestors.
+    for (DexClass* k = this; k != nullptr; k = k->superclass) {
+        for (DexMethod& method : k->direct_methods) {
+            if (NameAndSigMatch(method, name, signature)) return &method;
+        }
+        for (DexMethod& method : k->virtual_methods) {
+            if (NameAndSigMatch(method, name, signature)) return &method;
+        }
+    }
+    return FindVirtualMethod(name, signature);
+}
+
 DexField* DexClass::FindInstanceField(const char* name, const char* type_descriptor) {
     for (DexClass* k = this; k != nullptr; k = k->superclass) {
         for (DexField& f : k->instance_fields) {
@@ -183,5 +196,5 @@ std::string DexClass::PrettyName() const {
     return descriptor;
 }
 
-}  // namespace kuart
-}  // namespace kudroid
+}  // namespace
+}  // namespace

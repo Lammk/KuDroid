@@ -17,4 +17,4 @@ bool decodeAndroidPackedRela(const uint8_t* data, size_t size,
                             const std::function<bool(const PackedRela&)>& apply,
                             std::string& error);
 
-} // namespace kudroid
+} // namespace

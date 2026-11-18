@@ -55,4 +55,4 @@ private:
     std::map<std::string, Entry> entries_;
 };
 
-}  // namespace kudroid::kuart
+}  // namespace

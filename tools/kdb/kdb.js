@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 
-/**
- * KuDroid Debug Bridge (KDB): dependency-free WebSocket/HTTP host + REPL
- * (help/list/debug/version). Mirrors the iPhone log stream.
- */
+/** Provide the WebSocket, HTTP, and command-line debug server. */
+
+
+
 
 const http = require('http');
 const readline = require('readline');

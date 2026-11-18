@@ -303,10 +303,10 @@ void Interpreter::ReportUnresolvableMethod(const DexMethod* context, uint32_t me
 
 bool Interpreter::CheckInstanceField(DexObject* obj, DexField* field, uint32_t width) {
     if (obj == nullptr || field == nullptr) return false;
-    // A wild clazz pointer kills the process one LDRB later (observed: fault at
-    // IsSubClassOf+0x4c reading obj->clazz->is_primitive, SEGV_ACCERR on a
-    // 0x1004xxxxx pointer with no mapping). Report it and fail the access so the
-    // interpreter unwinds instead of faulting in KuDroid's own text.
+    // Report invalid field access and unwind the interpreter.
+
+
+
     const DexClass* clazz = obj->clazz;
     if (clazz != nullptr && linker_ != nullptr &&
         !linker_->IsRegisteredClass(reinterpret_cast<const DexClass*>(clazz))) {
@@ -405,13 +405,9 @@ DexMethod* Interpreter::ResolveMethod(const DexMethod* context, uint32_t method_
     const char* name = dex_file.GetMethodName(method_id);
     const std::string signature = dex_file.GetMethodSignature(method_id).ToString();
 
-    if (DexMethod* m = klass->FindDirectMethod(name, signature.c_str())) {
+    if (DexMethod* m = klass->FindMethod(name, signature.c_str())) {
         if (!exact_owner) linker_->CacheResolvedMethod(context->dex_file, method_idx, is_static, m);
-        return remember(m, "direct-lookup", klass);
-    }
-    if (DexMethod* m = klass->FindVirtualMethod(name, signature.c_str())) {
-        if (!exact_owner) linker_->CacheResolvedMethod(context->dex_file, method_idx, is_static, m);
-        return remember(m, "virtual-lookup", klass);
+        return remember(m, "class-lookup", klass);
     }
 
     auto isBootClasspathDescriptor = [](const char* desc) -> bool {
@@ -789,8 +785,8 @@ bool Interpreter::FilledNewArray(DexFrame* frame, const art::Instruction* inst, 
                 break;
             case 'J':
             case 'D':
-                // Wide elements: each argument register holds the whole 64-bit
-                // value (KuART's one-slot-per-vreg convention), so no pairing.
+                // Store wide arguments in single value slots.
+
                 arr->Set<int64_t>(index, frame->GetLong(vreg));
                 break;
             case 'I':

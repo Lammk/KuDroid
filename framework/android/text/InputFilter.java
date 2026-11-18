@@ -1,19 +1,19 @@
 package android.text;
 
-/**
- * A filter that inspects, and may alter, text as it is entered.
- *
- * Attached to a text field through {@code setFilters(InputFilter[])}; every insertion
- * passes through the chain before it reaches the buffer. Returning null accepts the
- * source unchanged, which is why the default of "do nothing" is expressed that way
- * rather than by returning the input.
- *
- * This was an empty interface with no nested classes, so
- * {@code new InputFilter.LengthFilter(n)} resolved to an auto-stub and threw
- * NoClassDefFoundError. That is what stopped Minecraft's onCreate: androidx's
- * gametextinput sets a length cap on its editor, three frames deep inside
- * GameActivity.createSurfaceView.
- */
+/** A filter that inspects, and may alter, text as it is entered. */
+
+
+
+
+
+
+
+
+
+
+
+
+
 public interface InputFilter {
 
     /**

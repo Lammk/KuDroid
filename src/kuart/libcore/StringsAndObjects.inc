@@ -336,8 +336,8 @@ DexArray* ClassArrayFromDescriptors(DexClassLinker* linker,
     return NewRefArray(linker, "[Ljava/lang/Class;", objects);
 }
 
-// java.lang.reflect.{Method,Field,Constructor} have private constructors: only
-// native code creates them, storing the KuART pointer in the `art*` long field.
+// Create reflection objects from native metadata handles.
+
 DexObject* NewReflectObject(DexClassLinker* linker, const char* descriptor,
                             const char* handle_field, const void* handle,
                             DexClass* declaring, const char* member_name) {
@@ -534,10 +534,10 @@ bool Invoke_java_lang_Class(Interpreter* interp, const char* name, const DexValu
             desc += ";";
         }
         DexClass* klass = interp->linker()->FindClassNoStub(desc.c_str());
-        // A stub is a placeholder for a boot-classpath class KuDroid does not ship
-        // yet; it has no methods or fields, so reporting success here would hand
-        // the caller an unusable Class and surface the real problem much later as
-        // a ClassCastException or a zero-valued field.
+        // Recognize unresolved boot-classpath placeholders.
+
+
+
         if (klass == nullptr || klass->is_stub) {
             interp->ThrowException("Ljava/lang/ClassNotFoundException;", class_name);
             return true;

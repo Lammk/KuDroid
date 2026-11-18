@@ -26,5 +26,5 @@ void DexFrame::LoadArguments(const DexValue* args, size_t count, const char* sho
     }
 }
 
-}  // namespace kuart
-}  // namespace kudroid
+}  // namespace
+}  // namespace

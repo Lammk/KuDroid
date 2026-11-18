@@ -29,4 +29,4 @@ inline int64_t guest_clock_ns(int clock_id) {
 
 inline int64_t guest_monotonic_ns() { return guest_clock_ns(1); }
 
-}  // namespace kudroid
+}  // namespace

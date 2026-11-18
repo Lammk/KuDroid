@@ -38,6 +38,14 @@ extern "C" int kudroid_iterate_guest_phdrs(
 
 class LibraryManager;
 
+struct GuestMappedSegment {
+    std::uintptr_t start, end;
+    std::uint64_t offset;
+    std::string path;
+};
+std::vector<GuestMappedSegment> snapshot_guest_mappings();
+void forget_guest_mappings(void* base);
+
 ///minimum elf64 (arm64) loader surface.
 ///stage 1 entry point — analysis, mapping, and repositioning pseudofunctions.
 class ElfLoader {
@@ -135,9 +143,9 @@ private:
 
     std::string          path_;
     void*                base_     = nullptr;
-    // Executable view of the loaded image (kudroid::ExecMemory). Equals base_
-    // on every strategy except dual-map aliasing, where code must be fetched
-    // through a separate RX mapping of the same backing pages.
+    // Executable view of the loaded image.
+
+
     void*                execBase_ = nullptr;
     // Split-image mapping (dual-map platforms only): the exec prefix is a
     // remapped RX alias of the MAP_JIT backing; the data suffix is a plain RW
@@ -204,7 +212,7 @@ private:
     std::uint16_t        phdr_count_ = 0;
 };
 
-} // namespace kudroid
+} // namespace
 
 namespace kudroid {
 
@@ -260,4 +268,4 @@ private:
     mutable std::unordered_map<std::string, void*> appSymbolCache_;
 };
 
-} // namespace kudroid
+} // namespace

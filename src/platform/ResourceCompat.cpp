@@ -464,4 +464,4 @@ int resource_compat_cli(const std::vector<std::string>& args,
     return 0;
 }
 
-}  // namespace kudroid
+}  // namespace

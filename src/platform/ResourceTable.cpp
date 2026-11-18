@@ -1177,4 +1177,4 @@ void reset_resource_table_cache() {
     g_loadAttempted = false;
 }
 
-}  // namespace kudroid
+}  // namespace

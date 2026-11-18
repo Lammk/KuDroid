@@ -362,19 +362,19 @@ extern "C" int bionic_futex(uint32_t *uaddr, int futex_op, uint32_t val, const s
         }
 
         if (timeout) {
-            // FUTEX_WAIT takes a RELATIVE timeout. FUTEX_WAIT_BITSET takes an
-            // ABSOLUTE deadline. This treated BOTH as absolute, and the difference is
-            // not subtle on a device that has been up for a while.
-            //
-            // Unity's asset threads pass FUTEX_WAIT (op=128 = FUTEX_WAIT |
-            // FUTEX_PRIVATE_FLAG) with a small relative timeout — tens of
-            // milliseconds, so tv_sec is 0. Subtracting CLOCK_MONOTONIC from that
-            // gave remSec = 0 - 528730 on a phone six days into its uptime, so every
-            // wait returned ETIMEDOUT before waiting at all and the guest spun
-            // instead of progressing. When tv_sec was large enough to survive the
-            // subtraction the other branch ran and the 24h cap parked the thread for
-            // a day. Either way AssetGarbageCollectorHelper never came back, and the
-            // log ended on the prctl that named it.
+            // FUTEX_WAIT takes a RELATIVE timeout.
+
+
+
+
+
+
+
+
+
+
+
+
             const bool absolute = (cmd == FUTEX_WAIT_BITSET);
 
             // The clock only matters for an absolute deadline. FUTEX_CLOCK_REALTIME
@@ -396,12 +396,12 @@ extern "C" int bionic_futex(uint32_t *uaddr, int futex_op, uint32_t val, const s
                     errno = EINVAL;
                     return -1;
                 }
-                // Tell the registry how long this wait asked for. An idle worker that
-                // requested a long timeout and is inside it is not stalled, and
-                // reporting it as such is worse than saying nothing: the captured
-                // ULTRAKILL log's only stall line was exactly that, an
-                // AssetGarbageCollectorHelper doing what it asked to do, while the
-                // wedged main thread went unmentioned.
+                // Tell the registry how long this wait asked for.
+
+
+
+
+
                 blocking_wait_note_budget(
                     static_cast<uint64_t>(timeout->tv_sec) * 1000ull +
                     static_cast<uint64_t>(timeout->tv_nsec) / 1000000ull);
@@ -516,7 +516,7 @@ extern "C" int bionic_futex(uint32_t *uaddr, int futex_op, uint32_t val, const s
     return -1;
 }
 
-// Dynamic Loading (dlfcn): serialize ANGLE/MoltenVK loads; concurrent Metal init aborts.
+// Serialize graphics-library initialization.
 extern "C" void* bionic_dlopen(const char* filename, int flags) {
     static std::mutex g_gpuFrameworkMtx;
     (void)flags;
@@ -571,21 +571,21 @@ extern "C" void* bionic_dlopen(const char* filename, int flags) {
         }
     }
 
-#define DUMMY_HANDLE ((void*)0x4B5544524F494421ULL) // "KUDROID!" as a handle
+#define DUMMY_HANDLE ((void*)0x4B5544524F494421ULL) // Recognize the runtime library handle.
 
     // Emulate the Android linker: pretend the requested library resolved.
     logAndroidMessage(4, "KuDroidSyscall", std::string("bionic_dlopen: fallback returning DUMMY_HANDLE for ") + filename);
     return DUMMY_HANDLE;
 }
 
-// GraphicsShim MUST intercept Vulkan/EGL surface symbols BEFORE the real
-// MoltenVK/ANGLE handle is consulted, otherwise the game gets the real
-// vkGetInstanceProcAddr and never sees vkCreateAndroidSurfaceKHR. Every
-// egl*/ANativeWindow* entry also goes through the shim: the wrappers forward
-// to ANGLE internally but add NULL-guards and detailed logging (e.g.
-// TriangleGLES calls eglInitialize(display, 0, 0) with NULL out-params which
-// some ANGLE builds dereference). Anything not in the shim table falls
-// through to the real handle below.
+// Route surface creation through the graphics shim.
+
+
+
+
+
+
+
 static bool isShimPriority(const char* s) {
     if (!s) return false;
     if (strncmp(s, "egl", 3) == 0) return true;
@@ -715,7 +715,7 @@ extern "C" void* bionic_dlsym(void* handle, const char* symbol) {
         return nullptr;
     }
 
-    // Fall back to the host process image (ANGLE, MoltenVK, libc, ...).
+    // Fall back to the host process image.
     void* fallback = ::dlsym(RTLD_DEFAULT, symbol);
     if (fallback) {
         logAndroidMessage(2, "KuDroidSyscall", std::string("bionic_dlsym: [") + symbol + "] resolved via RTLD_DEFAULT fallback");

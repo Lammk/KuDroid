@@ -48,4 +48,4 @@ ElfWritableAliases& GuestElfWritableAliases();
 bool EmulateElfAliasStore(uint32_t instruction, uintptr_t fault,
                          Arm64StoreState& state, const ElfWritableAliases& aliases);
 
-}  // namespace kudroid
+}  // namespace

@@ -49,7 +49,7 @@ let package = Package(
                 "ImmediateScrollTouches.swift",
                 "ShellSettings.swift",
             ],
-            resources: [.copy("THIRD_PARTY_NOTICES.txt")],
+            resources: [.copy("THIRD_PARTY_NOTICES.txt"), .copy("Resources/licenses")],
             swiftSettings: [
                 .unsafeFlags([
                     "-import-objc-header", "\(packageDir)/kudroid_bridge.h",

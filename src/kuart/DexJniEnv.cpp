@@ -47,18 +47,18 @@ bool should_journal_native(const DexMethod* method, uint64_t now_ns) {
     return false;
 }
 
-// jobject is an opaque handle; KuART directly uses the DexObject pointer as a handle. Board
-// local/global refs are only for lifetime management, not for address translation - so
-// Decode ch  l  m t cast.  n gi n h n ART (d ng indirect reference table) v
-// enough because there is no GC to move the object.
+// Jobject is an opaque handle; the DEX runtime directly uses the DexObject pointer as a handle.
+
+
+
 DexObject* AsObject(jobject ref) { return reinterpret_cast<DexObject*>(ref); }
 jobject AsHandle(DexObject* obj) { return reinterpret_cast<jobject>(obj); }
 
-// One-line decode of an object argument, for the native-enter breadcrumb. Unwraps
-// what a reader needs from the common Unity JNI payload shapes without knowing any
-// class name: wrapper values (Long/Integer/Boolean/...), a reflected Method, and any
-// object that exposes "artMethod" (J) whose declaring class names the Java method.
-// NULL stays NULL — that is what makes a null argument visible at all.
+// One-line decode of an object argument, for the native-enter breadcrumb.
+
+
+
+
 std::string DescribeObjectArg(DexClassLinker* linker, DexObject* obj) {
     if (obj == nullptr) return "null";
     if (linker == nullptr) return "obj";
@@ -378,11 +378,11 @@ bool DexJniEnv::LinkNativeMethod(DexMethod* method) {
         return true;
     }
     last_error_ = "native symbol not found: " + short_name;
-    // No negative cache: an early miss must not stick — libraries and symbols
-    // appear during startup, and a sticky refusal broke boot on 2f5486c..HEAD.
-    // One-line confirmation for dead native bindings (e.g. vendor
-    // UnityPlayer.nativeInjectEvent): the Java frames run but the body never
-    // does, with no other trace. Rate-limited per method to survive floods.
+    // Avoid caching unresolved native bindings and bound missing-binding diagnostics.
+
+
+
+
     {
         static std::mutex link_fail_mtx;
         static std::unordered_set<std::string> link_fail_seen;
@@ -399,10 +399,10 @@ bool DexJniEnv::LinkNativeMethod(DexMethod* method) {
     return false;
 }
 
-// One-line decode of Unity's JNIBridge.invoke(J, Class, Method, Object[]) arguments:
-// the native peer pointer, the interface Class, and the reflected Method (name and
-// signature via its artMethod handle). Logged once at entry so a failing call can
-// be told apart from a succeeding one without decoding raw pointers from the log.
+// Trace native peer, interface, and method arguments.
+
+
+
 void LogJnibridgeInvokeArgs(DexClassLinker* linker, const DexValue* args, size_t num_args) {
     if (linker == nullptr || args == nullptr || num_args < 4) {
         std::fprintf(stderr, "[KuART][JNIBRIDGE] invoke (undecodable args=%zu)\n", num_args);
@@ -474,9 +474,9 @@ DexValue DexJniEnv::CallNative(DexMethod* method, const DexValue* args, size_t n
                             ? method->declaring_class->descriptor : "?";
     const char* method_name = method->name != nullptr ? method->name : "?";
     const char* method_sig = method->signature != nullptr ? method->signature : "?";
-    // Trace every JNI call made while Unity's bridge runs: the bridge is a black
-    // box (real libunity.so code) and the failing lookup inside it is invisible
-    // otherwise. Scoped to this call's dynamic extent by the RAII guard.
+    // Trace JNI calls made through the native bridge.
+
+
     const bool is_jnibridge_invoke =
         std::strcmp(owner, "Lbitter/jnibridge/JNIBridge;") == 0 &&
         std::strcmp(method_name, "invoke") == 0;
@@ -504,10 +504,10 @@ DexValue DexJniEnv::CallNative(DexMethod* method, const DexValue* args, size_t n
                       static_cast<unsigned long long>(memory_before.process_available_bytes),
                       static_cast<unsigned long long>(memory_before.available_bytes),
                       memory_before.low_memory ? 1 : 0);
-        // What the call was made WITH: an argument value is often the one fact that decides
-        // whether a following abort inside the native side is a crash or a reaction (e.g. a
-        // touch delivered to UnityPlayer.nativeInjectEvent while a scene is torn down).
-        // Gated on the JNI trace flag, which the log gate owns.
+        // Trace native-call arguments when JNI tracing is enabled.
+
+
+
         if (log::jni_enabled()) {
             AppendObjectArgDescriptions(
                 interpreter_ != nullptr ? interpreter_->linker() : nullptr,
@@ -539,17 +539,10 @@ DexValue DexJniEnv::CallNative(DexMethod* method, const DexValue* args, size_t n
         return result;
     }
 
-    // Bypass network-status wait; avoids onCreate circular deadlock.
-    if (std::strcmp(method_name, "nativeUpdateNetworkStatus") == 0) {
-        KLOGV("KuARTNative", "bypassing nativeUpdateNetworkStatus -> returning immediately to prevent onCreate circular deadlock");
-        native_call_exit();
-        return result;
-    }
+    // Avoid reentering native logging through diagnostic callbacks.
 
-    // Xbox HttpClient NetworkObserver.Log is a pure diagnostic log callback from Java
-    // to libHttpClient.Android.so. Inside libHttpClient, calling this on the main thread
-    // blocks on an uninitialized internal logging sink or mutex before HttpClient is initialized.
-    // Returning immediately avoids this hang.
+
+
     if (std::strcmp(method_name, "Log") == 0 && std::strstr(owner, "NetworkObserver") != nullptr) {
         KLOGV("KuARTNative", "bypassing NetworkObserver.Log -> returning immediately");
         native_call_exit();
@@ -707,9 +700,9 @@ DexValue DexJniEnv::CallJavaA(DexObject* receiver, DexMethod* method, const jval
                               bool virtual_dispatch) {
     DexValue result;
     if (method == nullptr || interpreter_ == nullptr) {
-        // Was silent: native got null/0 back with no pending exception, returned
-        // OK to Java, and Unity's JNIBridge wrapper threw a messageless
-        // NoSuchMethodError far from here. Name the call site instead.
+        // Report failed JNI lookup with a pending exception.
+
+
         std::fprintf(stderr, "[KuART][JNI] CallJavaA with null method (receiver=%p)\n",
                      reinterpret_cast<const void*>(receiver));
         return result;
@@ -947,5 +940,5 @@ DexObject* DexJniEnv::NewObjectA(DexClass* klass, DexMethod* ctor, const jvalue*
     return obj;
 }
 
-}  // namespace kuart
-}  // namespace kudroid
+}  // namespace
+}  // namespace

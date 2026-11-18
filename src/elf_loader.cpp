@@ -1,5 +1,6 @@
 #include "kudroid/elf_loader.hpp"
 #include "kudroid/ElfX18.h"
+#include "kudroid/ElfSyscalls.h"
 #include "kudroid/ElfPackedRelocations.h"
 #include "kudroid/ElfAliasStore.h"
 #include "kudroid/BionicShim.h"
@@ -14,6 +15,7 @@ extern "C" int kudroid_tls_stub_params(std::int64_t* tsdSlotOffset, std::int64_t
 #include <cstring>
 #include <fstream>
 #include <mutex>
+#include <limits>
 #include <sys/mman.h>
 
 #ifndef DT_INIT
@@ -115,6 +117,7 @@ ElfLoader::ElfLoader(std::string path)
     : path_(std::move(path)) {}
 
 ElfLoader::~ElfLoader() {
+    forget_guest_mappings(base_);
     GuestElfWritableAliases().Remove(reinterpret_cast<uintptr_t>(base_));
     releaseFileMapping();
     if (splitImage_) {
@@ -210,6 +213,7 @@ ElfLoader::ElfLoader(ElfLoader&& other) noexcept
 
 ElfLoader& ElfLoader::operator=(ElfLoader&& other) noexcept {
     if (this != &other) {
+        forget_guest_mappings(base_);
         GuestElfWritableAliases().Remove(reinterpret_cast<uintptr_t>(base_));
         releaseFileMapping();
         if (allocBase_) {
@@ -523,12 +527,12 @@ bool ElfLoader::mapFile() {
         return false;
     }
     const size_t size = static_cast<size_t>(st.st_size);
-    // PROT_READ MAP_PRIVATE: the pages stay CLEAN, so the kernel can evict them under
-    // memory pressure and read them back from disk. A heap copy (which this replaced)
-    // is dirty and can only be swapped — which iOS does not do, so it counted in full
-    // against the process footprint. libminecraftpe.so is 333 MB; the copy plus the
-    // loaded image put the process over 660 MB before a single frame was drawn, and
-    // jetsam killed it with SIGKILL.
+    // Map the file read-only so the host can reclaim clean pages.
+
+
+
+
+
     void* mapped = ::mmap(nullptr, size, PROT_READ, MAP_PRIVATE, fd, 0);
     ::close(fd);
     if (mapped == MAP_FAILED) return false;
@@ -925,14 +929,23 @@ bool ElfLoader::map() {
                 (unsigned long long)xst.skippedRange);
     }
 
-    // --- aot patcher for tpidr_el0 (kudroid root class) ---
-    // ios xnu kernel doesn't context switch for tpidr_el0, so it returns garbage.
-    // mrs xn, tpidr_el0 -> 0xd53bd040 | n
-    // we patch it to brk #(0x1000 + n) -> 0xd4200000 | ((0x1000 + n) << 5)
-    //
-    // IMPORTANT: this loop must run BEFORE pthread_jit_write_protect_np(1)
-    // enabled again (macOS MAP_JIT) — otherwise, writing to the JIT page is failing
-    // lock will cause fault. Relocking is performed immediately after the loop.
+#if defined(__APPLE__)
+    {
+        void* rewriteView = (splitImage_ || preparedImage_) ? writeBase_ : base_;
+        const auto sites = elf_raw_syscall_rewrite(rewriteView, minVaddr, segments_,
+            reinterpret_cast<const std::uint8_t*>(fileData_), fileSize_);
+        std::fprintf(stderr, "[KuDroidELF] raw syscall rewrite %s: sites=%zu\n", path_.c_str(), sites);
+    }
+#endif
+
+    // Rewrite guest thread-pointer reads for the host ABI.
+
+
+
+
+
+
+
     for (const auto& seg : segments_) {
         if (seg.flags & 1) { // PROT_EXEC
             uint32_t* insts = reinterpret_cast<uint32_t*>(segWriteDst(seg.vaddr - minVaddr));
@@ -1631,11 +1644,11 @@ void* ElfLoader::getSymbolAddress(const char* symbolName) {
         return nullptr;
     }
     // Answered from the index built at load time, not by re-parsing the file.
-    //
-    // This used to re-read PT_DYNAMIC and then linear-scan .dynsym on every call, which
-    // is why it required the file to still be mapped and why resolution was O(symbols)
-    // per relocation — hundreds of thousands of scans over ~40k symbols for a game the
-    // size of Minecraft.
+
+
+
+
+
     if (!symbolIndexBuilt_) buildSymbolIndex();
     const auto it = symbolIndex_.find(symbolName);
     if (it == symbolIndex_.end()) return nullptr;
@@ -1768,6 +1781,7 @@ struct GuestModule {
     // headers are registered, which happens right after mapping.
     const void*    phdrs = nullptr;
     unsigned short phnum = 0;
+    std::vector<kudroid::GuestMappedSegment> mappings;
 };
 std::mutex g_guestMtx;
 std::vector<GuestModule> g_guestModules;
@@ -1804,6 +1818,8 @@ void guest_range_publish(std::uintptr_t base, std::size_t size) {
 }
 } // namespace
 
+#include "elf/GuestMappings.inc"
+
 extern "C" bool kudroid_guest_module_contains(void* addr) {
     if (!addr) return false;
     const auto a = reinterpret_cast<std::uintptr_t>(addr);
@@ -1829,7 +1845,7 @@ extern "C" void kudroid_register_guest_module(void* base, std::size_t size,
             return;
         }
     }
-    g_guestModules.push_back({addr, size, std::string(path)});
+    g_guestModules.push_back({addr, size, std::string(path), nullptr, 0, {}});
     guest_range_publish(addr, size);
 }
 
@@ -1842,12 +1858,14 @@ extern "C" void kudroid_register_guest_phdrs(void* base, const void* phdrs,
         if (m.base == addr) {
             m.phdrs = phdrs;
             m.phnum = phnum;
+            m.mappings = BuildGuestMappings(addr, phdrs, phnum);
             return;
         }
     }
     // Headers before the module: only possible if the caller registers out of order, which
     // the loader does not, but recording them is better than dropping them.
-    GuestModule module{addr, 0, std::string(), phdrs, phnum};
+    GuestModule module{addr, 0, std::string(), phdrs, phnum, {}};
+    module.mappings = BuildGuestMappings(addr, phdrs, phnum);
     g_guestModules.push_back(std::move(module));
     guest_range_publish(addr, 0);
 }
@@ -1941,4 +1959,4 @@ extern "C" bool kudroid_lookup_guest_module(void* addr, char* out, std::size_t o
     return false;
 }
 
-} // namespace kudroid
+} // namespace

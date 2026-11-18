@@ -61,7 +61,7 @@ private:
     bool initialized_{false};
 };
 
-} // namespace kudroid
+} // namespace
 
 // C Bridge APIs
 #ifdef __cplusplus

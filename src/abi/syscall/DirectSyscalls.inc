@@ -1,9 +1,9 @@
 
-// Audio-side fd tracing. FMOD does its bank IO on its own thread, and by then the
-// preload-era caps on the fd traces below are long spent, so the audio path's own
-// reads/seeks were invisible exactly when a createSound fails. Audio IO therefore
-// gets its own budget: per-thread identity plus a bounded op count, so one clip
-// load keeps a complete trace without flooding the log.
+// Trace file operations performed by audio workers.
+
+
+
+
 extern "C" bool kudroid_audio_thread(void);
 static std::atomic<int> g_audioFdOps{0};
 constexpr int kAudioFdOpBudget = 1500;
@@ -165,12 +165,12 @@ extern "C" long bionic_syscall(long number, uintptr_t a1, uintptr_t a2, uintptr_
                                        reinterpret_cast<void*>(a3), static_cast<size_t>(a4));
 
         // The outbound signal syscalls, Linux arm64 numbering.
-        //
-        // A managed runtime does not always go through the libc wrapper: Mono's thread
-        // suspension issues the syscall directly on some builds, and until now every one
-        // of these fell through to the ENOSYS default. That is not a silent no-op — the
-        // guest reads -1/ENOSYS from a suspend it believes it sent, and waits for a
-        // thread that was never signalled.
+
+
+
+
+
+
         case 129: // kill(pid, sig)
             return kudroid::guest_kill(static_cast<int>(a1), static_cast<int>(a2));
 
@@ -312,21 +312,21 @@ extern "C" long bionic_syscall(long number, uintptr_t a1, uintptr_t a2, uintptr_
             // iOS does not support binding threads to CPU cores; return 0 (success)
             return 0;
 
-        case 123: // sched_getaffinity (Linux arm64 syscall)
-            // a1=pid, a2=cpusetsize, a3=mask pointer.
-            //
-            // Returns the NUMBER OF BYTES WRITTEN, which is what the kernel does and
-            // what bionic's wrapper relies on:
-            //
-            //     int rc = __sched_getaffinity(pid, size, set);
-            //     if (rc == -1) return -1;
-            //     if ((size_t)rc < size) memset((char*)set + rc, 0, size - rc);
-            //     return 0;
-            //
-            // Returning 0 here therefore made bionic memset the ENTIRE mask to zero,
-            // handing the guest an affinity set with no CPUs in it. Unity read that
-            // back as "Cores = 0" and "0 big (mask: 0x0), 0 little (mask: 0x0)", then
-            // sized its job system from it.
+        case 123: // Return the online CPU affinity mask.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
             if (a3 != 0 && a2 > 0) {
                 const size_t requested = static_cast<size_t>(a2);
                 const size_t written = requested < sizeof(unsigned long)
@@ -395,36 +395,51 @@ extern "C" long bionic_syscall(long number, uintptr_t a1, uintptr_t a2, uintptr_
     return -1;
 }
 
-// A guest library may issue `svc #0` directly instead of calling the imported
-// libc syscall wrapper. Darwin delivers SIGSYS for that Linux syscall ABI; on
-// Apple, emulate the request from the signal context and resume after SVC.
-// This keeps the boundary generic for all Linux/Android arm64 guests.
-extern "C" bool bionic_handle_guest_syscall_trap(void* context) {
+// Route rewritten SVC instructions through the Linux syscall ABI.
+static bool handle_guest_syscall(void* context, bool breakpoint) {
 #if defined(__APPLE__) && defined(__aarch64__)
     if (context == nullptr) return false;
     ucontext_t* uc = static_cast<ucontext_t*>(context);
-    uint32_t* pc = reinterpret_cast<uint32_t*>(uc->uc_mcontext->__ss.__pc);
-    uintptr_t svc_pc = reinterpret_cast<uintptr_t>(pc);
-    uint32_t inst = *pc;
-    if ((inst & 0xFFE0001F) != 0xD4000001) {
+    if (!uc->uc_mcontext) return false;
+    uintptr_t svc_pc = uc->uc_mcontext->__ss.__pc;
+    const int savedErrno = errno;
+    auto read = [](uintptr_t address, uint32_t& instruction) {
+        if (!address || address % 4 || !kudroid::kudroid_guest_module_contains(reinterpret_cast<void*>(address)))
+            return false;
+        vm_size_t got = 0;
+        return vm_read_overwrite(mach_task_self(), address, sizeof(instruction),
+            reinterpret_cast<vm_address_t>(&instruction), &got) == KERN_SUCCESS && got == sizeof(instruction);
+    };
+    uint32_t inst = 0;
+    if (!read(svc_pc, inst)) return false;
+    if (breakpoint) {
+        if (inst != kudroid::kLinuxSyscallBreakpoint) return false;
+    } else if (inst != kudroid::kLinuxSvcInstruction) {
         if (svc_pc < 4) return false;
-        pc--;
-        inst = *pc;
-        if ((inst & 0xFFE0001F) != 0xD4000001) return false;
         svc_pc -= 4;
+        if (!read(svc_pc, inst) || inst != kudroid::kLinuxSvcInstruction) return false;
     }
-    if (uc->uc_mcontext->__ss.__x[8] > 1000) return false;
+    const long number = static_cast<long>(uc->uc_mcontext->__ss.__x[8]);
     const long result = bionic_syscall(
-        static_cast<long>(uc->uc_mcontext->__ss.__x[8]),
+        number,
         uc->uc_mcontext->__ss.__x[0], uc->uc_mcontext->__ss.__x[1],
         uc->uc_mcontext->__ss.__x[2], uc->uc_mcontext->__ss.__x[3],
         uc->uc_mcontext->__ss.__x[4], uc->uc_mcontext->__ss.__x[5]);
-    uc->uc_mcontext->__ss.__x[0] = static_cast<uint64_t>(result);
+    const long raw = kudroid::raw_syscall_result(number, result, errno, true);
+    errno = savedErrno;
+    uc->uc_mcontext->__ss.__x[0] = static_cast<uint64_t>(raw);
     uc->uc_mcontext->__ss.__pc = svc_pc + 4;
     return true;
 #else
     (void)context;
     return false;
 #endif
+}
+
+extern "C" bool bionic_handle_guest_syscall_trap(void* context) {
+    return handle_guest_syscall(context, false);
+}
+extern "C" bool bionic_handle_guest_syscall_breakpoint(void* context) {
+    return handle_guest_syscall(context, true);
 }
 

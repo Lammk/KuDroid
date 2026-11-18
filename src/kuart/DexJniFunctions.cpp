@@ -50,8 +50,8 @@ DexClass* CheckedCls(DexJniEnv* self, jclass c) {
 
 jclass ToJClass(DexClass* k) { return reinterpret_cast<jclass>(k); }
 
-// JNI uses "java/lang/String" type names and KuART uses descriptors
-// "Ljava/lang/String;". The array name ("[I") is already a descriptor so it remains the same.
+// Translate JNI class names into DEX descriptors.
+
 std::string ToDescriptor(const char* jni_name) {
     if (jni_name == nullptr) return std::string();
     if (jni_name[0] == '[') return jni_name;
@@ -97,10 +97,10 @@ jclass JNICALL FindClass(JNIEnv* env, const char* name) {
         ThrowLookupFailure(self, "Ljava/lang/NoClassDefFoundError;", name);
         return nullptr;
     }
-    // A stub is a placeholder for a class KuDroid does not ship: it has no methods
-    // and no fields, so handing it back would only move the failure to the next
-    // GetMethodID, which returns null and takes the library down with no name
-    // attached. Report the missing class here instead. See DexClass::is_stub.
+    // Report missing framework classes.
+
+
+
     if (klass->is_stub) {
         if (JnibridgeTraceActive()) {
             std::fprintf(stderr, "[KuART][JNIBRIDGE] FindClass %s -> STUB\n", name);
@@ -122,7 +122,7 @@ jclass JNICALL FindClass(JNIEnv* env, const char* name) {
 }
 
 jclass JNICALL DefineClass(JNIEnv* env, const char*, jobject, const jbyte*, jsize) {
-    // KuART does not load class from .class bytes; Android app uses DEX.
+    // Load class definitions from DEX instead of class-file bytes.
     if (DexJniEnv* self = Self(env)) self->set_last_error("DefineClass not supported");
     return nullptr;
 }
@@ -301,8 +301,8 @@ jboolean JNICALL IsSameObject(JNIEnv* env, jobject a, jobject b) {
     if (oa == ob) {
         r = JNI_TRUE;
     } else if (DexJniEnv* self = Self(env)) {
-        // Same class under the two handle forms (see ClassOfHandle): a raw
-        // pointer comparison is not the whole answer on KuART.
+        // Compare class identity across supported handle forms.
+
         DexClass* ka = ClassOfHandle(self, oa);
         DexClass* kb = ClassOfHandle(self, ob);
         if (ka != nullptr && ka == kb) r = JNI_TRUE;
@@ -905,8 +905,8 @@ void JNICALL ReleaseStringUTFChars(JNIEnv*, jstring, const char*) {
     // GetStringUTFChars doesn't copy so there's nothing to free.
 }
 
-// KuART keeps UTF-8; UTF-16 functions convert temporarily when required by native. Processing only
-// ASCII because the framework stub and the app's class/method names are all ASCII.
+// Convert stored UTF-8 strings for UTF-16 JNI access.
+
 jsize JNICALL GetStringLength(JNIEnv*, jstring str) {
     DexString* s = Str(str);
     return s != nullptr ? static_cast<jsize>(s->length) : 0;
@@ -1752,5 +1752,5 @@ void DexJniEnv::InitFunctionTable() {
     vm_storage_.self = this;
 }
 
-}  // namespace kuart
-}  // namespace kudroid
+}  // namespace
+}  // namespace

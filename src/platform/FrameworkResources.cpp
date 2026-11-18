@@ -93,4 +93,4 @@ bool framework_resource_find(const std::string& type, const std::string& entry, 
     return true;
 }
 
-}  // namespace kudroid
+}  // namespace

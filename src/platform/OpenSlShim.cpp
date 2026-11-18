@@ -533,4 +533,4 @@ const SymbolEntry* get_opensl_symbols(size_t* count) {
     if (count) *count = sizeof(symbols) / sizeof(symbols[0]);
     return symbols;
 }
-} // namespace kudroid
+} // namespace

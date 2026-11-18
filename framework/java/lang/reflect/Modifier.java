@@ -62,12 +62,12 @@ public final class Modifier {
         return (mod & ABSTRACT) != 0;
     }
 
-    /**
-     * The modifier bits that may legally appear on a method.
-     *
-     * Used to mask raw access flags before rendering (Method.toString) so
-     * dex-only bits never leak into the platform string Unity parses.
-     */
+    /** The modifier bits that may legally appear on a method. */
+
+
+
+
+
     public static int methodModifiers() {
         return PUBLIC | PRIVATE | PROTECTED | STATIC | FINAL | SYNCHRONIZED | NATIVE | STRICT
                 | ABSTRACT;
@@ -81,13 +81,13 @@ public final class Modifier {
         return PUBLIC | PRIVATE | PROTECTED | STATIC | FINAL | TRANSIENT | VOLATILE;
     }
 
-    /**
-     * Canonical modifier string, AOSP order and spelling ("public abstract", ...).
-     *
-     * Unity's JNIBridge parses Method.toString() output, so this must read exactly
-     * like the platform's — a missing "abstract" or a reordered pair is a parse
-     * failure there, not a cosmetic difference here.
-     */
+    /** Canonical modifier string, AOSP order and spelling. */
+
+
+
+
+
+
     public static String toString(int mod) {
         StringBuilder sb = new StringBuilder();
         if ((mod & PUBLIC) != 0) sb.append("public ");

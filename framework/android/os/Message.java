@@ -1,12 +1,12 @@
 package android.os;
 
-/**
- * minimal android.os.message implementation.
- *
- * represents a message sent to a handler. for kudroid minimal framework,
- * we keep it simple: one destination handler, one int argument, one obj object,
- * and a what code.
- */
+/** Represents a message sent to a handler. */
+
+
+
+
+
+
 public final class Message {
     /** user-defined token. */
     public int what;

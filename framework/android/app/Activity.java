@@ -4,12 +4,12 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 
-/**
- * minimal android.app.activity implementation.
- *
- * provides the lifecycle callbacks expected by the original games. for framework
- * kudroid's minimum, lifecycle methods are no-op that apps can override.
- */
+/** Provide activity lifecycle callbacks. */
+
+
+
+
+
 public class Activity extends ContextThemeWrapper implements android.view.Window.Callback, android.view.KeyEvent.Callback, android.content.ComponentCallbacks2 {
     public static final int RESULT_CANCELED = 0;
     public static final int RESULT_OK = -1;
@@ -264,10 +264,10 @@ public class Activity extends ContextThemeWrapper implements android.view.Window
         return mHasWindowFocus;
     }
 
-    /**
-     * Called when the current Window of the activity gains or loses focus.
-     * Essential for game engines (AGDK/GameActivity/Unity) to resume rendering loops.
-     */
+    /** Called when the current Window of the activity gains or loses focus. */
+
+
+
     public void onWindowFocusChanged(boolean hasFocus) {
         mHasWindowFocus = hasFocus;
     }
@@ -363,18 +363,18 @@ public class Activity extends ContextThemeWrapper implements android.view.Window
         return mFinishing;
     }
 
-    /**
-     * Whether the Activity is being torn down for a configuration change rather than for
-     * good. Always false: KuDroid does not recreate activities, so nothing is retained
-     * across a change and an app told "true" would wait for a restart that never comes.
-     */
+    /** Whether the Activity is being torn down for a configuration change rather than for good. */
+
+
+
+
     public boolean isChangingConfigurations() {
         return mChangingConfigurations;
     }
 
     public int getChangingConfigurations() { return 0; }
 
-    /** An Activity started by another Activity, which KuDroid never does. */
+    /** Return no parent activity. */
     public boolean isChild() {
         return false;
     }
@@ -392,7 +392,7 @@ public class Activity extends ContextThemeWrapper implements android.view.Window
         return event.dispatch(this, win != null ? win.getKeyDispatcherState() : null, this);
     }
 
-    /** Shortcut keys (Ctrl+X and friends), which KuDroid does not synthesise. */
+    /** Handle shortcut-key callbacks. */
     public boolean dispatchKeyShortcutEvent(android.view.KeyEvent event) {
         return false;
     }
@@ -511,13 +511,13 @@ public class Activity extends ContextThemeWrapper implements android.view.Window
     public void onPointerCaptureChanged(boolean hasCapture) {
     }
 
-    /**
-     * Configuration changed — rotation, locale, night mode.
-     *
-     * Empty by default, as on Android: an app overrides it. Present because the framework
-     * calls it and because apps that declare android:configChanges rely on being told
-     * instead of being recreated, which is the only mode KuDroid offers.
-     */
+    /** Handle configuration changes such as rotation, locale, and night mode. */
+
+
+
+
+
+
     public void onConfigurationChanged(android.content.res.Configuration newConfig) {
     }
 
@@ -610,13 +610,13 @@ public class Activity extends ContextThemeWrapper implements android.view.Window
         return android.view.LayoutInflater.from(this);
     }
 
-    /**
-     * Options-menu invalidation, and the transition hooks below.
-     *
-     * All no-ops: KuDroid draws no action bar and runs no activity transitions. They exist
-     * because apps call them unconditionally during setup — an app that cannot call
-     * postponeEnterTransition() crashes instead of simply not animating.
-     */
+    /** Provide options-menu and transition hooks. */
+
+
+
+
+
+
     public void invalidateOptionsMenu() {
         if (mWindow != null) {
             mWindow.invalidatePanelMenu(android.view.Window.FEATURE_OPTIONS_PANEL);
@@ -689,21 +689,21 @@ public class Activity extends ContextThemeWrapper implements android.view.Window
      */
     private android.view.Window mWindow;
 
-    /**
-     * The Activity's window.
-     *
-     * One instance per Activity, cached. This used to build a fresh Window on every
-     * call, which breaks two things at once: the window has no identity (an app that
-     * stores getWindow() and compares it later sees a different object), and
-     * everything set through it is lost — including the decor view, since
-     * setContentView records it on whichever Window instance happened to be alive.
-     *
-     * The second half is what stopped Minecraft. androidx's
-     * WindowCompat.setDecorFitsSystemWindows does
-     * {@code window.getDecorView().getSystemUiVisibility()}, and getDecorView
-     * answered null on a Window nobody had ever called setContentView on, so onCreate
-     * died with a NullPointerException inside GameActivity.createSurfaceView.
-     */
+    /** Return the cached activity window. */
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     public android.view.Window getWindow() {
         if (mWindow == null) mWindow = new android.view.Window(this);
         return mWindow;
@@ -711,25 +711,25 @@ public class Activity extends ContextThemeWrapper implements android.view.Window
 
     private android.view.View mContentView;
 
-    /**
-     * Set the content view from a layout resource.
-     *
-     * KuDroid cannot inflate XML layouts yet — {@link android.view.LayoutInflater} has
-     * no parser, so there is no way to turn a resource id into a view tree. Nothing is
-     * drawn, and {@code findViewById} keeps returning null exactly as it did before the
-     * call.
-     *
-     * This used to build a hardcoded file-browser screen ("ZArchiver - Storage /sdcard"
-     * and a list of invented folders). That is the single most-called method in any
-     * Java-UI app's onCreate, so EVERY app rendered someone else's mock UI instead of
-     * its own — and worse, it looked like the layout system worked, so the real gap
-     * stayed hidden behind a plausible-looking screen.
-     *
-     * Reporting it once per resource id is the useful behaviour: the id is what a
-     * developer needs to find the layout, and repeating it every frame would bury the
-     * rest of the log. Apps that build their views in code go through
-     * {@link #setContentView(android.view.View)} and are unaffected.
-     */
+    /** Set the content view from a layout resource. */
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     public void setContentView(int layoutResID) {
         getWindow().setContentView(layoutResID);
         mContentView = getWindow().getContentView();

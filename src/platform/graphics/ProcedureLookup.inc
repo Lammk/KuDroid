@@ -15,7 +15,7 @@ extern "C" void* bionic_eglGetProcAddress(const char* procname) {
     }
 
     void* addr = nullptr;
-    // Resolve from the ANGLE handle directly (loaded RTLD_LOCAL).
+    // Resolve procedures from the configured graphics library.
     static void* egl_handle = nullptr;
     if (!egl_handle) {
         egl_handle = dlopen_bundled_framework("libEGL.framework/libEGL",

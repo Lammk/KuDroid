@@ -17,6 +17,20 @@ import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 
 public class Resources {
+    public static int selectDefaultTheme(int current, int targetSdkVersion) {
+        if (current != 0) return current;
+        String name = targetSdkVersion < 11 ? "Theme" : targetSdkVersion < 14 ? "Theme.Holo"
+                : targetSdkVersion < 24 ? "Theme.DeviceDefault" : "Theme.DeviceDefault.Light.DarkActionBar";
+        return getSystem().getIdentifier(name, "style", "android");
+    }
+
+    public static int selectSystemTheme(int current, int targetSdkVersion,
+            int original, int holo, int dark, int deviceDefault) {
+        if (current != 0) return current;
+        return targetSdkVersion < 11 ? original : targetSdkVersion < 14 ? holo
+                : targetSdkVersion < 24 ? dark : deviceDefault;
+    }
+
     private final DisplayMetrics mMetrics = new DisplayMetrics();
     private final Configuration mConfiguration = new Configuration();
     private final AssetManager mAssets;

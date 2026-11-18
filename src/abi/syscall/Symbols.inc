@@ -24,18 +24,18 @@ const SymbolEntry kSyscallSymbols[] = {
     // rt_sigaction is the symbol bionic's own sigaction() is built on, and some guests
     // import it directly.
     {"rt_sigaction", reinterpret_cast<void*>(&bionic_rt_sigaction)},
-    // The OUTBOUND half of signal translation, which was missing entirely.
-    //
-    // sigaction translated the number on the way in, so a handler for Linux SIGPWR (30)
-    // was installed on the host signal that carries it — Darwin's SIGINFO (29). raise,
-    // kill and pthread_kill were not here at all, so they bound to the HOST libc through
-    // dlsym(RTLD_DEFAULT) and the guest's Linux number went straight through:
-    // pthread_kill(tid, 30) delivered Darwin signal 30, which is SIGUSR1, an unhandled
-    // slot whose default action terminates the process.
-    //
-    // That is Mono's SIG_SUSPEND — how il2cpp stops threads for GC. Twelve of the
-    // thirty-one named signals are misdirected this way, and neither side can see it: the
-    // install succeeds and so does the send.
+    // Translate guest signal delivery to the host signal number.
+
+
+
+
+
+
+
+
+
+
+
     {"raise", reinterpret_cast<void*>(&bionic_raise)},
     {"kill", reinterpret_cast<void*>(&bionic_kill)},
     {"pthread_kill", reinterpret_cast<void*>(&bionic_pthread_kill)},
@@ -527,11 +527,11 @@ const SymbolEntry kSyscallSymbols[] = {
 #endif
     {"vsyslog", reinterpret_cast<void*>(&bionic_vsyslog)},
     {"__vsyslog_chk", reinterpret_cast<void*>(&bionic___vsyslog_chk)},
-    // The scanf family. These were absent too, and reaching the host implementation is
-    // worse here than for printf: scanf WRITES through its varargs. Minecraft's UUID parse
-    // passes eleven output pointers, and the host took five of them from stack words that
-    // were never pointers — one held a jobject (reported later as clazz=0xf8ec9809), and
-    // the next store went to address 0.
+    // Translate scanner output arguments using the guest ABI.
+
+
+
+
 #if defined(__aarch64__)
     {"sscanf", reinterpret_cast<void*>(&kudroid_sscanf_trampoline)},
     {"__isoc99_sscanf", reinterpret_cast<void*>(&kudroid_isoc99_sscanf_trampoline)},
@@ -567,8 +567,8 @@ const SymbolEntry kSyscallSymbols[] = {
     {"getcpu", reinterpret_cast<void*>(&bionic_getcpu)},
     {"sched_getaffinity", reinterpret_cast<void*>(&bionic_sched_getaffinity)},
     {"sched_setaffinity", reinterpret_cast<void*>(&bionic_sched_setaffinity)},
-    // CPU_COUNT() expands to this. Missing here meant it bound to the universal dummy
-    // and returned 0 for every mask, which is the shape of Unity's "Cores = 0".
+    // CPU_COUNT expands to this.
+
     {"__sched_cpucount", reinterpret_cast<void*>(&bionic___sched_cpucount)},
     {"sched_getcpu", reinterpret_cast<void*>(&bionic_sched_getcpu)},
     {"get_nprocs", reinterpret_cast<void*>(&bionic_get_nprocs)},
@@ -621,7 +621,7 @@ const SymbolEntry kSyscallSymbols[] = {
     {"__android_log_assert", reinterpret_cast<void*>(&bionic___android_log_assert)},
 #endif
 
-    // KuDroid Screen Orientation, Haptic Vibrator & Sensor Bridge
+    // Expose orientation, vibration, and sensor callbacks.
     {"kudroid_vibrate", reinterpret_cast<void*>(&kudroid_vibrate)},
     {"kudroid_set_requested_orientation", reinterpret_cast<void*>(&kudroid_set_requested_orientation)},
     {"kudroid_get_requested_orientation", reinterpret_cast<void*>(&kudroid_get_requested_orientation)},
@@ -645,8 +645,8 @@ const SymbolEntry kSyscallSymbols[] = {
     {"__fgets_chk", reinterpret_cast<void*>(&bionic___fgets_chk)},
     {"freopen64", reinterpret_cast<void*>(&vfs_freopen)},
 
-    // ── Added after Minecraft/libmaesdk null-dereference fixes ─────────────────────
-    // strlcpy/strlcat: available natively in Darwin libc (BSD origin).
+    // Expose bounded string-copy functions.
+
     {"strlcpy", reinterpret_cast<void*>(&::strlcpy)},
     {"strlcat", reinterpret_cast<void*>(&::strlcat)},
     // isatty/getpagesize/tkill: mapped to host libc equivalents.
@@ -672,4 +672,4 @@ const SymbolEntry* get_syscall_symbols(size_t* count) {
     return kSyscallSymbols;
 }
 
-} // namespace kudroid
+} // namespace

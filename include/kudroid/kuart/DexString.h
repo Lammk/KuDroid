@@ -20,7 +20,7 @@ public:
     bool ascii = true;
 };
 
-}  // namespace kuart
-}  // namespace kudroid
+}  // namespace
+}  // namespace
 
 #endif  // KUDROID_KUART_DEXSTRING_H

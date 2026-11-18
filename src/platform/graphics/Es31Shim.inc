@@ -1,9 +1,9 @@
-// GLES 3.1 compatibility on a 3.0 driver (see kudroid/platform/Es31Compat.h).
-//
-// Opt-in per package: the package is listed in <androidRoot>/es31_packages.txt.
-// For a listed package the driver is reported as 3.1, 3.1 shaders that 3.0 can
-// express are rewritten, and the 3.1-only queries answer from their 3.0 equivalents
-// instead of raising an error that leaves the caller's output untouched.
+// GLES 3.1 compatibility on a 3.0 driver.
+
+
+
+
+
 
 static bool es31_compat_enabled() {
     const std::string pkg = VFSPathRemapper::getInstance(false).packageName();

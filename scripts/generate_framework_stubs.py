@@ -1,17 +1,17 @@
 #!/usr/bin/env python3
-"""Generate empty Java stubs for boot-classpath classes KuART auto-stubbed.
+"""Generate empty Java stubs for unresolved boot-classpath classes."""
 
-Input: classes.log from DexClassLinker::FindClass. A stub only makes the class
-resolvable; methods still need filling in by hand.
-"""
+
+
+
 import argparse
 import os
 import re
 import sys
 
-# Packages KuDroid is responsible for shipping. Kept in sync with
-# isBootClasspathDescriptor() in src/kuart/DexClassLinker.cpp — anything the linker
-# will auto-stub is something this script may need to generate.
+# Keep generated stub packages aligned with boot-classpath classification.
+
+
 BOOT_PACKAGE_PREFIXES = (
     "android.",
     "androidx.",

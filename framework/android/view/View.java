@@ -3,12 +3,12 @@ import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Rect;
 import android.os.Bundle;
-/**
- * minimal android.view.view implementation.
- *
- * base class for all ui widgets. for kudroid minimal framework, this
- * provides basic layout/drawing simulations.
- */
+/** Base class for all ui widgets. */
+
+
+
+
+
 public class View implements KeyEvent.Callback, android.graphics.drawable.Drawable.Callback {
     private static final class FloatViewProperty extends android.util.FloatProperty<View> {
         private final int mKind;
@@ -493,13 +493,13 @@ public class View implements KeyEvent.Callback, android.graphics.drawable.Drawab
     public void setFocusable(boolean focusable) { mFocusable = focusable; }
     public boolean isFocusableInTouchMode() { return mFocusableInTouchMode; }
     public void setFocusableInTouchMode(boolean focusable) { ViewAttributes.setFocusableInTouchMode(this, focusable); }
-    /**
-     * The token identifying the window this view is in.
-     *
-     * Apps pass it to InputMethodManager.hideSoftInputFromWindow. There is one window
-     * under KuDroid, so a per-view token would be meaningless; the root view stands in
-     * for it, which keeps the identity comparison apps make meaningful.
-     */
+    /** The token identifying the window this view is in. */
+
+
+
+
+
+
     public android.os.IBinder getWindowToken() { return null; }
     /**
      * ViewTreeObserver of this view tree (shared with parent if attached).
@@ -594,17 +594,17 @@ public class View implements KeyEvent.Callback, android.graphics.drawable.Drawab
     public void setBackground(android.graphics.drawable.Drawable background) { setBackgroundDrawable(background); }
     /** Stores the background; subclasses override this spelling and call super. */
     public void setBackgroundDrawable(android.graphics.drawable.Drawable background) { ViewDrawing.setBackgroundDrawable(this, background); }
-    /**
-     * Where this view sits on screen, written into `location` as {x, y}.
-     *
-     * Walked up the parent chain rather than answered with the view's own left/top, which
-     * would only be right for a child of the root. Callers use this to position popups and
-     * hit-test against other views, so an answer in the wrong coordinate space puts things
-     * visibly in the wrong place.
-     *
-     * KuDroid draws the guest full-screen with no window offset, so screen and window
-     * coordinates coincide and getLocationInWindow gives the same answer.
-     */
+    /** Where this view sits on screen, written into `location` as {x, y}. */
+
+
+
+
+
+
+
+
+
+
     public void getLocationOnScreen(int[] location) { ViewDrawing.getLocationOnScreen(this, location); }
     public void getLocationInWindow(int[] location) { getLocationOnScreen(location); }
     /**
@@ -661,15 +661,15 @@ public class View implements KeyEvent.Callback, android.graphics.drawable.Drawab
     public Object getTag() { return mTag; }
     public void setTag(Object tag) { mTag = tag; }
     public Object getTag(int key) { return mKeyedTags != null ? mKeyedTags.get(key) : null; }
-    /**
-     * Attach data under an integer key.
-     *
-     * Android requires the key to be an application-declared resource id, and throws
-     * IllegalArgumentException otherwise, to stop two libraries colliding on the same
-     * arbitrary constant. KuDroid has no resource ids to validate against, so the key
-     * is accepted as given: rejecting valid-but-unverifiable keys would break the very
-     * libraries this exists for.
-     */
+    /** Attach data under an integer key. */
+
+
+
+
+
+
+
+
     public void setTag(int key, Object tag) { ViewDrawing.setTag(this, key, tag); }
     /**
      * Generate a view id that cannot collide with an aapt-assigned one.

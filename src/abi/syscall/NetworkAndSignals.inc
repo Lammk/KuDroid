@@ -1,8 +1,8 @@
-// getifaddrs with Linux layout: Darwin also reports AF_LINK/AF_SYSTEM
-// entries whose sockaddr Unity's enumerator feeds to inet_ntop, producing
-// "sa_addr inet_ntop() failed ... ENOLINK" noise (and wrong results for any
-// consumer). Keep AF_INET/AF_INET6 only, translated to Linux sockaddr layout
-// (family u16 LE, no sa_len). Field order of ifaddrs matches on both (arm64).
+// Translate interface addresses into the guest layout.
+
+
+
+
 struct GuestIfaddrs {
     GuestIfaddrs* g_next;
     char* g_name;
@@ -247,13 +247,13 @@ extern "C" int bionic_usleep(unsigned int usecs) {
     return ::usleep(usecs);
 }
 
-// tgkill(pid, tid, sig): look up the tid->pthread_t recorded at gettid.
-// `sig` is a LINUX number and must be translated before it reaches the host, exactly as
-// sigaction translates it on the way in. This used to forward it raw, and the asymmetry
-// is what broke il2cpp's thread suspension: the guest installs a handler for Linux
-// SIGPWR (30), which lands on host SIGINFO (29), and then sends 30 — Darwin's SIGUSR1,
-// an empty slot whose default action terminates the process. The install and the send
-// both reported success.
+// Resolve the guest thread ID and translate the signal before delivery.
+
+
+
+
+
+
 extern "C" int bionic_tgkill(int pid, int tid, int sig) {
     if (pid != static_cast<int>(::getpid())) { errno = ESRCH; return -1; }
     pthread_t target;
@@ -296,14 +296,14 @@ extern "C" int bionic_tkill(int tid, int sig) {
     return bionic_tgkill(static_cast<int>(::getpid()), tid, sig);
 }
 
-// abort(), so the guest's own abort message and thread reach the log before the process
-// goes down.
-//
-// Not a translation — SIGABRT is 6 on both platforms — but the one place where a guest
-// says "I am giving up" with a reason it has already stored, and routing it through
-// guest_raise means the fatal-signal breadcrumb is written by KuDroid's handler with
-// that reason attached. Falling through to the host's abort() reached the same handler
-// but named nothing about the guest.
+// Falling through to the host's abort reached the same handler but named nothing about the guest.
+
+
+
+
+
+
+
 extern "C" void bionic_abort(void) {
     // Unblock SIGABRT first: abort() must not be silently swallowed by a guest that
     // blocked it, which is what the C standard requires of a conforming abort().

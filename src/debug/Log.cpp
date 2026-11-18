@@ -92,4 +92,4 @@ void write(Level level, const char* tag, const char* fmt, ...) {
 }
 
 } // namespace log
-} // namespace kudroid
+} // namespace

@@ -400,10 +400,10 @@ extern "C" void* bionic_mmap(void *addr, size_t length, int prot, int flags, int
     {
         void* p = ::mmap(addr, length, prot, darwin_flags, darwin_fd, offset);
         p = validate_noreplace(p);
-        // A failing commit inside Unity's reserved heap is invisible today: the
-        // caller only sees a null/short allocation later, which then surfaces as
-        // a null structure (e.g. the pointer array a worker writes into). Log
-        // the actual failure here so the allocator, not the crash, is the clue.
+        // Log failed memory commits.
+
+
+
         log_mmap_result(p, length, prot, flags, fd, offset, addr);
 #if defined(__APPLE__) && (defined(__aarch64__) || defined(__arm64__))
         if (p != MAP_FAILED && (prot & PROT_EXEC)) {
@@ -557,8 +557,8 @@ extern "C" int bionic_mprotect(void *addr, size_t len, int prot) {
     if (quiet) {
         // see bionic_mmap
     } else if (r != 0) {
-        // Unity commits heap pages by flipping a PROT_NONE reservation to RW.
-        // A failed mprotect leaves the allocation unusable with no other trace.
+        // Log failed protection changes on reserved pages.
+
         static std::atomic<int> s_mprotFail{0};
         if (s_mprotFail.load() < 20) {
             ++s_mprotFail;

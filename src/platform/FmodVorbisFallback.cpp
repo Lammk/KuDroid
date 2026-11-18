@@ -91,7 +91,7 @@ void fmod_vorbis_log_crc(uint32_t crc, bool probe, bool served) {
 const void* kudroid_fmod_vorbis_lookup(uint32_t crc) {
     for (size_t i = 0; i < sizeof(g_fmod_entries) / sizeof(g_fmod_entries[0]); ++i) {
         if (g_fmod_entries[i].crc == crc) {
-            // FMOD expects pointer to entry + 0x10 in x28
+            // Return the codebook payload pointer in the required register.
             return reinterpret_cast<const char*>(&g_fmod_entries[i]) + 0x10;
         }
     }
@@ -210,4 +210,4 @@ bool bionic_handle_fmod_vorbis_trap(void* ucontext) {
 #endif
 }
 
-} // namespace kudroid
+} // namespace

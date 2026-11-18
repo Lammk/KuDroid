@@ -19,7 +19,7 @@ cat <<EOF > KuDroidShell.app/build_info.json
 EOF
 echo "✔ Embedded build_info.json (commit: ${BUILD_HASH})"
 
-# Embed all graphics frameworks (ANGLE + MoltenVK) into app bundle
+# Embed graphics frameworks into the app bundle.
 mkdir -p KuDroidShell.app/Frameworks
 if [ -d third_party/ANGLE/lib/ios-arm64/libEGL.framework ]; then
   cp -R third_party/ANGLE/lib/ios-arm64/libEGL.framework KuDroidShell.app/Frameworks/
@@ -34,7 +34,7 @@ if [ -d third_party/MoltenVK/MoltenVK/dynamic/MoltenVK.xcframework/ios-arm64/Mol
   echo "✔ Bundled MoltenVK.framework"
 fi
 
-# framework.dex is embedded in the binary via include/kudroid/framework_dex_bytes.h,
-# so do NOT copy it into the bundle; KuART reads it from .rodata, not from a file.
+# Read framework DEX from the embedded binary section.
+
 
 echo "Asset bundling complete."

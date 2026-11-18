@@ -63,9 +63,9 @@ extern "C" int bionic_prctl(int option, unsigned long arg2, unsigned long arg3, 
 #else
             pthread_setname_np(pthread_self(), name);
 #endif
-        // Fault isolation reads this (signal-safe table): engine-critical
-        // threads (UnityMain, RenderThread, ...) must never be mistaken for
-        // background workers when they fault.
+        // Register guest thread names in the signal-safe fault-isolation table.
+
+
         if (arg2) kudroid_note_thread_name(reinterpret_cast<const char*>(arg2));
 #ifdef __APPLE__
         apply_thread_qos_for_name(arg2 ? name : nullptr);
@@ -163,8 +163,8 @@ static bool at_path_needs_remap(int dirfd, const char* pathname) {
     return translate_linux_dirfd(dirfd) == AT_FDCWD;
 }
 
-// Defined further down with the audio fd-trace budget; declared here because the
-// open path is the one place FMOD's fd handles become visible.
+// Declare the bounded audio descriptor-tracing hook.
+
 extern "C" bool kudroid_audio_thread(void);
 extern "C" int kudroid_fd_is_apk(int fd);
 static std::atomic<int> g_audioFdOpsEarly{0};
@@ -193,12 +193,12 @@ extern "C" int bionic_openat(int dirfd, const char* pathname, int flags, mode_t 
         }
     }
     const int fd = ::openat(host_dirfd, remapped.c_str(), host_flags, mode);
-    // FMOD's fd path probes the size of the file it is about to stream: the
-    // bytes-per-clip math is st_size minus how much the loader already read
-    // through its own handles. A probe handle on base.apk (the guest sizes
-    // clips through st_size even though every clip is an entry INSIDE it) is
-    // where the size goes wrong, so name the fd, the path and the number the
-    // guest will see on the audio thread. Nothing else logs that open.
+    // Trace file sizes used for audio streaming.
+
+
+
+
+
     if (audio_open_trace_take()) {
         struct stat ost;
         const bool haveStat = fd >= 0 && ::fstat(fd, &ost) == 0;
@@ -208,10 +208,10 @@ extern "C" int bionic_openat(int dirfd, const char* pathname, int flags, mode_t 
                      flags, remapped.c_str(),
                      haveStat ? static_cast<long long>(ost.st_size) : -1LL);
     }
-    // Open hits on game data: the last visibility gap (misses already log).
-    // A bundle opened but never read, or never opened at all, decides the stall.
-    // Match the original path too: il2cpp/C# FileStream comes through openat,
-    // and remap mangles jar: URLs past recognition. Same list as vfs taps.
+    // Trace asset opens using both original and remapped paths.
+
+
+
     const std::string orig = pathname ? pathname : "";
     auto hit = [&](const char* s) {
         return orig.find(s) != std::string::npos ||
@@ -330,13 +330,13 @@ extern "C" int bionic_newfstatat(int dirfd, const char* pathname, struct bionic_
     return 0;
 }
 
-// bionic's struct statfs for arm64. Darwin's is a different shape and a different size,
-// so forwarding the guest's buffer to ::statfs would have it read f_bsize out of what is
-// actually f_type, and f_blocks out of padding.
-//
-// Apps ask this before writing anything substantial — Minecraft checks free space before
-// downloading a world, installers check before unpacking — and a garbage answer reads as
-// "disk full" or, worse, as a huge amount of free space followed by a failed write.
+// Bionic's struct statfs for arm64.
+
+
+
+
+
+
 struct bionic_statfs64 {
     uint64_t f_type;
     uint64_t f_bsize;

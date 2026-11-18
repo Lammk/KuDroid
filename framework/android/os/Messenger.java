@@ -1,19 +1,19 @@
 package android.os;
 
-/**
- * android.os.Messenger.
- *
- * Was a stub with only a no-arg constructor, so {@code new Messenger(handler)} —
- * the only form apps actually use — resolved to an auto-stubbed method that
- * returned without running. The object then looked valid while being unusable, and
- * the failure appeared later at send() with nothing pointing back here.
- *
- * Messenger is the client end of a Handler: send() posts to the Handler's queue.
- * Real Android marshals across process boundaries via IBinder, which does not apply
- * to KuDroid — everything runs in one process — so a local send is both correct and
- * complete for the in-process case, and the IBinder form is accepted but cannot
- * deliver.
- */
+/** Wrap a handler for message delivery. */
+
+
+
+
+
+
+
+
+
+
+
+
+
 public final class Messenger implements Parcelable {
 
     private final Handler mHandler;
@@ -24,12 +24,12 @@ public final class Messenger implements Parcelable {
         mBinder = null;
     }
 
-    /**
-     * Remote form.
-     *
-     * KuDroid has a single process and no Binder transport, so there is nothing to
-     * deliver to. Kept so code that unparcels a Messenger still constructs.
-     */
+    /** Report unsupported Binder message transport. */
+
+
+
+
+
     public Messenger(IBinder target) {
         mHandler = null;
         mBinder = target;

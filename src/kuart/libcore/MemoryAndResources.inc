@@ -300,7 +300,7 @@ bool Invoke_java_util_TimeZone(Interpreter* interp, const char* name,
         if (std::strftime(zone, sizeof(zone), "%Z", &local_tm) == 0 || zone[0] == '\0') {
             std::snprintf(zone, sizeof(zone), "UTC");
         }
-        // NewString copies into the KuART heap, which owns the result.
+        // Copy the result into the managed heap.
         result->l = (interp != nullptr && interp->linker() != nullptr)
                         ? reinterpret_cast<DexObject*>(interp->linker()->NewString(zone))
                         : nullptr;

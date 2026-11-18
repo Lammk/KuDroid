@@ -109,24 +109,24 @@ bool GuestVarargsFromVaList(const void* guest_ap, GuestVarargs* out,
                             unsigned* firstGpIndex, unsigned* firstFpIndex);
 
 // Scan `format` from a character source, storing through the guest's output pointers.
-//
-// The same ABI split as formatting, with the consequences reversed. A guest's sscanf passes
-// OUTPUT POINTERS as its varargs — the first six in x2-x7, the rest on the stack — and
-// Apple's callee reads every one of them from the stack. So a forwarded call does not merely
-// read the wrong place, it WRITES to it.
-//
-// On device Minecraft parses a UUID with eleven output pointers; the host wrote through five
-// stack words that were never pointers. One held a jobject, which the next JNI call reported
-// as clazz=0xf8ec9809 — a value no heap pointer can take. The following store went to
-// address 0 and took SIGSEGV.
-//
-// `peek` returns the next character without consuming it, or -1 at end of input; `advance`
-// consumes the character last peeked. Two callbacks rather than a buffer so fscanf can read
-// a FILE* without this file including <cstdio> — it is compiled freestanding for the arm64
-// test.
-//
-// Returns the number of items ASSIGNED, or -1 when input ended before any assignment. That
-// distinction is part of the contract: a caller deciding whether to retry reads it.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 int ScanGuestVarargsFrom(int (*peek)(void*), void (*advance)(void*), void* state,
                          const char* format, const GuestVarargs* registers,
                          unsigned firstGpIndex, unsigned firstFpIndex);
@@ -143,7 +143,7 @@ bool UnpackGuestVarargsToJvalues(const char* shorty, const GuestVarargs* registe
 bool UnpackGuestVaListToJvalues(const char* shorty, const void* guest_ap,
                                void* outJvalues, size_t maxOut);
 
-} // namespace kudroid
+} // namespace
 
 // Format a guest's va_list, for the shims that receive one.
 extern "C" size_t kudroid_format_guest_va_list(char* out, size_t size, const char* format,

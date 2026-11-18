@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
-#
-# build-local-ios.sh - 1-Click build and deploy KuDroid for iOS on Linux.
-#
-# Usage:
-#   ./scripts/build-local-ios.sh          # Build KuDroidShell.ipa (Debug)
-#   ./scripts/build-local-ios.sh --release # Build KuDroidShell.ipa (Release)
-#   ./scripts/build-local-ios.sh --run     # Build & install/run directly on iPhone via USB
-#   ./scripts/build-local-ios.sh --clean   # Clean build cache before building
-#
+# Build an iOS package or deploy it over USB.
+
+
+
+
+
+
+
+
 
 set -euo pipefail
 
@@ -75,7 +75,7 @@ cmake -B build-ios -G Ninja \
 
 cmake --build build-ios --target kudroid_core -j"$(nproc)"
 
-# 2. Combine kudroid_core and art_dex into a single static library
+# Combine the native runtime archives.
 echo "==> [2/3] Packaging libkudroid_core_combined.a..."
 mkdir -p ios-app/KuDroidShell/libs
 llvm-ar -M << AR_EOF

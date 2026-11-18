@@ -78,7 +78,7 @@ struct ANativeActivity {
     const char* obbPath;
 };
 
-// KuART self-test: load framework.dex and exercise JNI both ways; arg kept for ABI compat.
+// Exercise JNI against the embedded framework.
 extern "C" char* kudroid_test_jvm(const char* unused_path) {
     (void)unused_path;
     std::string log;
@@ -184,10 +184,10 @@ extern "C" int kudroid_find_native_library(const char* name, char* out,
                                            unsigned long out_size) {
     if (name == nullptr || *name == '\0' || out == nullptr || out_size == 0) return 0;
 
-    // Accept every form a caller might hold. android.app.lib_name gives the bare name
-    // ("minecraftpe"), System.loadLibrary the same, while code that already has a file
-    // name or a full path passes that instead. Normalising here means the Java side
-    // does not have to guess which one it has.
+    // Normalize bare library names, filenames, and absolute paths.
+
+
+
     std::string base = std::filesystem::path(name).filename().string();
     if (base.empty()) return 0;
     std::string filename = base;
@@ -415,23 +415,23 @@ extern "C" const char* kudroid_run_apk(const char* appName) {
     appendTestHeader(log, "Run APK Native Libraries", appName);
     kudroid::bionic_shim_reset_trace();
 
-    // JIT permission is a precondition for launching, not a mode to degrade into.
-    //
-    // Guest .so files are mapped RW and then mprotect'd to add PROT_EXEC. iOS grants
-    // PROT_EXEC on anonymous memory only to a debugged process or one holding the JIT
-    // entitlement, and it will never grant it on an unsigned file mapping — which every
-    // guest .so is. So without the permission no guest native code can run, and there
-    // is no workaround at this layer: it is a code-signing rule, not missing code.
-    //
-    // KuDroid targets Android apps with NDK libraries, where that means the app cannot
-    // start at all. Refusing here with instructions is more useful than loading the
-    // Java side and failing later at the first native call, and it avoids mapping
-    // hundreds of megabytes that are certain to be discarded.
-    //
-    // Everything downstream of this gate still keeps its interpreter path: most Dex
-    // methods are interpreted even with JIT available (JitCompiler covers a small
-    // opcode subset), java.lang natives run from LibCore inside this signed binary,
-    // and JitCache stays null-safe. That is how the runtime works, not a fallback.
+    // Require executable-memory support before launching native code.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     if (kudroid_is_jit_enabled() == 0) {
         log +=
             "[kudroid_core] ERROR: JIT is not enabled, cannot launch.\n"
@@ -586,8 +586,8 @@ extern "C" const char* kudroid_run_apk(const char* appName) {
 
         appendAndEcho("[kudroid_core] Scanning library directory: " + libDir.string());
 
-        if (!std::filesystem::exists(libDir)) {
-            appendAndEcho("[kudroid_core] ERROR: Library directory does not exist: " + libDir.string());
+        if (!std::filesystem::is_directory(appDir)) {
+            appendAndEcho("[kudroid_core] ERROR: Application directory does not exist: " + appDir.string());
         } else {
             kudroid::LibraryManager& manager = globalLibraryManager();
 
@@ -603,7 +603,7 @@ extern "C" const char* kudroid_run_apk(const char* appName) {
             kudroid_guest_library_symbol = &guestLibrarySymbol;
             kudroid_guest_library_owns = &guestLibraryOwns;
 
-            // KuART must be ready before dlopening anything: static initializers may query the VM.
+            // Initialize the VM before running native library constructors.
             kuart_set_log_callback([](const char* msg) {
                 kudroid_android_log_message(4, "KuART", msg);
                 std::fprintf(stderr, "[KuART] %s\n", msg);
@@ -621,20 +621,18 @@ extern "C" const char* kudroid_run_apk(const char* appName) {
             }
 
             std::vector<std::string> soFiles;
-            for (const auto& entry : std::filesystem::directory_iterator(libDir)) {
-                if (entry.path().extension() == ".so") {
-                    soFiles.push_back(entry.path().string());
+            if (std::filesystem::is_directory(libDir)) {
+                for (const auto& entry : std::filesystem::directory_iterator(libDir)) {
+                    if (entry.is_regular_file() && entry.path().extension() == ".so") {
+                        soFiles.push_back(entry.path().string());
+                    }
                 }
             }
 
             if (soFiles.empty()) {
-                appendAndEcho("[kudroid_core] WARNING: No .so files found in " + libDir.string());
+                appendAndEcho("[kudroid_core] No native libraries; launching DEX application.");
             }
-            // Not an `else`: everything below — the manifest parse, KuART launch and
-            // ActivityThread.main — has to run even when there are no native libraries
-            // to load. It used to sit in the else branch, so an app with no usable .so
-            // (an APK built for another ABI, say) silently never started its Java side
-            // either. The load loop below is a no-op on an empty list.
+            // DEX startup also runs when the native-library directory is absent.
             {
                 for (const auto& soPath : soFiles) {
                     appendAndEcho("[kudroid_core] Attempting to load: " + soPath);
@@ -758,9 +756,9 @@ extern "C" const char* kudroid_run_apk(const char* appName) {
 
                         std::string targetActivity = "";
                         std::string pkgName = "";
-                        // Everything the manifest declares. Populated below and used
-                        // as the fallback list, so KuDroid only ever tries classes the
-                        // app actually declares.
+                        // Collect declared activity candidates.
+
+
                         std::vector<std::string> manifestActivities;
                         std::string manifestAppClass;
                         // android:appComponentFactory. Android instantiates it before
@@ -878,24 +876,24 @@ extern "C" const char* kudroid_run_apk(const char* appName) {
                                 appendAndEcho("[kudroid_core] Scanning app DEX for Activity classes...");
                                 appendAndEcho("[kudroid_core] Found " + std::to_string(classes.size()) +
                                               " non-system classes in app DEX");
-                                // Heuristics to pick launcher:
-                                // -1000 Activity of 3rd party SDK (push/analytics, etc.) — should not be entry point,
-                                // launching them just shows blank screen (lesson learned from Braze).
-                                // +100 name contains "Activity"
-                                // +50 package matches pkgName (from manifest/app_info)
-                                // +depth bonus: shorter package (app root) is more likely the main entry point.
-                                //
-                                // Prefixes, not substrings, and only packages that
-                                // genuinely belong to an embedded SDK.
-                                //
-                                // A substring test rejects any class whose name merely
-                                // CONTAINS one of these, wherever it appears: an app at
-                                // com.google.* lost 1000 points for its own launcher,
-                                // and so did every app with "adjust" or "amplitude"
-                                // anywhere in a class name. Two entries were not SDKs at
-                                // all — "zarchiver" is an app (ru.zdevs.zarchiver), and
-                                // "unity3d" covers com.unity3d.player.UnityPlayerActivity
-                                // which IS the launcher of essentially every Unity game.
+                                // Rank launcher candidates ahead of auxiliary activities.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
                                 static const char* kSdkActivityPrefixes[] = {
                                     "com/braze/", "com/appboy/", "com/facebook/",
                                     "com/firebase/", "com/google/firebase/",

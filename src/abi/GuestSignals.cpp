@@ -34,26 +34,26 @@ static_assert(offsetof(GuestSigaction, sa_restorer) == 24, "restorer is last");
 
 namespace {
 
-// ── Signal numbers ───────────────────────────────────────────────────────────
-//
-// Linux and Darwin agree up to SIGFPE and diverge after it. The left column is the
-// Linux/arm64 number, which is fixed by asm-generic/signal.h and safe to write as a
-// literal; the right is the HOST's macro, so this table is correct on either platform
-// without a second copy. Writing both sides as numbers is how a table like this rots.
-//
-// The divergence is not cosmetic. Guest SIGUSR1 is 10, and 10 on Darwin is SIGBUS:
-// forwarding the number unchanged hands a guest's routine user-signal handler the
-// signal KuDroid uses for memory faults.
-//
-// Two Linux signals have NO Darwin equivalent by name — SIGSTKFLT (16) and SIGPWR (30) —
-// and Linux also has 33 real-time signals that Darwin does not have at all. Leaving them
-// unmapped meant sigaction returned EINVAL for them, and that is not a harmless gap: a
-// managed runtime suspends its threads for GC with a signal it picks from exactly that
-// range. Mono/il2cpp uses SIGPWR (or SIGRTMIN on newer builds) as SIG_SUSPEND and SIGXCPU
-// as SIG_RESTART, so ULTRAKILL printed "Cannot set SIG_SUSPEND handler" and ran with no
-// working thread suspension.
-//
-// They are mapped onto host signals that exist and that nothing else here claims.
+// Translate Linux signal numbers to host numbers.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 struct SignalPair {
     int linux_num;
     int host_num;
@@ -93,22 +93,22 @@ constexpr SignalPair kSignalMap[] = {
 #if defined(SIGIO)
     {29, SIGIO},
 #endif
-    // Linux 30 is SIGPWR — Mono's default SIG_SUSPEND on Android, and the reason this
-    // entry exists rather than staying a comment about an absent counterpart.
+    // Map the guest power signal to its host counterpart.
+
     {30, KUDROID_HOST_FOR_SIGPWR},
     {31, SIGSYS},
 };
 
 // Linux real-time signals, and the host range they map onto.
-//
-// Linux has SIGRTMIN=32 through SIGRTMAX=64. Darwin has none, and a guest runtime that
-// asks for SIGRTMIN gets EINVAL — the newer-Mono form of the same SIG_SUSPEND failure.
-//
-// Mapped onto the host's own real-time range where one exists (Linux hosts, so the shim
-// tests exercise a real mapping) and refused where it does not. Refusing is honest: there
-// is no host signal left to borrow for 33 of them, and silently aliasing several guest
-// signals onto one host signal would make a guest's suspend and restart signals the same
-// number — worse than EINVAL, because the runtime would believe it had two.
+
+
+
+
+
+
+
+
+
 constexpr int kLinuxSigRtMin = 32;
 constexpr int kLinuxSigRtMax = 64;
 
@@ -193,17 +193,17 @@ uint64_t mask_host_to_guest(const sigset_t* host_mask) {
             out |= 1ull << (p.linux_num - 1);
         }
     }
-    // The real-time range, which the table above does not contain: it is a contiguous
-    // mapping, not a list of pairs.
-    //
-    // Leaving it out silently dropped every RT signal from a mask the guest read back,
-    // and that is not a cosmetic loss. The normal sequence is save-block-restore: a
-    // runtime reads its mask, blocks its suspend signal, does the critical work, then
-    // restores what it saved. If the readback loses the RT bits, the restore installs a
-    // mask that never had them, so a signal the guest believed blocked comes through — or
-    // one it believed unblocked stays masked. Mono's newer builds use SIGRTMIN for
-    // SIG_SUSPEND, so this is the same signal the send path misdirects, failing one step
-    // later and in the opposite direction.
+    // The real-time range, which the table above does not contain: it is a contiguous mapping, not a list of pairs.
+
+
+
+
+
+
+
+
+
+
 #if defined(SIGRTMIN) && defined(SIGRTMAX)
     for (int host_sig = SIGRTMIN; host_sig <= SIGRTMAX; ++host_sig) {
         if (sigismember(host_mask, host_sig) != 1) continue;
@@ -216,20 +216,20 @@ uint64_t mask_host_to_guest(const sigset_t* host_mask) {
     return out;
 }
 
-// ── Ownership ────────────────────────────────────────────────────────────────
-//
-// Signals KuDroid needs for the guest to work at all, as HOST numbers.
-//
-// SIGTRAP: guest `mrs xN, tpidr_el0` is rewritten to `BRK #(0x1000+N)` at load time,
-// and the handler is what supplies the TLS pointer. Lose it and every guest TLS read
-// becomes a fatal trap.
-//
-// SIGSYS: a raw guest `svc #0` arrives here and is emulated. Lose it and every direct
-// syscall becomes fatal.
-//
-// SIGSEGV/SIGBUS/SIGILL/SIGABRT: KuDroid's crash reporting and the JNI_OnLoad abort
-// shield. A guest may legitimately want these too — a crash reporter does — so its
-// handler is recorded and dispatched to, but KuDroid's stays installed.
+// Identify signals owned by the runtime.
+
+
+
+
+
+
+
+
+
+
+
+
+
 bool kudroid_owns(int host_signum) {
     return host_signum == SIGTRAP || host_signum == SIGSYS || host_signum == SIGSEGV ||
            host_signum == SIGBUS || host_signum == SIGILL || host_signum == SIGABRT;
@@ -335,22 +335,22 @@ thread_local DispatchScratch t_scratch;
 // reason it must be impossible by construction rather than by catch.
 thread_local int t_depth[2] = {0, 0};
 
-// The approximate stack position of the dispatch frame that raised the guard.
-//
-// A plain counter is not enough, because a handler is not required to return. il2cpp's
-// SIGABRT handler siglongjmps out to its own recovery point, and a jump does not unwind:
-// the `--t_depth` at the end of dispatch never runs. The counter then stays raised for
-// the rest of the thread's life, every later signal looks like recursion, and the guest's
-// handler is never called again. On device that is silent — no crash log, no breadcrumb,
-// and a guest that believes its handler is installed.
-//
-// The stack tells the two cases apart. Genuine recursion happens with the previous
-// dispatch frame still live, so it runs DEEPER: on a downward-growing stack its frame
-// address is lower. A jump out unwinds past that frame, so the next dispatch runs at the
-// same depth or shallower — a higher address. Comparing frame positions is therefore an
-// observation about whether the earlier frame still exists, which is exactly the question.
-//
-// arm64 and x86-64 both grow down; there is no upward-growing platform in play here.
+// Track dispatch frame depth to distinguish recursive signals from nonlocal exits.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 thread_local uintptr_t t_depth_frame[2] = {0, 0};
 
 // A local's address, as a stand-in for "where this frame is".
@@ -535,10 +535,10 @@ bool guest_signal_dispatch(int host_signum, void* host_siginfo, void* host_ucont
 
         auto fn = reinterpret_cast<void (*)(int, void*, void*)>(handler);
 
-        // Last breadcrumb before handing the fault to the guest: fault class and
-        // pc. When Unity's handler decides the process is done and tears down
-        // from inside, this line is the only record of what it was handed —
-        // everything the guest does afterwards is its own logging.
+        // Last breadcrumb before handing the fault to the guest: fault class and pc.
+
+
+
         static std::atomic<int> s_faultBc{0};
         if (s_faultBc.load(std::memory_order_relaxed) < 8) {
             s_faultBc.fetch_add(1, std::memory_order_relaxed);
@@ -669,9 +669,9 @@ int appendHex(char* out, int len, int cap, const char* prefix, uint64_t v) {
     return len;
 }
 
-// The host handler installed for any signal KuDroid does not own. Uniform with the
-// owned path: every guest handler is reached through translation, never called with
-// host-shaped arguments.
+// The host handler installed for any signal the runtime does not own.
+
+
 extern "C" void kudroid_guest_signal_trampoline(int host_signum, siginfo_t* info, void* uc) {
     // Name every delivery (capped): the platform register holds live guest
     // addresses across calls, so a delivery is the only event that can destroy
@@ -721,13 +721,13 @@ extern "C" void kudroid_guest_signal_trampoline(int host_signum, siginfo_t* info
 int guest_sigaction(int guest_signum, const GuestSigaction* act, GuestSigaction* oldact) {
     const int host_signum = guest_signal_to_host(guest_signum);
     if (host_signum == 0) {
-        // No host signal left to carry this one. Only reachable now for a real-time signal
-        // on a host with no RT range of its own — every named Linux signal is mapped.
-        //
-        // SAY SO. A silent EINVAL here is what "Cannot set SIG_SUSPEND handler" was: the
-        // guest reported a failure, KuDroid reported nothing, and the number it had asked
-        // for — the one fact needed to fix it — appeared in no log. Rate-limited to the
-        // first few distinct signals so a guest retrying in a loop cannot flood the log.
+        // No host signal left to carry this one.
+
+
+
+
+
+
         static std::mutex s_mtx;
         static int s_seen[8];
         static int s_seenN = 0;
@@ -797,9 +797,9 @@ int guest_sigaction(int guest_signum, const GuestSigaction* act, GuestSigaction*
                     (current.sa_flags & SA_SIGINFO)
                         ? reinterpret_cast<void*>(current.sa_sigaction)
                         : reinterpret_cast<void*>(current.sa_handler);
-                // KuDroid's own handler is not the guest's business, and handing the
-                // address back invites the guest to "restore" it into a slot where it
-                // would be called with host-shaped arguments.
+                // Hide internal host handlers from guest signal-action queries.
+
+
                 if (kudroid_owns(host_signum)) {
                     oldact->sa_handler_or_sigaction = reinterpret_cast<void*>(SIG_DFL);
                 }
@@ -878,16 +878,16 @@ int guest_sigaction(int guest_signum, const GuestSigaction* act, GuestSigaction*
 }
 
 int guest_sigaltstack(const void* guest_ss, void* guest_oss) {
-    // A guest pointer is not to be trusted. These calls arrive from a raw `svc #0` as
-    // well as from libc, and a direct syscall can carry any value at all — the shim
-    // tests pass 0x4e for exactly this reason. Dereferencing it would turn a guest's
-    // bad argument into a KuDroid crash, so an implausible address is EFAULT, which is
-    // what the guest's own error path is written for.
-    //
-    // This is a cheap first filter, not a full validation: it catches null and the low
-    // page, which is what a malformed or uninitialised pointer looks like. The caller
-    // in SyscallShim adds a real mapped-range check on Apple, where a guest SVC can
-    // carry a plausible-looking address from a different address space.
+    // Validate guest pointers before accessing signal data.
+
+
+
+
+
+
+
+
+
     constexpr uintptr_t kMinPlausible = 4096;
     if ((guest_ss != nullptr && reinterpret_cast<uintptr_t>(guest_ss) < kMinPlausible) ||
         (guest_oss != nullptr && reinterpret_cast<uintptr_t>(guest_oss) < kMinPlausible)) {
@@ -995,24 +995,24 @@ bool host_default_action_is_fatal(int host_signum) {
     }
 }
 
-// Warn when a guest sends a signal that nothing will catch and whose default action
-// ends the process.
-//
-// This is the line that was missing from the ULTRAKILL log. il2cpp installed
-// SIG_SUSPEND, KuDroid recorded it, and then every suspend went to a different host
-// signal with an empty slot — a fatal delivery that looked, from every log KuDroid
-// wrote, like a successful send.
-//
-// Rate-limited per guest signal so a runtime suspending threads in a loop cannot flood
-// the log, and only ever a warning: refusing the send would be worse, since a guest
-// signalling a thread it does not control is legitimate.
+// Warn when a guest sends a signal that nothing will catch and whose default action ends the process.
+
+
+
+
+
+
+
+
+
+
 void warn_if_delivery_is_unhandled_and_fatal(int guest_signum, int host_signum,
                                              const char* how) {
     if (guest_signal_has_handler(host_signum)) return;
-    if (kudroid_owns(host_signum)) return;  // KuDroid's own handler will catch it
+    if (kudroid_owns(host_signum)) return;  // The runtime's own handler will catch it.
     if (!host_default_action_is_fatal(host_signum)) return;
 
-    // Nothing recorded on our side and nothing of KuDroid's: is there a host handler?
+    // Check the host handler when no guest handler is registered.
     struct sigaction current;
     std::memset(&current, 0, sizeof(current));
     if (::sigaction(host_signum, nullptr, &current) == 0) {
@@ -1214,10 +1214,10 @@ int guest_sigwait(const uint64_t* guest_set, int* guest_signum_out) {
 }
 
 void* guest_signal(int guest_signum, void* guest_handler) {
-    // signal() is sigaction() with a fixed set of flags. Routing it through
-    // guest_sigaction is what keeps the registry the single source of truth: a guest
-    // that installs with signal() and reads back with sigaction() must see its own
-    // handler, and a KuDroid-owned signal must be recorded rather than installed.
+    // Implement signal registration through sigaction.
+
+
+
     GuestSigaction act;
     std::memset(&act, 0, sizeof(act));
     act.sa_handler_or_sigaction = guest_handler;
@@ -1232,4 +1232,4 @@ void* guest_signal(int guest_signum, void* guest_handler) {
 }
 
 
-}  // namespace kudroid
+}  // namespace

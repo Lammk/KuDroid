@@ -141,9 +141,9 @@ public abstract class Context {
         return getPackageCodePath();
     }
 
-    // Needed by all five real APKs in the corpus. Concrete rather than abstract so
-    // ContextWrapper and ApplicationContext do not both have to restate them; the base
-    // answers are correct for every context KuDroid creates.
+    // Provide shared context defaults.
+
+
 
     /**
      * The ContentResolver for this context.
@@ -209,13 +209,13 @@ public abstract class Context {
         return new File("/data/data/" + getPackageName());
     }
 
-    /**
-     * Single-element arrays for the plural forms.
-     *
-     * Android returns one entry per storage volume and KuDroid has one, so a single-element
-     * array is the honest answer. Returning an empty array would be worse than wrong: apps
-     * index [0] without checking.
-     */
+    /** Single-element arrays for the plural forms. */
+
+
+
+
+
+
     public File[] getExternalFilesDirs(String type) {
         return new File[] { getExternalFilesDir(type) };
     }
@@ -265,15 +265,15 @@ public abstract class Context {
         return null;
     }
 
-    /**
-     * Names asked for that KuDroid has no manager for, reported once each.
-     *
-     * A null return from getSystemService is the quietest possible failure: the app
-     * either dereferences it and dies somewhere unrelated, or throws its own opaque
-     * message — "Can't get IMM" says nothing about which service name was involved
-     * or that the class was actually present. Naming the miss turns each of these
-     * into a one-line fix instead of a debugging session.
-     */
+    /** Names asked for that the runtime has no manager for, reported once each. */
+
+
+
+
+
+
+
+
     private static final java.util.Set<String> sReportedMissingServices =
             java.util.Collections.synchronizedSet(new java.util.HashSet<String>());
 
@@ -398,14 +398,14 @@ public abstract class Context {
         return null;
     }
 
-    /**
-     * Name a manager class KuDroid cannot provide, once per distinct class.
-     *
-     * Separate from reportUnknownService because the two say different things: a name
-     * with no manager is a missing mapping, while a CLASS with no manager may well be a
-     * mapping that exists under a name this walk does not try. Sharing one message would
-     * send a reader to the wrong half.
-     */
+    /** Name a manager class the runtime cannot provide, once per distinct class. */
+
+
+
+
+
+
+
     private static void reportUnknownServiceClass(Class<?> serviceClass) {
         if (!sReportedMissingServices.add("class:" + serviceClass.getName())) return;
         android.util.Log.w("Context",
@@ -414,13 +414,13 @@ public abstract class Context {
                 + " or to the candidate list in the Class overload)");
     }
 
-    /**
-     * Name a service KuDroid does not provide, once per distinct name.
-     *
-     * Deliberately not an exception: Android returns null for a service the device
-     * does not have and apps are written to cope, so throwing would break code that
-     * is behaving correctly. The log line is the whole remedy.
-     */
+    /** Name a service the runtime does not provide, once per distinct name. */
+
+
+
+
+
+
     private static void reportUnknownService(String name) {
         if (!sReportedMissingServices.add(name)) return;
         android.util.Log.w("Context",

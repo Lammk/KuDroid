@@ -35,13 +35,13 @@
 #include <objc/message.h>
 extern "C" void* objc_autoreleasePoolPush(void);
 extern "C" void objc_autoreleasePoolPop(void* pool);
-// Thread-local autorelease pool for ANGLE Metal.
-// ANGLE internally creates @autoreleased ObjC objects (MTLCommandBuffer,
-// MTLRenderPipelineState, MTLLibrary, etc.) during GL calls such as
-// glCreateShader, glCompileShader, glDrawArrays, etc. Without a thread-local
-// autorelease pool, these objects have no pool to drain into, causing SIGABRT.
-// We push a pool when eglMakeCurrent binds a context to the thread, and
-// drain+re-push on every eglSwapBuffers to keep memory bounded.
+// Maintain a thread-local autorelease pool for rendering.
+
+
+
+
+
+
 static thread_local void* tls_autorelease_pool = nullptr;
 #endif
 

@@ -3,12 +3,12 @@ package android.app;
 import android.content.Context;
 import android.content.Intent;
 
-/**
- * emulate android.app.pendingintent.
- *
- * a token that grants another application permission to perform an operation. for
- * kudroid minimal framework, this is an emulation.
- */
+/** A token that grants another application permission to perform an operation. */
+
+
+
+
+
 public final class PendingIntent implements android.os.Parcelable {
     /** A PendingIntent is process-local here, so it cannot travel through a Parcel. */
     public static final android.os.Parcelable.Creator<PendingIntent> CREATOR =

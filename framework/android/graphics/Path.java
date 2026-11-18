@@ -98,7 +98,7 @@ public class Path {
         mLastY = y;
     }
 
-    /** Starts a contour at the current point when none is open, as Skia does implicitly. */
+    /** Start a contour at the current point when none is open. */
     private void ensureStart(float x, float y) {
         if (!mHasCurrent) {
             moveTo(x, y);
@@ -324,7 +324,7 @@ public class Path {
     }
 
     public void moveTo(float x, float y) {
-        // Consecutive moves collapse into the last one, as in Skia.
+        // Collapse consecutive moves into the last move.
         if (mVerbCount > 0 && mVerbs[mVerbCount - 1] == VERB_MOVE) {
             mCoords[mCoordCount - 2] = x;
             mCoords[mCoordCount - 1] = y;

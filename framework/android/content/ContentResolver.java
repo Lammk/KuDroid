@@ -1,11 +1,11 @@
 package android.content;
 
-/**
- * minimal android.content.contentresolver implementation.
- *
- * provides access to content providers. for kudroid minimal framework,
- *this is a simulation that returns null/default.
- */
+/** Provides access to content providers. */
+
+
+
+
+
 public class ContentResolver {
     public static final String SCHEME_CONTENT = "content";
     private final Context mContext;
@@ -54,11 +54,11 @@ public class ContentResolver {
     }
 
     // Observers, kept so registration succeeds and unregistration is symmetric.
-    //
-    // Nothing here ever notifies them: KuDroid has no content providers, so no data changes
-    // to report. Storing them anyway means an app can register, unregister, and re-register
-    // without its bookkeeping diverging from the resolver's — and it leaves one place to
-    // notify from if providers ever arrive.
+
+
+
+
+
     private final java.util.List<android.database.ContentObserver> mObservers =
             new java.util.ArrayList<android.database.ContentObserver>();
 

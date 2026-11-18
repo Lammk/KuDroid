@@ -3,14 +3,14 @@ package android.os;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * android.os.Parcel — flat serialization container.
- *
- * Real parcel is a binary buffer shared between processes via Binder. KuDroid
- * runs everything in one process so no need for a compatible binary layout;
- * just need the read/write order to match for the app's writeToParcel/createFromParcel
- * round-trip correct. Use an Object list with sequential reading pointers.
- */
+/** Serialize values into a parcel. */
+
+
+
+
+
+
+
 public final class Parcel {
     private final List<Object> mItems = new ArrayList<Object>();
     private int mReadPos = 0;
@@ -22,7 +22,7 @@ public final class Parcel {
         return new Parcel();
     }
 
-    /** Parcel allocated by KuDroid is not in the pool so recycle only resets. */
+    /** Reset parcel contents when recycling. */
     public void recycle() {
         mItems.clear();
         mReadPos = 0;

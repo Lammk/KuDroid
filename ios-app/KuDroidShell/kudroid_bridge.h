@@ -74,7 +74,7 @@ void kudroid_clear_all_logs(void);
 void kudroid_log_set_jni(int enabled);
 int kudroid_log_get_jni(void);
 
-/// Record an iOS-side lifecycle/diagnostic marker in the persistent KuDroid log.
+// Record host lifecycle markers in the persistent log.
 void kudroid_ios_diagnostic_phase(const char* phase);
 
 /// Record the current iOS task memory figures in the persistent diagnostic log.
@@ -124,16 +124,16 @@ void kudroid_inject_touch_batch(int action, int primaryId, int count,
 /// send java application lifecycle events (101=pause, 102=resume) to ui stream
 void kudroid_send_lifecycle_event(int eventType);
 
-///load DEX with KuART and list the found classes.
-///returns a diagnostic log malloc; the caller must release it with free().
+// Load DEX files and enumerate their classes.
+
 const char* kudroid_translate_dex(const char* dexPath);
 
 ///run vfs and i/o redirection autotest; returns a malloc log.
 const char* kudroid_vfs_self_test_log(void);
 const char* kudroid_vfs_extended_test_log(void);
 
-///check KuART integration. Deprecated parameter (kept for ABI compatibility).
-///returns a diagnostic log malloc; the caller must release it with free().
+// Retain the unused argument for ABI compatibility.
+
 char* kudroid_test_jvm(const char* unused_path);
 char* kudroid_test_gpu(void);
 char* kudroid_test_audio(void);
@@ -201,7 +201,7 @@ const char* kudroid_get_last_crash_tail(void);
 /// returns jit status: "JIT: Enabled" or "JIT: Disabled" (malloced).
 const char* kudroid_jit_status(void);
 
-///test jit with both CS_DEBUGGED and W^X (TrollStore) execution. Returns 1 if JIT exists, 0 otherwise.
+// Test executable-memory availability and instruction fetching.
 int kudroid_is_jit_enabled(void);
 
 // / ghi l i error kh i  ng v   t tr ng th i gentle crash
@@ -235,12 +235,12 @@ int kudroid_runtime_permission_granted(const char* packageName, const char* perm
 /// allow input.
 int kudroid_audio_capture_active(void);
 
-// ── soft keyboard ────────────────────────────────────────────────────────────
-//
-// KuDroid ships no on-screen keyboard, so the guest's InputMethodManager forwards to
-// the host and iOS shows the system keyboard for whichever view is first responder.
-// The callbacks exist because kudroid_core is a static library and cannot reach UIKit:
-// the view that must become first responder lives on the Swift side.
+// Forward guest keyboard requests to the host input view.
+
+
+
+
+
 
 /// Registered by the host. `flags` mirrors InputMethodManager.showSoftInput.
 typedef void (*kudroid_soft_input_show_cb)(int flags);
@@ -282,9 +282,9 @@ void kudroid_dispatch_text_input(const char* utf8);
 void kudroid_dispatch_delete_backward(void);
 
 
-// ── camera ───────────────────────────────────────────────────────────────────
-//
-// Keep identical to include/kudroid/platform/CameraShim.h (host-facing part).
+// Expose the camera bridge declarations.
+
+
 
 typedef struct KuDroidCameraHost {
     int (*count)(void);
@@ -319,10 +319,10 @@ void kudroid_camera_report_error(int error);
 int kudroid_camera_has_pending(void);
 
 
-// ── network ──────────────────────────────────────────────────────────────────
-//
-// The host's default network path. `transport` is ConnectivityManager.TYPE_*: 0 cellular,
-// 1 Wi-Fi, 9 Ethernet. Keep identical to include/kudroid/platform/NetworkState.h.
+// Publish the host default network path.
+
+
+
 void kudroid_set_network_state(int connected, int transport, int metered, int constrained);
 
 // Preserve guest play states across host focus and audio interruptions.

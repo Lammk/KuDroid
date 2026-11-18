@@ -52,7 +52,7 @@ union DexValue {
 
 static_assert(sizeof(DexValue) == 8, "DexValue ph i  ng 8 byte");
 
-}  // namespace kuart
-}  // namespace kudroid
+}  // namespace
+}  // namespace
 
 #endif  // KUDROID_KUART_DEXVALUE_H

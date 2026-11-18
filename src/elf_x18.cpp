@@ -18,7 +18,7 @@ std::mutex& s_tlsStubMutex() {
     return mtx;
 }
 }  // namespace
-}  // namespace kudroid
+}  // namespace
 
 namespace kudroid {
 namespace x18 {
@@ -232,26 +232,26 @@ Decoded decode(std::uint32_t w) {
         markPatch(d, 5, rn, false);
         return d;
     }
-    // Advanced SIMD load/store structure forms. One integer register only: the
-    // base. Rt@4:0 is a VECTOR register, and Darwin does preserve v18 across
-    // context switches, so it is left alone by the same rule as the plain SIMD
-    // ldr/st arm above.
-    //
-    // Four top bytes carry the whole family, each confirmed against the
-    // assembler: 0x0C ld1 {v0.4h} / ld1 {v0.8b}, 0x0D ld1 {v18.s}[1] and the
-    // single-element forms, 0x4C ld1/st1/ld2/st2/ld3/st3/ld4/st4, 0x4D the
-    // replicate forms ld1r/ld2r/ld3r/ld4r. The neighbouring top bytes are not
-    // part of it and must not be absorbed: 0x2C/0x6C/0xAC/0xEC are the
-    // non-temporal pairs (ldnp/ldtnp, matched by the arm above) and
-    // 0x8C/0x8D/0xCC/0xCD plus 0x0E/0x0F/0x2E/0x4E/0x6E disassemble as
-    // undefined. A mask loose enough to include them (0xBE over b, say) would
-    // mark an undecodable word as known, and a "known" word is one this pass is
-    // then allowed to patch.
-    //
-    // Before this arm every one of these instructions fell through to unknown,
-    // and a function containing one was skipped whole with its x18 base left in
-    // place: observed live as libunity+0xcf6140, ld1 {v18.s}[1], [x18]
-    // (0x0d409252), faulting at address 0 with x18 zeroed by a Darwin delivery.
+    // Recognize SIMD structure accesses and translate only the integer base register.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     if (b == 0x0C || b == 0x0D || b == 0x4C || b == 0x4D) {
         markPatch(d, 5, rn, false);
         // Bit 23 -- not the top byte -- is the post-index bit, so both forms
@@ -1840,4 +1840,4 @@ void elf_x18_set(std::uint64_t val) {
 #endif
 }
 
-}  // namespace kudroid
+}  // namespace

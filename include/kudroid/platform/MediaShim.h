@@ -16,4 +16,4 @@ struct SymbolEntry;
 // NDK media extraction and CPU buffer decoding for VP8/Vorbis.
 const SymbolEntry* get_media_symbols(size_t* count);
 
-} // namespace kudroid
+} // namespace

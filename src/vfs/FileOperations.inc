@@ -88,20 +88,6 @@ static void copy_stat(struct android_stat* dst, const struct stat* src) {
 }
 
 int vfs_stat(const char* path, void* info) {
-    // make sure dummy files exist before stat (e.g. /proc/self/maps).
-    if (path && std::strcmp(path, "/proc/self/maps") == 0) {
-        std::string mapsPath = VFSPathRemapper::getInstance().remap("/proc/self/maps");
-        if (!std::filesystem::exists(mapsPath)) {
-            std::ofstream mapsFile(mapsPath, std::ios::trunc);
-            if (mapsFile) {
-                mapsFile << "5500000000-5500100000 r-xp 00000000 103:02 12345 /system/bin/app_process64\n";
-                mapsFile << "5500100000-5500110000 r--p 00100000 103:02 12345 /system/bin/app_process64\n";
-                mapsFile << "5500110000-5500120000 rw-p 00110000 103:02 12345 /system/bin/app_process64\n";
-                mapsFile << "7f00000000-7f00100000 rw-p 00000000 00:00 0 [stack]\n";
-                mapsFile.close();
-            }
-        }
-    }
     const std::string mapped = VFSPathRemapper::getInstance().remap(path);
     struct stat host_st;
     int res = ::stat(mapped.c_str(), &host_st);
@@ -126,11 +112,11 @@ extern "C" int vfs_fstat(int fd, void* info) {
     int res = ::fstat(fd, &host_st);
     if (res == 0) {
         copy_stat((struct android_stat*)info, &host_st);
-        // FMOD's fd path sizes its clip math from st_size on this same fd kind:
-        // a raw base.apk fd makes every clip size off by the whole-file offset
-        // (observed: an 884832-byte entry sized 889515831 minus its payload
-        // offset). Name the question and the answer on the audio thread — the
-        // AUDIO lines are the only window onto FMOD's own probe handles.
+        // Trace file-size probes on audio descriptors.
+
+
+
+
         static std::atomic<int> s_apkFstat{0};
         bool apkFd = false;
         {
@@ -484,7 +470,7 @@ std::string vfs_fsb_stats(const char* archivePath, int snapshot) {
     return out;
 }
 
-} // namespace kudroid
+} // namespace
 
 extern "C" void kudroid_run_vfs_self_test(void) {
     std::fprintf(stdout, "%s", kudroid::run_vfs_self_test().c_str());

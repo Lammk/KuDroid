@@ -54,13 +54,13 @@ static void crashHandler(int sig, siginfo_t* info, void* ucontext) {
         if (log) {
             char line[384];
             int n = std::snprintf(line, sizeof(line), "fatal signal %d", sig);
-            (void)n;  // consumed only under the arm64 detail block below
-            // The android log is the only channel a captured run reliably shows, while
-            // the fault identity (si_addr, pc, lr) normally lives only in the on-device
-            // breadcrumb file. Detail here costs nothing extra for a hardware fault:
-            // scalar reads plus the try-lock guest-module lookup already used by the
-            // fatal-signal breadcrumb below. SIGTRAP stays bare: it fires per TLS
-            // emulation and its pc is KuDroid's own trap site.
+            (void)n;  // Report fatal-signal context through the Android log.
+
+
+
+
+
+
 #if (defined(__aarch64__) || defined(__arm64__)) && (defined(__APPLE__) || defined(__linux__))
             if (sig != SIGTRAP && n > 0 && static_cast<size_t>(n) < sizeof(line)) {
                 if (info != nullptr) {
@@ -150,6 +150,7 @@ static void crashHandler(int sig, siginfo_t* info, void* ucontext) {
             }
             return;
         }
+        if (bionic_handle_guest_syscall_breakpoint(ucontext)) return;
 #if defined(__APPLE__) && defined(__arm64__)
         if (ucontext != nullptr) {
             const auto& state = static_cast<const ucontext_t*>(ucontext)->uc_mcontext->__ss;
@@ -163,11 +164,11 @@ static void crashHandler(int sig, siginfo_t* info, void* ucontext) {
             ++s_trapUnhandled;
             signal_safe_log("KuDroidTrap", "SIGTRAP not emulated");
         }
-        // A SIGTRAP that is not one of KuDroid's TLS breakpoints belongs to whoever
-        // installed a handler before us — a debugger bridge, a crash reporter, or
-        // LiveContainer's own dyld interception, all of which use breakpoints for
-        // their own purposes. Reporting it as a KuDroid crash would both lose their
-        // event and produce a misleading log.
+        // Forward unrelated breakpoints to the previous handler.
+
+
+
+
         if (chainToPreviousHandler(sig)) {
             return;
         }
@@ -207,31 +208,31 @@ static void crashHandler(int sig, siginfo_t* info, void* ucontext) {
     }
 
     // Record the fault BEFORE anyone gets a chance to swallow it.
-    //
-    // Everything below this point can return without writing a thing: the guest's own
-    // handler may report the fault true and resume, and the JNI_OnLoad shield jumps out
-    // entirely. Both are correct behaviours and both used to leave no KuDroid-side trace
-    // at all.
-    //
-    // That cost a full round. One run took a SIGSEGV at 0x64696f72646e6140 that only
-    // exists in the log as libunity's own tombstone text, arriving through
-    // __android_log_print with no thread, no KuDroid context and no way to place it in
-    // the timeline — while KuDroid's crash log described a different, later fault and
-    // presented it as the crash. One line here, in the same file as the watchdog and the
-    // thread samples, is what makes the order of events readable.
-    //
-    // It carries pc/lr and the abort message for the same reason, learned the same way.
-    // A guest handler that does not return reaches none of the reporting below: the
-    // ULTRAKILL run that took sig=6 with guest_handler=1 wrote no crash log at all,
-    // because il2cpp's SIGABRT handler siglongjmps out to its own recovery point. The
-    // fault address for an abort() is just the pc of abort inside libsystem and says
-    // nothing; pc, lr and the module they fall in are what identify the caller, and
-    // android_set_abort_message is the guest's own statement of what went wrong. All of
-    // it was already in memory and none of it was written anywhere.
-    //
-    // Everything here is async-signal-safe: reads of scalars, snprintf into a local,
-    // kudroid_lookup_guest_module (a try_lock that gives up rather than blocking) and
-    // one O_APPEND write.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     {
         char mark[1536];
         char tname[64] = "?";
@@ -285,23 +286,23 @@ static void crashHandler(int sig, siginfo_t* info, void* ucontext) {
             }
         }
 
-        // The first GUEST frame above the fault, which for an abort() is the only thing
-        // that identifies the caller.
-        //
-        // pc and lr are not enough and cannot be. The captured ULTRAKILL run reported
-        // `pc=0x1da7b81dc (host or unknown) lr=0x213e07c1c (host or unknown)`: pc was
-        // exactly the fault address, both were inside libsystem, and no frame belonged to
-        // libil2cpp — because abort() and _sigtramp sit between the handler and whoever
-        // decided to abort. Adding pc/lr answered the question by showing it was the
-        // wrong question.
-        //
-        // Walking finds the frame that matters. Every step is bounded by this thread's
-        // REAL stack — queried through pthread_get_stackaddr_np/get_stacksize_np rather
-        // than a plausibility test — because a diagnostic that faults takes down the
-        // process it was supposed to explain. That is not hypothetical: the run after this
-        // one was added died inside the guard diagnostic, which still used a plausibility
-        // test, at fault_addr=0x100000000050. FrameWalker is the shared implementation
-        // both now use.
+        // The first GUEST frame above the fault, which for an abort is the only thing that identifies the caller.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
         char guest_frame[256] = {0};
         int guest_frame_depth = -1;
 #if (defined(__aarch64__) || defined(__arm64__)) && defined(__APPLE__)
@@ -363,29 +364,29 @@ static void crashHandler(int sig, siginfo_t* info, void* ucontext) {
         kudroid_persistent_breadcrumb(mark);
     }
 
-    // Stop the watchdog timing this thread's work, HERE — at the one point every path
-    // passes through.
-    //
-    // This used to sit further down, past the guest-handler dispatch and past the
-    // JNI_OnLoad shield, and that was the same mistake twice over: those are exits, not
-    // the entry. A guest handler that does not return — il2cpp's SIGABRT handler
-    // siglongjmps out — skipped it entirely, so the last run reported
-    // `native_call_id=14 native_elapsed_ms=9429` for nine seconds after UnityMain had
-    // taken the signal, timing a call whose thread was gone. The `fatal-signal` line
-    // above was written from the right place and was the only reason that was visible.
-    //
-    // The cost of being early is a false positive: a fault the guest genuinely fixes and
-    // resumes from also stops the watchdog. That is the right trade — a stopped watchdog
-    // says "stopped, reason=fatal-signal" and can be reasoned about, while a watchdog
-    // reporting a dead thread's call as a live hang sends the reader somewhere else
-    // entirely. Two relaxed stores, safe in a signal handler.
+    // Mark fatal faults before handlers can leave through nonlocal exits.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     kudroid::native_note_fatal_signal(sig,
                                       static_cast<unsigned long long>(currentThreadIdForCrash()));
 
-    // For worker threads (e.g. Unity Job.Worker), try instruction load/store skip FIRST.
-    // Unity's crash handler writes a tombstone without fixing memory or moving PC, which
-    // aborts the thread or crashes the process. Skipping the faulting instruction lets
-    // worker jobs safely finish without bringing down the game.
+    // Record faults on recoverable worker threads.
+
+
+
     {
 #if defined(__APPLE__)
         const bool isHostMain = pthread_main_np() != 0;
@@ -480,15 +481,15 @@ static void crashHandler(int sig, siginfo_t* info, void* ucontext) {
         }
     }
 
-    // The guest's own handler, for the signals KuDroid must keep installed.
-    //
-    // Gate on the faulting pc being in a registered guest module. A fault in host
-    // text (the shell itself, KuART) is a KuDroid bug and must go down the fatal
-    // path below: handing it to the guest reporter makes the guest write a
-    // tombstone for OUR bug and resume into the same fault — the screen freezes
-    // with the crash logged but no modal, exactly the invisible-crash report.
-    // (Observed: SIGSEGV in kuart::DexClass::IsSubClassOf while the guest had a
-    // handler installed; the host fault never reached kudroid_crash handling.)
+    // The guest's own handler, for the signals the runtime must keep installed.
+
+
+
+
+
+
+
+
     {
         void* faultPcHost = nullptr;
 #if (defined(__aarch64__) || defined(__arm64__)) && defined(__APPLE__)
@@ -514,10 +515,10 @@ static void crashHandler(int sig, siginfo_t* info, void* ucontext) {
         }
     }
     if (kudroid::guest_signal_dispatch(sig, info, ucontext)) {
-        // The guest's own crash reporter (Unity's tombstone) took the signal and
-        // resumed, so the fatal path below never runs and kudroid_crash.log stays
-        // empty — yet the app may be dying inside (frozen screen, dead input).
-        // Leave a one-line record so a guest-handled fault is not invisible.
+        // Persist faults handled by guest crash reporters.
+
+
+
         if (sig == SIGSEGV || sig == SIGABRT || sig == SIGBUS) {
             static std::atomic<int> s_guestHandled{0};
             if (s_guestHandled.fetch_add(1, std::memory_order_relaxed) < 8) {
@@ -614,18 +615,18 @@ host_fatal_path:;
     }
 
     // Fast path for recoverable worker faults, BEFORE the crash dump below.
-    //
-    // A recovered fault killed nothing, but the dump path writes ~256KB per
-    // fault (full report + log buffer + stderr tail): 16 recovered faults
-    // produced a 4.7MB crash log in 25ms and saturated I/O for no diagnostic
-    // gain. A skipped fault gets one breadcrumb and resumes; only faults
-    // that actually park or crash pay for the full report.
-    //
-    // Placement is deliberate: after guest dispatch (Unity gets first
-    // refusal) and after the JNI-OnLoad guard (which longjmps out when
-    // active), but before fflush and the kudroid_crash.log dump. The
-    // watchdog stop above already ran and stays — a skipped fault still
-    // interrupted the call it is measured against.
+
+
+
+
+
+
+
+
+
+
+
+
     {
 #if defined(__APPLE__)
         const bool isHostMain = pthread_main_np() != 0;
@@ -854,17 +855,17 @@ host_fatal_path:;
                     (unsigned long long)fp, (unsigned long long)cpsr);
                 crashWriteLine(fd, sigline, m, sizeof(sigline));
 
-                // All 29 general-purpose registers, not the first nine.
-                //
-                // x0-x8 alone cannot identify the base register of a faulting access, and
-                // that is the one thing a BUS_ADRALN or a bad load needs: the last round
-                // reported fault_addr=0x16be80148 with the pointer it came from sitting in
-                // x19 and x23, neither of which was printed. The tombstone libunity writes
-                // to logcat has all of them, so the two logs described the same fault at
-                // different levels of detail and the fuller one was the guest's.
-                //
-                // Four per line to keep the log readable and the snprintf well inside its
-                // buffer.
+                // Log all general-purpose registers in groups of four.
+
+
+
+
+
+
+
+
+
+
                 for (int r = 0; r < 29; r += 4) {
                     char regbuf[256];
                     int rn = 0;
@@ -1110,7 +1111,7 @@ host_fatal_path:;
             (void)!write(fd, "\n--- log up to crash ---\n", 25);
             (void)!write(fd, g_crashBuf, (size_t)g_crashLen);
 
-            // Also dump the stderr tail (KuART abort reasons go there); all calls are async-signal-safe.
+            // Also dump the stderr tail; all calls are async-signal-safe.
             {
                 char errPath[1200];
                 size_t dl = strlen(g_logDir);

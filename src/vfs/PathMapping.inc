@@ -179,6 +179,14 @@ std::string VFSPathRemapper::remap(const char* originalPath) const {
     // "." or ".." at all, so the join below cannot escape.
     const std::string normalized = normalizePathString(std::string_view(pathWithoutScheme));
     std::string_view original(normalized);
+
+    if (original == "/proc/self/maps") {
+        const std::string mapped = androidRoot_ + "/proc/self/maps";
+        std::error_code error;
+        std::filesystem::create_directories(std::filesystem::path(mapped).parent_path(), error);
+        if (!refresh_process_maps_file(mapped)) return {};
+        return mapped;
+    }
     
     // directly maps the server's root /dev/ devices to ios
     if (original == "/dev/urandom" || original == "/dev/random" || 
@@ -264,14 +272,14 @@ std::string VFSPathRemapper::remap(const char* originalPath) const {
     }
 
     std::string mapped = androidRoot_ + "/" + std::string(rootName) + remainder;
-    // OBB fallback: /sdcard/Android/obb/<pkg>/<file>.obb often is not where
-    // the installer put it. Sideloaded installs leave the .obb next to the
-    // APK under data/app/<pkg>/, or anywhere the extractor staged it; the
-    // guest only ever looks in exactly one place and reports a GUID miss
-    // otherwise (Unity: "Unable to load GUID ... main.1.<pkg>.obb", then
-    // every streamed bank/clip downstream fails). Resolve once per install:
-    // same-directory data/app scan first, then any known .obb whose package
-    // segment matches, cached so the scans never repeat per open.
+    // OBB fallback: /sdcard/Android/obb/<pkg>/<file>.obb often is not where the installer put it.
+
+
+
+
+
+
+
     if (rootName == "sdcard" &&
         remainder.compare(0, 13, "/Android/obb/") == 0) {
         std::error_code ec;
@@ -285,9 +293,9 @@ std::string VFSPathRemapper::remap(const char* originalPath) const {
 }
 
 int vfs_open(const char* path, int flags, mode_t mode) {
-    // TEMP DIAGNOSTIC (ULTRAKILL audio crash): FMOD deterministically builds a
-    // voice with a null buffer row ~140 presents in. If its bank/stream file
-    // opens fail or misbehave here, that is the trigger. Log game-data opens.
+    // Trace audio-worker file operations.
+
+
     const bool traceOpen = path != nullptr &&
         (std::strstr(path, "assets/") != nullptr || std::strstr(path, ".apk") != nullptr ||
          std::strstr(path, ".bank") != nullptr || std::strstr(path, ".fsb") != nullptr ||
@@ -325,19 +333,6 @@ int vfs_open(const char* path, int flags, mode_t mode) {
         }
     }
 
-    if (path && std::strcmp(path, "/proc/self/maps") == 0) {
-        std::string mapsPath = VFSPathRemapper::getInstance().remap("/proc/self/maps");
-        std::ofstream mapsFile(mapsPath, std::ios::trunc);
-        if (mapsFile) {
-            // record the fake map layout that satisfies the basic checks
-            mapsFile << "5500000000-5500100000 r-xp 00000000 103:02 12345 /system/bin/app_process64\n";
-            mapsFile << "5500100000-5500110000 r--p 00100000 103:02 12345 /system/bin/app_process64\n";
-            mapsFile << "5500110000-5500120000 rw-p 00110000 103:02 12345 /system/bin/app_process64\n";
-            mapsFile << "7f00000000-7f00100000 rw-p 00000000 00:00 0 [stack]\n";
-            mapsFile.close();
-        }
-    }
-
     if (path && std::strcmp(path, "/dev/__properties__") == 0) {
         std::string propPath = VFSPathRemapper::getInstance().remap("/dev/__properties__");
         if (!std::filesystem::exists(propPath)) {
@@ -357,6 +352,14 @@ int vfs_open(const char* path, int flags, mode_t mode) {
     }
     const int result = (host_flags & O_CREAT) ? ::open(mapped.c_str(), host_flags, mode)
                                               : ::open(mapped.c_str(), host_flags);
+    if (mapped == "/dev/urandom" || mapped == "/dev/random") {
+        const int saved = errno;
+        static std::atomic<unsigned> entropyOpens{0};
+        if (entropyOpens.fetch_add(1, std::memory_order_relaxed) < 16)
+            std::fprintf(stderr, "[KuDroidNet] entropy open(%s flags=0x%x) -> %d errno=%d\n",
+                mapped.c_str(), flags, result, result < 0 ? saved : 0);
+        errno = saved;
+    }
     vfsTrace("open(" + mapped + ") -> " + std::to_string(result));
     if (traceOpen) {
         ktraceLine("[KuDroidVFS] open -> %d (%s)%s\n", result,
@@ -369,8 +372,8 @@ int vfs_open64(const char* path, int flags, mode_t mode) { return vfs_open(path,
 
 static void track_apk_stream(FILE* f);
 
-// Audio-side tracing (defined next to the stream table): FMOD's own thread does
-// not go through the per-instance op gate, so it is identified by thread name.
+// Identify audio workers by their registered thread names.
+
 static bool audio_thread();
 static bool audio_trace_take(int sid);
 
@@ -442,9 +445,9 @@ FILE* vfs_fopen(const char* path, const char* mode) {
         std::lock_guard<std::mutex> vlock(g_freadVolMtx);
         if (g_freadPaths.size() < 512) g_freadPaths[result] = mapped;
     }
-    // Misses under /data are silent stalls when Unity looks in the wrong place.
-    // Print guest-relative (the container UUID changes every install and only
-    // adds noise to the log).
+    // Report unresolved application-data paths.
+
+
     if (result == nullptr && !mapped.empty() &&
         mapped.rfind(VFSPathRemapper::getInstance().androidRoot(), 0) == 0) {
         static std::atomic<int> s_miss{0};

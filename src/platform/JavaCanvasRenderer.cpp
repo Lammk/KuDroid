@@ -661,4 +661,4 @@ void JavaCanvasRenderer::flush() {
 #endif
 }
 
-} // namespace kudroid
+} // namespace

@@ -331,4 +331,4 @@ int HostentCopy(const GuestHostent& src, int guestAddrType, GuestHostent* dst, c
     return 0;
 }
 
-}  // namespace kudroid
+}  // namespace

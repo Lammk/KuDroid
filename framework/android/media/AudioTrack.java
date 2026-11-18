@@ -2,10 +2,10 @@ package android.media;
 
 import java.nio.ByteBuffer;
 
-/**
- * Real PCM output, backed by the host's audio queue.
- * FMOD needs a valid buffer size and STATE_INITIALIZED; zero fails permanently.
- */
+/** Real PCM output, backed by the host's audio queue. */
+
+
+
 public class AudioTrack {
 
     public static final int MODE_STATIC = 0;
@@ -74,8 +74,8 @@ public class AudioTrack {
             default:
                 break;
         }
-        // A mask we do not recognise: count the bits rather than guessing, which keeps
-        // 5.1/7.1 layouts approximately right instead of silently becoming mono.
+        // Count channels from the mask's set bits.
+
         final int bits = Integer.bitCount(channelConfig);
         return bits > 0 ? bits : 2;
     }
@@ -91,10 +91,10 @@ public class AudioTrack {
 
     // Construction.
 
-    /**
-     * The minimum buffer size for these parameters, in bytes.
-     * Zero is fatal to FMOD, so fall back to a conservative size.
-     */
+    /** The minimum buffer size for these parameters, in bytes. */
+
+
+
     public static int getMinBufferSize(int sampleRateInHz, int channelConfig, int audioFormat) {
         final int channels = channelCountFromConfig(channelConfig);
         final int fromHost = nativeGetMinBufferSize(sampleRateInHz, channels, audioFormat);
@@ -119,9 +119,9 @@ public class AudioTrack {
                 : getMinBufferSize(mSampleRate, channelConfig, audioFormat);
 
         nativeTrack = nativeCreate(mSampleRate, mChannelCount, mAudioFormat, mBufferSizeInBytes);
-        // STATE_INITIALIZED is what FMOD checks, and it is only claimed when the host
-        // really gave us a player. Claiming it unconditionally would move the failure
-        // from a clear "AudioTrack failed to initialize" to silence with no explanation.
+        // Report initialization only after the host creates an audio player.
+
+
         mState = nativeTrack != 0 ? STATE_INITIALIZED : STATE_UNINITIALIZED;
     }
 
@@ -157,7 +157,7 @@ public class AudioTrack {
         return mChannelCount == 1 ? AudioFormat.CHANNEL_OUT_MONO : AudioFormat.CHANNEL_OUT_STEREO;
     }
 
-    /** Frames consumed by the device so far. FMOD polls this to pace writes. */
+    /** Frames consumed by the device so far. */
     public int getPlaybackHeadPosition() {
         return nativeTrack != 0 ? nativeGetPlaybackHeadPosition(nativeTrack) : 0;
     }

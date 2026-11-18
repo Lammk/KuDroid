@@ -2,11 +2,11 @@ package android.media;
 
 import android.util.Range;
 
-/**
- * Codec capability description. KuDroid's decoders are placeholders (see MediaShim), so what
- * is reported is the set of formats they accept; the point of the class is that players can
- * read their constants and query it instead of failing on a missing class.
- */
+/** Describe codec capabilities. */
+
+
+
+
 public final class MediaCodecInfo {
     private final String mName;
     private final boolean mEncoder;

@@ -1,4 +1,5 @@
 #include "kudroid/platform/AssetShim.h"
+#include "../bridge/ShellUI.h"
 #include "kudroid/ResourceTable.h"
 #include "kudroid/platform/ShimDefs.h"
 #include "kudroid/platform/MemoryInfo.h"
@@ -31,12 +32,12 @@ extern "C" int kudroid_android_log_message(int priority, const char* tag, const 
 // Defined in elf_loader.cpp; declared here for the caller tag on the asset trace.
 extern "C" bool kudroid_lookup_guest_module(void* addr, char* out, std::size_t outSize);
 
-// " from=libunity.so+0x1a2b40" for the guest frame that asked for this asset.
-//
-// AAsset_openFileDescriptor and AAssetManager_openFd are bound straight to these
-// functions, so __builtin_return_address(0) inside them is the guest's return address —
-// the reader, not just the read. Unity's own asset manager and FMOD asking for a bank
-// slice look identical otherwise.
+// Attribute asset access to the calling guest frame.
+
+
+
+
+
 static const char* asset_caller_text(const void* ra) {
     if (ra == nullptr) return "";
     static thread_local char text[192];
@@ -53,15 +54,15 @@ static const char* asset_caller_text(const void* ra) {
 
 namespace {
 
-// ─────────────────────────────────────────────────────────────────────────────
-// AAssetManager — reads assets files that have been extracted to disk by APKExtractor.
-//
-// The APK is extracted to <android_root>/data/app/<appName>/ with the directory tree
-// remains the same, so assets are located at <appName>/assets/<path>. Game (Unity/Godot/SDL)
-// call AAssetManager_open(manager, "bin/Data/...", mode) — path relative to
-// assets folder. kudroid_set_assets_dir() is called before kudroid_run_apk
-// Run the game to point at the right place.
-// ─────────────────────────────────────────────────────────────────────────────
+// Read assets extracted from the APK.
+
+
+
+
+
+
+
+
 
 static std::string g_assetsDir;
 static std::mutex g_assetsMtx;
@@ -164,12 +165,12 @@ static uint64_t g_bufferBytesPeak = 0;
 static uint64_t g_bufferCount = 0;
 
 // Report an asset buffer against the process footprint.
-//
-// Minecraft ships 36005 assets totalling 574 MB uncompressed, and its largest single file
-// is a 20.9 MB material. libminecraftpe.so is already ~330 MB of image, so a handful of
-// those buffers is enough to reach the jetsam limit — and jetsam sends SIGKILL, which runs
-// no handler and writes no crash log. Nothing in the log would say why the process
-// vanished; this line is what makes that case identifiable rather than a guess.
+
+
+
+
+
+
 static void trace_buffer(const char* what, const std::string& name, uint64_t bytes,
                          bool mapped) {
     uint64_t live = 0;
@@ -410,21 +411,21 @@ struct AAssetDirImpl {
 };
 
 // Resolve an AAssetManager path against the extracted assets directory.
-//
-// The path a game passes is relative to the APK's assets/ folder, so `bootstrap.json`
-// means the zip entry `assets/bootstrap.json`. What makes this less obvious than it looks
-// is that an APK may NEST a folder of the same name: Minecraft ships 36001 of its 36005
-// asset entries under `assets/assets/`, so the file the game wants at
-// `assets/assets/bootstrap.json` is requested as `assets/bootstrap.json`.
-//
-// This used to strip a leading "assets/" unconditionally, with a comment calling it a path
-// the game "transmits incorrectly". It is not incorrect — it is a real directory inside
-// assets/, and removing it turned the one path that resolves into the one that does not:
-// `assets/bootstrap.json` became `bootstrap.json`, which exists nowhere.
-//
-// So the literal path is tried FIRST, and the strip is only a fallback for a game that
-// really does pass the zip entry name. Both APK shapes then work, and a nested assets/
-// folder is no longer shadowed by the guess.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 static bool resolve_asset_path(const std::string& base, const char* filename,
                                std::string* relOut, std::filesystem::path* fullOut) {
     const std::string requested = filename;
@@ -472,13 +473,13 @@ static AAssetImpl* open_asset(const char* filename) {
         const auto baseApk = appDir / "base.apk";
         std::error_code ec;
         if (std::filesystem::exists(baseApk, ec)) {
-            // An AAssetManager name is relative to the APK's assets/ root, so the
-            // entry is "assets/" + name — first candidate, and the only correct one
-            // when the APK nests an assets/ folder inside assets/ (Minecraft ships
-            // 36001 of 36005 entries under assets/assets/ and asks for e.g.
-            // "assets/bootstrap.json"). The bare name is only tried when it already
-            // names an assets/ path: games that pass the zip entry name itself.
-            // Candidate order matches Android when both entries exist.
+            // The bare name is only tried when it already names an assets/ path: games that pass the zip entry name itself.
+
+
+
+
+
+
             const std::string semantic = "assets/" + std::string(filename);
             std::string candidates[2] = {semantic, filename};
             for (const std::string& entryName : candidates) {
@@ -571,13 +572,13 @@ static AAssetImpl* open_asset(const char* filename) {
     asset->mmapSize = 0;
     asset->bufferMapped = false;
     asset->streamFd = streamFd;
-    // Rare loads worth proving the route for: manifests and audio assets
-    // (FMOD clips). Archive-backed slices show their startOffset so a wrong
-    // offset is visible in the log without a debugger.
-    // FSB5 buffers are also served through this path — without listing them
-    // an FMOD load routed here was invisible in the android log.
-    // Progress line: total opens and the latest path, so a stalled loader shows
-    // where it stopped even when the per-extension quota below is exhausted.
+    // Trace selected manifest and audio asset loads.
+
+
+
+
+
+
     static std::atomic<uint64_t> s_openTotal{0};
     const uint64_t openIndex = s_openTotal.fetch_add(1, std::memory_order_relaxed) + 1;
     if (openIndex % 128 == 0) {
@@ -976,10 +977,6 @@ extern "C" void bionic_AAsset_close(void* asset) {
 // mip level.
 // ─────────────────────────────────────────────────────────────────────────────
 
-extern "C" int g_metalLayerWidth;
-extern "C" int g_metalLayerHeight;
-extern "C" float g_metalLayerDensity;
-
 struct AConfigurationImpl {
     char language[3];   // ISO 639-1, not null terminated according to Android API
     char country[3];    // ISO 3166-1 alpha-2
@@ -1185,4 +1182,4 @@ const SymbolEntry* get_asset_symbols(size_t* count) {
     return kAssetSymbols;
 }
 
-} // namespace kudroid
+} // namespace

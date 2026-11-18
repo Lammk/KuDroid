@@ -927,7 +927,7 @@ static const SymbolEntry kMediaSymbols[] = {
 
 }  // namespace
 
-}  // namespace kudroid
+}  // namespace
 
 extern "C" void kudroid_media_frame_post(int textureId, long long timestampNs) {
     {
@@ -955,4 +955,4 @@ const SymbolEntry* get_media_symbols(size_t* count) {
     return kMediaSymbols;
 }
 
-}  // namespace kudroid
+}  // namespace

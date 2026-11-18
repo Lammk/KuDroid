@@ -300,12 +300,12 @@ static void emit_android_log_line(int priority, const char* tag, const std::stri
 #endif
 
     // Also append to a file in Documents for the user to easily read.
-    //
-    // The descriptor is cached across calls. This runs for every guest log line
-    // (Unity's per-clip audio errors, GPU chatter, per-syscall traces) while
-    // holding g_logAndroidMutex, so an open/close pair per line serialized the
-    // log file behind every thread in the process and turned a burst of errors
-    // into a stall. Reopen only when the log directory changes or a write fails.
+
+
+
+
+
+
     if (::g_kudroid_log_dir_ptr && ::g_kudroid_log_dir_ptr[0] != '\0') {
         if (g_androidLogFd < 0 ||
             std::strcmp(g_androidLogFdDir, ::g_kudroid_log_dir_ptr) != 0) {

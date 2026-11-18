@@ -3,12 +3,12 @@ package android.app;
 import android.content.Context;
 import android.content.ContextWrapper;
 
-/**
- * minimal android.app.application implementation.
- *
- * base class for the application. for kudroid minimal framework, this class
- * provides oncreate lifecycle callback.
- */
+/** Base class for the application. */
+
+
+
+
+
 public class Application extends ContextWrapper implements android.content.ComponentCallbacks2 {
     public Application() {
         super(null);

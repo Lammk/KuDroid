@@ -173,6 +173,16 @@ static void net_trace_vector_io(const char* operation, int fd, size_t vectors, s
 extern "C" ssize_t bionic_read(int fd, void* buf, size_t count) {
     const ssize_t ret = ::read(fd, buf, count);
     const int hostErr = errno;
+    if (ret > 0 && count <= 64) {
+        struct stat status{};
+        static std::atomic<unsigned> deviceReads{0};
+        static std::atomic<unsigned> deviceProbes{0};
+        if (deviceReads.load(std::memory_order_relaxed) < 16 &&
+            deviceProbes.fetch_add(1, std::memory_order_relaxed) < 256 &&
+            ::fstat(fd, &status) == 0 && S_ISCHR(status.st_mode) &&
+            deviceReads.fetch_add(1, std::memory_order_relaxed) < 16)
+            std::fprintf(stderr, "[KuDroidNet] device read fd=%d count=%zu -> %zd\n", fd, count, ret);
+    }
     if (ret > 0) {
         const std::string path = fd_path(fd);
         io_volume_add(path, static_cast<uint64_t>(ret), "read");
@@ -181,10 +191,10 @@ extern "C" ssize_t bionic_read(int fd, void* buf, size_t count) {
             if (entropyReads.fetch_add(1, std::memory_order_relaxed) < 16)
                 std::fprintf(stderr, "[KuDroidNet] entropy read fd=%d count=%zu -> %zd\n", fd, count, ret);
         }
-        // Trace the APK itself: Unity's zip-reader drains base.apk through raw
-        // read() (1793 ops / 46MB in one session with zero pread64 traffic),
-        // and no per-op trace existed here — the widest remaining blind spot
-        // for locating which consumer reads which offset region.
+        // Trace reads from the APK archive.
+
+
+
         if (kudroid_fd_is_apk(fd)) {
             static std::atomic<int> s_apkReads{0};
             if (s_apkReads.load(std::memory_order_relaxed) < 200) {
@@ -229,6 +239,17 @@ extern "C" ssize_t bionic_write(int fd, const void* buf, size_t count) {
 extern "C" int bionic_poll(struct pollfd* fds, unsigned long nfds, int timeout) {
     const int rc = ::poll(fds, static_cast<nfds_t>(nfds), timeout);
     const int hostErr = errno;
+    if (fds && nfds == 1 && !net_fd(fds[0].fd)) {
+        struct stat status{};
+        static std::atomic<unsigned> devicePolls{0};
+        static std::atomic<unsigned> deviceProbes{0};
+        if (devicePolls.load(std::memory_order_relaxed) < 16 &&
+            deviceProbes.fetch_add(1, std::memory_order_relaxed) < 256 &&
+            ::fstat(fds[0].fd, &status) == 0 && S_ISCHR(status.st_mode) &&
+            devicePolls.fetch_add(1, std::memory_order_relaxed) < 16)
+            std::fprintf(stderr, "[KuDroidNet] device poll fd=%d ev=0x%x timeout=%d -> %d rev=0x%x errno=%d\n",
+                fds[0].fd, unsigned(fds[0].events), timeout, rc, unsigned(fds[0].revents), rc < 0 ? hostErr : 0);
+    }
     if (fds != nullptr && nfds > 0 && (net_fd(fds[0].fd) || rc < 0) && (rc != 0 || timeout >= 1000) &&
         net_trace_take()) {
         std::fprintf(stderr,
@@ -240,11 +261,11 @@ extern "C" int bionic_poll(struct pollfd* fds, unsigned long nfds, int timeout) 
     return net_result(rc);
 }
 
-// stdio writes, which never reach bionic_write: the guest's fwrite is the host's
-// fwrite, and that lands on the host write(2) directly. So a save through
-// fopen/fwrite -- which is how Unity persists PlayerPrefs and save files -- was
-// invisible: the path showed "first-read" and never a write, and "my flag did
-// not save" and "the flag was never written" were indistinguishable.
+// Trace writes performed through standard I/O streams.
+
+
+
+
 extern "C" size_t kudroid_fwrite(const void* buf, size_t size, size_t nmemb,
                                  FILE* stream) {
     const size_t ret = std::fwrite(buf, size, nmemb, stream);

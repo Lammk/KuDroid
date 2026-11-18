@@ -5,6 +5,7 @@
 #include "kudroid/platform/AssetShim.h"
 #include "kudroid/platform/CpuInfo.h"
 #include "kudroid/platform/MemoryInfo.h"
+#include "kudroid/platform/ProcessMaps.h"
 
 #include <cerrno>
 #include <algorithm>
@@ -44,11 +45,11 @@
 extern "C" int kudroid_android_log_message(int priority, const char* tag, const char* message);
 extern "C" const char* kudroid_trace_stamp(void);
 
-// One diagnostic line: boot-relative time and the guest thread name in front of the
-// caller's text, so the VFS/audio stream can be placed between the [KuDroidBoot] phase
-// marks and beside the Unity side of the log. A single fprintf keeps the line whole —
-// two writes would let another thread interleave into the middle of it. The formats
-// already end in '\n'.
+// Write each log line atomically to prevent interleaving.
+
+
+
+
 #if defined(__GNUC__)
 __attribute__((format(printf, 1, 2)))
 #endif
@@ -68,14 +69,14 @@ static void ktraceLine(const char* fmt, ...) {
 // Declared in elf_loader.cpp; spelled C so the name cannot be captured by a namespace.
 extern "C" bool kudroid_lookup_guest_module(void* addr, char* out, std::size_t outSize);
 
-// " from=libunity.so+0x1a2b40" for the guest frame that called into the file layer.
-//
-// The guest's fopen/fread/open/lseek are bound straight to the functions below (see the
-// symbol table in SyscallShim), so __builtin_return_address(0) *there* is the guest's own
-// return address — the code that asked for the file. Without it a file trace says what was
-// read but never who read it, and for audio that is the whole question: Unity's resource
-// reader and FMOD's own loader look byte-for-byte identical in the trace. The loader
-// already knows the module ranges, so this is a lookup, not a per-app guess.
+// Attribute file operations to the calling guest frame.
+
+
+
+
+
+
+
 static const char* trace_caller_text(const void* ra) {
     if (ra == nullptr) return "";
     static thread_local char text[192];

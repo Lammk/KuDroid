@@ -1,12 +1,12 @@
 package android.view.inputmethod;
 
-/**
- * A completion the IME may offer for the text being edited.
- *
- * KuDroid has no IME, so nothing ever consumes these; the class exists because
- * InputMethodManager.displayCompletions takes an array of them and an app that
- * builds completions would otherwise fail to resolve the type.
- */
+/** A completion the IME may offer for the text being edited. */
+
+
+
+
+
+
 public final class CompletionInfo {
     private final long mId;
     private final int mPosition;

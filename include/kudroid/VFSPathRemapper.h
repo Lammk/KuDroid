@@ -33,9 +33,9 @@ public:
     // <androidRoot>/android_id; never the well-known emulator constant.
     [[nodiscard]] std::string android_id();
 
-    // The running app's package for /proc/self/{cmdline,stat}. Pseudo-files
-    // saying com.kudroid.app break self-identification (crash reporters,
-    // license checks, Unity init); rewritten on the spot, not next init.
+    // The running app's package for /proc/self/{cmdline,stat}.
+
+
     void setPackageName(const std::string& packageName);
     // Copy of the package last given to setPackageName(); empty before that.
     [[nodiscard]] std::string packageName() const;
@@ -134,6 +134,6 @@ long long kudroid_test_fsb_first_uncovered(const char* archivePath, int nth);
 std::string vfs_fsb_stats(const char* archivePath, int snapshot);
 void vfs_fsb_note_unmatched(const char* archivePath, size_t bytes);
 
-} // namespace kudroid
+} // namespace
 
 extern "C" void kudroid_run_vfs_self_test(void);

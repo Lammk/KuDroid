@@ -21,4 +21,4 @@ inline std::int64_t timer_deadline_delay_ns(const timespec& value,
     return static_cast<std::int64_t>(delay);
 }
 
-} // namespace kudroid
+} // namespace

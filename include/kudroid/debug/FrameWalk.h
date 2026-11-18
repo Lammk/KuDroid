@@ -1,31 +1,31 @@
 // Frame-chain walking, in one place, with the stack bounds that make it safe.
-//
-// Why this exists. KuDroid had FOUR hand-written frame walks — the guard diagnostic in
-// SyscallShim, two in the crash handler, and the blocking-wait registry's — and they did
-// not agree about what a valid frame is. Three of them tested `fp > 0x1000 && fp <
-// 0x7fffffffffff`, which excludes null and nothing else, and then followed `fp = *fp`
-// without requiring the chain to go anywhere sensible.
-//
-// That is not a theoretical weakness. It killed a run:
-//
-//     signal = 11  si_code = 2  fault_addr = 0x100000000050
-//     inst = 0xf9401d49                    -> LDR x9, [x10, #56]
-//     x10  = 0x100000000018                -> 0x100000000018 + 56 == fault_addr
-//     pc_sym: kudroid::(anonymous)::log_guard_acquire_diag+0x250
-//     stack = [0x16b718000, 0x16b79b000)
-//
-// The walk had followed a slot that was not a saved frame pointer, landed on
-// 0x100000000018 — which passes `> 0x1000 && < 0x7fffffffffff` — and dereferenced it 56
-// bytes in. A diagnostic meant to explain a hang became the crash, on the guest's main
-// thread, and the whole run was lost to it.
-//
-// The blocking-wait registry had already learned this and fixed it locally, with real
-// bounds from pthread_get_stackaddr_np and a strictly-increasing chain requirement. The
-// lesson did not travel to the other three copies. This file is that fix, once, for all
-// of them: four call sites with different shapes but one definition of a valid frame.
-//
-// Everything here is async-signal-safe: no allocation, no locks, no libc beyond the
-// pthread stack queries the crash handler already performs.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 #ifndef KUDROID_DEBUG_FRAMEWALK_H
 #define KUDROID_DEBUG_FRAMEWALK_H
 
@@ -116,6 +116,6 @@ private:
     bool valid_ = false;
 };
 
-}  // namespace kudroid
+}  // namespace
 
 #endif  // KUDROID_DEBUG_FRAMEWALK_H

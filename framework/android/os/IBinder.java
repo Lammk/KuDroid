@@ -1,11 +1,11 @@
 package android.os;
 
-/**
- * emulate android.os.ibinder.
- *
- * a basic interface to a remote object. for kudroid minimal framework,
- *This is a simulation.
- */
+/** A basic interface to a remote object. */
+
+
+
+
+
 public interface IBinder {
     /** First transaction code for app. */
     public static final int FIRST_CALL_TRANSACTION = 0x00000001;
@@ -15,10 +15,10 @@ public interface IBinder {
     public static final int FLAG_ONEWAY = 0x00000001;
     public static final int INTERFACE_TRANSACTION = 0x5f4e5446;
 
-    /**
-     * Callback when the other end dies. All KuDroid binders are in the same process
-     * only fires when the binder is explicitly disposed.
-     */
+    /** Callback when the other end dies. */
+
+
+
     public interface DeathRecipient {
         void binderDied();
     }

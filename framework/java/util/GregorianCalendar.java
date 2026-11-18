@@ -1,18 +1,18 @@
 package java.util;
 
-/**
- * java.util.GregorianCalendar — proleptic Gregorian calendar.
- *
- * The date arithmetic is written here rather than ported from Apache Harmony because
- * Harmony's version reaches into com.ibm.icu for locale week rules, which KuDroid does
- * not ship. The conversion between a millisecond instant and calendar fields uses the
- * standard civil-from-days algorithm (Howard Hinnant's), which is exact for all years
- * and needs no lookup tables.
- *
- * "Proleptic" means the Gregorian rules are applied to dates before the 1582 cutover
- * too. The JDK switches to Julian there; apps formatting timestamps never touch that
- * range, and getting the modern range exactly right matters far more.
- */
+/** Implement proleptic Gregorian calendar arithmetic. */
+
+
+
+
+
+
+
+
+
+
+
+
 public class GregorianCalendar extends Calendar {
 
     public static final int BC = 0;

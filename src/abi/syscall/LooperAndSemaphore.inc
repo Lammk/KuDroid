@@ -384,24 +384,24 @@ extern "C" size_t bionic___fwrite_chk(const void* buf, size_t size, size_t count
     return ::fwrite(buf, size, count, stream);
 }
 
-// ── POSIX unnamed semaphores ────────────────────────────────────────────────
-//
-// Darwin DECLARES sem_init/sem_wait/sem_post/sem_destroy in <semaphore.h> but does
-// not implement them: each sets ENOSYS and returns -1. Only named semaphores
-// (sem_open) work. So an unshimmed guest call fell through BionicShim's
-// dlsym(RTLD_DEFAULT) straight to libSystem and failed.
-//
-// libunity.so imports exactly sem_init, sem_wait, sem_post and sem_destroy — all
-// four unnamed. Unity starts a helper thread, sets its name, then blocks on a
-// semaphore waiting for the spawner's handshake. sem_wait returning -1/ENOSYS is
-// not a blocking wait, so the helper raced ahead while the spawner waited for a
-// sem_post that the failed pair could never deliver. The log stopped on
-// prctl(PR_SET_NAME, "AssetGarbageCollectorHelper") — the last thing that happened
-// before the handshake — with nothing to say a semaphore had failed.
-//
-// The guest's sem_t cannot hold this state: bionic's is 4 bytes, the guest embeds
-// it in its own structs, and its layout is not ours to reinterpret. State is
-// therefore kept beside it, keyed by address, the same way g_futexQueues does.
+// Implement unnamed semaphores on hosts without them.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 struct GuestSemaphore {
     std::mutex mtx;
     std::condition_variable cv;
@@ -454,9 +454,9 @@ extern "C" int bionic_sem_init(sem_t* sem, int pshared, unsigned int value) {
         errno = EINVAL;
         return -1;
     }
-    // pshared is accepted and ignored: KuDroid runs the guest in one process, so a
-    // process-shared semaphore and a thread-shared one behave identically here.
-    // Rejecting it would fail guests that pass 1 out of habit.
+    // Maintain semaphore state within the host process.
+
+
     (void)pshared;
     auto s = std::make_shared<GuestSemaphore>();
     s->value = value;

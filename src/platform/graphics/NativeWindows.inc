@@ -2,14 +2,14 @@ namespace kudroid {
 
 namespace {
 
-// Log the GPU through the standard pipeline (KLOG → stdout + file + crash buffer) to run
-// crash after "log up to crash" is no longer empty. Keep the same text/priority (debug).
-//
-// Sampled: a scene load emits per-draw glUseProgram/glVertexAttribPointer at hundreds
-// per frame — 12k lines in one 80-second ULTRAKILL load, and the log write sits on the
-// render thread between draws. Keep the first N (setup state is unique) and then one in
-// 64: the log stays a presence detector without taxing every draw. Pass
-// KUDROID_GPU_LOG_ALL=1 to restore the full stream for a session.
+// Write bounded graphics diagnostics through the standard pipeline.
+
+
+
+
+
+
+
 static std::atomic<int> g_gpuLogCount{0};
 static std::atomic<unsigned> g_materialAuditCount{0};
 static std::atomic<unsigned> g_materialAuditEpoch{0};
@@ -92,10 +92,11 @@ static void* get_or_create_fallback_metal_layer() {
 [[maybe_unused]] static void* s_fallbackLayer = nullptr;
 #endif
 
-// Standard ANativeWindow structure for KuDroid
+// Standard ANativeWindow structure for the runtime.
 struct SurfaceFrame {
     std::mutex mutex;
     int x = 0, y = 0, width = 0, height = 0;
+    int bufferWidth = 0, bufferHeight = 0;
     std::atomic<bool> active{true};
 };
 
@@ -109,6 +110,7 @@ struct KuDroidNativeWindow {
     // Non-zero when the Surface wraps a SurfaceTexture: frames a codec "renders" into this
     // window are announced to that texture's listener instead of reaching the screen.
     int32_t surfaceTextureId;
+    bool buffersFromLayout = true;
     std::shared_ptr<SurfaceFrame> frame;
 
     KuDroidNativeWindow()
@@ -166,8 +168,7 @@ extern "C" int64_t kudroid_surface_set_frame(int64_t handle, int x, int y, int w
         std::lock_guard<std::mutex> lock(nw->frame->mutex);
         if (nw->frame->x == x && nw->frame->y == y &&
             nw->frame->width == width && nw->frame->height == height) return reinterpret_cast<int64_t>(nw);
-        const bool followsFrame = nw->frame->width == 0 ||
-            (nw->width == nw->frame->width && nw->height == nw->frame->height);
+        const bool followsFrame = nw->buffersFromLayout;
         nw->frame->x = x; nw->frame->y = y;
         nw->frame->width = width; nw->frame->height = height;
         if (followsFrame) { nw->width = width; nw->height = height; }
@@ -203,11 +204,14 @@ extern "C" void* bionic_ANativeWindow_fromSurface(void* env_ptr, void* surface_o
                 if (existing != 0) {
                     auto* nw = reinterpret_cast<KuDroidNativeWindow*>(existing);
                     if (nw->magic == 0x4B554457) {
-                        nw->surfaceTextureId = textureId;
-                        nw->layer = layer;
-                        if (!nw->frame) {
-                            nw->width = width;
-                            nw->height = height;
+                        {
+                            std::unique_lock<std::mutex> lock(nw->frame ? nw->frame->mutex : g_nativeWindowsMutex);
+                            nw->surfaceTextureId = textureId;
+                            nw->layer = layer;
+                            if (!nw->frame && nw->buffersFromLayout) {
+                                nw->width = width;
+                                nw->height = height;
+                            }
                         }
                         nw->refCount.fetch_add(1);
                         register_native_window(nw);
@@ -233,9 +237,14 @@ extern "C" void* bionic_ANativeWindow_fromSurface(void* env_ptr, void* surface_o
         }
     }
 
-    g_nativeWindowInstance.layer = layer;
-    g_nativeWindowInstance.width = width;
-    g_nativeWindowInstance.height = height;
+    {
+        std::lock_guard<std::mutex> lock(g_nativeWindowsMutex);
+        g_nativeWindowInstance.layer = layer;
+        if (g_nativeWindowInstance.buffersFromLayout) {
+            g_nativeWindowInstance.width = width;
+            g_nativeWindowInstance.height = height;
+        }
+    }
     register_native_window(&g_nativeWindowInstance);
     gpuLog("ANativeWindow_fromSurface fallback -> %p (layer=%p, size=%dx%d)",
            (void*)&g_nativeWindowInstance, g_nativeWindowInstance.layer,
@@ -265,7 +274,7 @@ extern "C" void kudroid_gpu_rebind_native_windows(void* layer, int width, int he
         gpuLog("rebind window %p: layer %p -> %p (size %dx%d -> %dx%d)",
                (void*)nw, nw->layer, layer, nw->width, nw->height, width, height);
         nw->layer = layer;
-        if (!nw->frame) {
+        if (!nw->frame && nw->buffersFromLayout) {
             if (width > 0) nw->width = width;
             if (height > 0) nw->height = height;
         }
@@ -278,13 +287,15 @@ extern "C" void kudroid_gpu_rebind_native_windows(void* layer, int width, int he
 // launch geometry into a layer that moved on.
 extern "C" void kudroid_gpu_resize_native_windows(void* layer, int oldW, int oldH,
                                                   int width, int height) {
+    (void)oldW;
+    (void)oldH;
     if (!layer || width <= 0 || height <= 0) return;
     std::lock_guard<std::mutex> lock(g_nativeWindowsMutex);
     for (KuDroidNativeWindow* nw : g_nativeWindows) {
         if (!nw || nw->magic != 0x4B554457) continue;
         if (nw->frame) continue;
         if (nw->layer != layer) continue;
-        if (nw->width != oldW || nw->height != oldH) continue;  // guest-owned
+        if (!nw->buffersFromLayout) continue;
         gpuLog("resize window %p on layer %p: size %dx%d -> %dx%d", (void*)nw,
                layer, nw->width, nw->height, width, height);
         nw->width = width;
@@ -306,8 +317,7 @@ extern "C" int bionic_ANativeWindow_getWidth(void* window) {
     if (window) {
         auto* nw = static_cast<KuDroidNativeWindow*>(window);
         if (nw->magic == 0x4B554457) {
-            std::unique_lock<std::mutex> lock;
-            if (nw->frame) lock = std::unique_lock<std::mutex>(nw->frame->mutex);
+            std::unique_lock<std::mutex> lock(nw->frame ? nw->frame->mutex : g_nativeWindowsMutex);
             return nw->width > 0 ? nw->width : 1080;
         }
     }
@@ -318,8 +328,7 @@ extern "C" int bionic_ANativeWindow_getHeight(void* window) {
     if (window) {
         auto* nw = static_cast<KuDroidNativeWindow*>(window);
         if (nw->magic == 0x4B554457) {
-            std::unique_lock<std::mutex> lock;
-            if (nw->frame) lock = std::unique_lock<std::mutex>(nw->frame->mutex);
+            std::unique_lock<std::mutex> lock(nw->frame ? nw->frame->mutex : g_nativeWindowsMutex);
             return nw->height > 0 ? nw->height : 1920;
         }
     }
@@ -330,8 +339,7 @@ extern "C" int bionic_ANativeWindow_getFormat(void* window) {
     if (window) {
         auto* nw = static_cast<KuDroidNativeWindow*>(window);
         if (nw->magic == 0x4B554457) {
-            std::unique_lock<std::mutex> lock;
-            if (nw->frame) lock = std::unique_lock<std::mutex>(nw->frame->mutex);
+            std::unique_lock<std::mutex> lock(nw->frame ? nw->frame->mutex : g_nativeWindowsMutex);
             return nw->format;
         }
     }
@@ -339,16 +347,22 @@ extern "C" int bionic_ANativeWindow_getFormat(void* window) {
 }
 
 extern "C" int bionic_ANativeWindow_setBuffersGeometry(void* window, int width, int height, int format) {
-    if (window) {
-        auto* nw = static_cast<KuDroidNativeWindow*>(window);
-        if (nw->magic == 0x4B554457) {
-            std::unique_lock<std::mutex> lock;
-            if (nw->frame) lock = std::unique_lock<std::mutex>(nw->frame->mutex);
-            if (width > 0) nw->width = width;
-            if (height > 0) nw->height = height;
-            if (format > 0) nw->format = format;
+    if (!window || width < 0 || height < 0 || ((width == 0) != (height == 0))) return -EINVAL;
+    auto* nw = static_cast<KuDroidNativeWindow*>(window);
+    if (nw->magic != 0x4B554457) return -EINVAL;
+    {
+        std::unique_lock<std::mutex> lock(nw->frame ? nw->frame->mutex : g_nativeWindowsMutex);
+        nw->buffersFromLayout = width == 0;
+        if (nw->frame) {
+            nw->frame->bufferWidth = width;
+            nw->frame->bufferHeight = height;
         }
+        nw->width = width > 0 ? width : nw->frame ? nw->frame->width : g_metalLayerWidth;
+        nw->height = height > 0 ? height : nw->frame ? nw->frame->height : g_metalLayerHeight;
+        if (format > 0) nw->format = format;
     }
+    // Buffer dimensions and presentation bounds are independent.
+    if (nw->frame) sync_surface_frame(nw->frame.get(), nw->frame);
     gpuLog("ANativeWindow_setBuffersGeometry(%dx%d format=%d) -> 0", width, height, format);
     return 0;
 }
@@ -525,12 +539,15 @@ static void unregister_egl_layer(void* surface) {
 
 // Each renderer presents into a child CAMetalLayer, separate from the UI backing store.
 static std::unordered_map<void*, std::shared_ptr<SurfaceFrame>> g_layerFrames;
+static std::unordered_map<void*, void*> g_presentationLayers;
 
 // Main thread only. Fits |child| to |host|: same bounds, host scale, matching drawable.
 static void render_layer_sync_geometry(id child, id host, int w, int h, float density) {
     typedef CGRect (*GetRectFn)(id, SEL);
     typedef double (*GetFloatFn)(id, SEL);
     typedef void (*SetRectFn)(id, SEL, CGRect);
+    typedef void (*SetPointFn)(id, SEL, CGPoint);
+    typedef void (*SetTransformFn)(id, SEL, CGAffineTransform);
     typedef void (*SetFloatFn)(id, SEL, double);
     typedef void (*SetSizeFn)(id, SEL, CGSize);
     typedef void (*VoidFn)(id, SEL);
@@ -538,6 +555,8 @@ static void render_layer_sync_geometry(id child, id host, int w, int h, float de
     auto getRect = reinterpret_cast<GetRectFn>(objc_msgSend);
     auto getFloat = reinterpret_cast<GetFloatFn>(objc_msgSend);
     auto setRect = reinterpret_cast<SetRectFn>(objc_msgSend);
+    auto setPoint = reinterpret_cast<SetPointFn>(objc_msgSend);
+    auto setTransform = reinterpret_cast<SetTransformFn>(objc_msgSend);
     auto setFloat = reinterpret_cast<SetFloatFn>(objc_msgSend);
     auto setSize = reinterpret_cast<SetSizeFn>(objc_msgSend);
     auto voidCall = reinterpret_cast<VoidFn>(objc_msgSend);
@@ -549,16 +568,22 @@ static void render_layer_sync_geometry(id child, id host, int w, int h, float de
     double bw = hostBounds.size.width;
     double bh = hostBounds.size.height;
     double bx = 0.0, by = 0.0;
+    int bufferWidth = 0, bufferHeight = 0;
     std::shared_ptr<SurfaceFrame> frame;
+    id presentation = child;
     {
         std::lock_guard<std::mutex> lock(g_surfaceLayersMtx);
         auto it = g_layerFrames.find(child);
         if (it != g_layerFrames.end()) frame = it->second;
+        auto wrapper = g_presentationLayers.find(child);
+        if (wrapper != g_presentationLayers.end()) presentation = reinterpret_cast<id>(wrapper->second);
     }
     if (frame) {
         std::lock_guard<std::mutex> lock(frame->mutex);
         bx = frame->x / scale; by = frame->y / scale;
         bw = frame->width / scale; bh = frame->height / scale;
+        bufferWidth = frame->bufferWidth;
+        bufferHeight = frame->bufferHeight;
     }
     if (bw <= 0.0 || bh <= 0.0) {  // host not laid out yet
         bw = (w > 0 ? w : 1080) / scale;
@@ -571,9 +596,25 @@ static void render_layer_sync_geometry(id child, id host, int w, int h, float de
         voidCall(reinterpret_cast<id>(clsTxn), sel_registerName("begin"));
         setBool(reinterpret_cast<id>(clsTxn), sel_registerName("setDisableActions:"), YES);
     }
-    setRect(child, sel_registerName("setFrame:"), CGRectMake(bx, by, bw, bh));
+    // Keep renderer bounds and frame in buffer coordinates; scale the parent for presentation.
+    const double drawableWidth = bufferWidth > 0 ? bufferWidth : bw * scale;
+    const double drawableHeight = bufferHeight > 0 ? bufferHeight : bh * scale;
+    setRect(presentation, sel_registerName("setBounds:"),
+            CGRectMake(0, 0, drawableWidth / scale, drawableHeight / scale));
+    setTransform(presentation, sel_registerName("setAffineTransform:"),
+                 CGAffineTransformMakeScale(bw * scale / drawableWidth, bh * scale / drawableHeight));
+    setPoint(presentation, sel_registerName("setPosition:"), CGPointMake(bx + bw * 0.5, by + bh * 0.5));
+    setFloat(presentation, sel_registerName("setContentsScale:"), scale);
+    if (presentation != child) {
+        setRect(child, sel_registerName("setBounds:"),
+                CGRectMake(0, 0, drawableWidth / scale, drawableHeight / scale));
+        setTransform(child, sel_registerName("setAffineTransform:"), CGAffineTransformMakeScale(1, 1));
+        setPoint(child, sel_registerName("setPosition:"),
+                 CGPointMake(drawableWidth / scale * 0.5, drawableHeight / scale * 0.5));
+    }
     setFloat(child, sel_registerName("setContentsScale:"), scale);
-    setSize(child, sel_registerName("setDrawableSize:"), CGSizeMake(bw * scale, bh * scale));
+    setSize(child, sel_registerName("setDrawableSize:"), CGSizeMake(
+        drawableWidth, drawableHeight));
     if (clsTxn) voidCall(reinterpret_cast<id>(clsTxn), sel_registerName("commit"));
 }
 
@@ -601,14 +642,22 @@ static void render_layer_create_on_main(void* hostPtr, void* key, RenderLayers* 
     if (!isKindOf(host, sel_registerName("isKindOfClass:"), clsCALayer)) return;
     id child = idRet(reinterpret_cast<id>(clsMetal), sel_registerName("layer"));
     if (!child) return;
+    id presentation = child;
+    if (frame) {
+        presentation = idRet(reinterpret_cast<id>(clsCALayer), sel_registerName("layer"));
+        if (!presentation) return;
+        idRet(presentation, sel_registerName("retain"));
+    }
     idRet(child, sel_registerName("retain"));  // balanced in drop_render_layer_for_host
     setBool(child, sel_registerName("setOpaque:"), YES);
     if (frame) {
         std::lock_guard<std::mutex> lock(g_surfaceLayersMtx);
         g_layerFrames[child] = frame;
+        g_presentationLayers[child] = presentation;
     }
     render_layer_sync_geometry(child, host, g_metalLayerWidth, g_metalLayerHeight, g_metalLayerDensity);
-    setId(host, sel_registerName("addSublayer:"), child);
+    if (presentation != child) setId(presentation, sel_registerName("addSublayer:"), child);
+    setId(host, sel_registerName("addSublayer:"), presentation);
     {
         std::lock_guard<std::mutex> lock(g_surfaceLayersMtx);
         (*layers)[key] = child;
@@ -618,6 +667,22 @@ static void render_layer_create_on_main(void* hostPtr, void* key, RenderLayers* 
 }
 
 // Create each renderer's child layer on the host UI thread.
+static void trace_render_layer(void* layer, const char* phase) {
+    if (!layer) return;
+    static std::atomic<unsigned> samples{0};
+    if (samples.fetch_add(1, std::memory_order_relaxed) >= 16) return;
+    id child = reinterpret_cast<id>(layer);
+    const auto getRect = reinterpret_cast<CGRect (*)(id, SEL)>(objc_msgSend);
+    const auto getScale = reinterpret_cast<double (*)(id, SEL)>(objc_msgSend);
+    const auto getSize = reinterpret_cast<CGSize (*)(id, SEL)>(objc_msgSend);
+    CGRect bounds = getRect(child, sel_registerName("bounds"));
+    CGRect frame = getRect(child, sel_registerName("frame"));
+    CGSize drawable = getSize(child, sel_registerName("drawableSize"));
+    KLOG(kInfo, "KuDroidGPU", "renderer geometry %s layer=%p bounds=%.1fx%.1f frame=%.1fx%.1f scale=%.2f drawable=%.1fx%.1f",
+        phase, layer, bounds.size.width, bounds.size.height, frame.size.width, frame.size.height,
+        getScale(child, sel_registerName("contentsScale")), drawable.width, drawable.height);
+}
+
 static void* render_layer_for_host(void* host, RenderLayers* layers, const char* renderer,
         void* key = nullptr, std::shared_ptr<SurfaceFrame> frame = nullptr) {
     if (!host) return nullptr;
@@ -649,6 +714,7 @@ static void* render_layer_for_host(void* host, RenderLayers* layers, const char*
 
 static void drop_render_layer_for_host(void* host, RenderLayers* layers) {
     void* child = nullptr;
+    void* presentation = nullptr;
     {
         std::lock_guard<std::mutex> lock(g_surfaceLayersMtx);
         auto it = layers->find(host);
@@ -657,12 +723,21 @@ static void drop_render_layer_for_host(void* host, RenderLayers* layers) {
         layers->erase(it);
         g_layerFrames.erase(child);
         g_renderHosts.erase(child);
+        auto wrapper = g_presentationLayers.find(child);
+        if (wrapper != g_presentationLayers.end()) {
+            presentation = wrapper->second;
+            g_presentationLayers.erase(wrapper);
+        }
     }
     dispatch_async(dispatch_get_main_queue(), ^{
         typedef void (*VoidFn)(id, SEL);
         auto voidCall = reinterpret_cast<VoidFn>(objc_msgSend);
         voidCall(reinterpret_cast<id>(child), sel_registerName("removeFromSuperlayer"));
         voidCall(reinterpret_cast<id>(child), sel_registerName("release"));
+        if (presentation) {
+            voidCall(reinterpret_cast<id>(presentation), sel_registerName("removeFromSuperlayer"));
+            voidCall(reinterpret_cast<id>(presentation), sel_registerName("release"));
+        }
     });
 }
 
@@ -734,12 +809,17 @@ static void kudroid_ensure_vulkan_layer_attached(void* vk_layer) {
         }
         id layer = reinterpret_cast<id>(vk_layer);
         id host = reinterpret_cast<id>(hostPtr);
+        {
+            std::lock_guard<std::mutex> lock(g_surfaceLayersMtx);
+            auto wrapper = g_presentationLayers.find(vk_layer);
+            if (wrapper != g_presentationLayers.end()) layer = reinterpret_cast<id>(wrapper->second);
+        }
         auto getId = reinterpret_cast<id (*)(id, SEL)>(objc_msgSend);
         auto setId = reinterpret_cast<void (*)(id, SEL, id)>(objc_msgSend);
         if (getId(layer, sel_registerName("superlayer")) != host) {
             setId(host, sel_registerName("addSublayer:"), layer);
         }
-        render_layer_sync_geometry(layer, host, g_metalLayerWidth,
+        render_layer_sync_geometry(reinterpret_cast<id>(vk_layer), host, g_metalLayerWidth,
                                    g_metalLayerHeight, g_metalLayerDensity);
     });
 }

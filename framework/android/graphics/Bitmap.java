@@ -1,11 +1,11 @@
 package android.graphics;
 
-/**
- * minimal android.graphics.bitmap implementation.
- *
- * represents a bitmap image. for kudroid minimal framework it stores
- * width/height and pixel buffer.
- */
+/** Represents a bitmap image. */
+
+
+
+
+
 public final class Bitmap {
     /** bitmap configuration: argb_8888. */
     public static final int ARGB_8888 = 0;
@@ -136,14 +136,14 @@ public final class Bitmap {
         return mHeight;
     }
 
-    /**
-     * The int config this Bitmap was created with.
-     *
-     * Not named getConfig(): Android's getConfig() returns Bitmap.Config, and having
-     * an int-returning method under that name meant app code calling the real
-     * signature got a type it could not use. The int form is kept for the existing
-     * KuDroid callers that construct with the int constants.
-     */
+    /** The int config this Bitmap was created with. */
+
+
+
+
+
+
+
     public int getConfigInt() {
         return mConfig;
     }
@@ -428,22 +428,22 @@ public final class Bitmap {
         public String toString() { return mName; }
     }
 
-    /**
-     * Android's getConfig(), returning the Config instance.
-     *
-     * Maps the int the Bitmap was built with; anything unrecognised reports
-     * ARGB_8888, the format KuDroid's canvas actually uses.
-     */
+    /** Android's getConfig, returning the Config instance. */
+
+
+
+
+
     public Config getConfig() {
         return mApiConfig;
     }
 
-    /**
-     * Encode the bitmap.
-     *
-     * KuDroid ships no encoder, so this reports failure rather than writing a
-     * corrupt file — callers check the boolean and a false is a case they handle.
-     */
+    /** Report unsupported bitmap encoding. */
+
+
+
+
+
     public boolean compress(CompressFormat format, int quality, java.io.OutputStream stream) {
         return false;
     }

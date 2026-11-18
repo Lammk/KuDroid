@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
-# Build the guest .so probes under tests/so/ for on-device testing with kdb.
-# Loaded via `so build/test-so/<name>.so`; -nostdlib (no DT_NEEDED) so KuDroid resolves
-# every symbol through its shims at load time. Skips (exit 0) without toolchain.
+# Build guest shared-library probes with shim-resolved imports.
+
+
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd)"

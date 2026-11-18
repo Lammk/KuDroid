@@ -8,11 +8,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-/**
- * SharedPreferences, persisted to disk.
- * On-disk format matches Android's {@code <map>} XML representation. Existing KuDroid
- * line-format files are read once and migrated on the next successful write.
- */
+/** SharedPreferences, persisted to disk. */
+
+
+
+
 public class SharedPreferencesImpl implements SharedPreferences {
     private final Map<String, Object> mMap = new HashMap<String, Object>();
     private final String mName;

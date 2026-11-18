@@ -1,24 +1,24 @@
 
-// Forward android.util.Log.println_native to standard KuDroid log pipeline.
+// Forward Java log messages through the standard pipeline.
 extern "C" int kudroid_android_log_message(int priority, const char* tag, const char* message) {
     return logAndroidMessage(priority, tag, std::string(message ? message : ""));
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Real FORTIFY (__*_chk) implementations to prevent silent data corruption.
-//
-// The size the compiler passes is the object size it measured for the destination.
-// bionic aborts on a violation; KuDroid is a translator and does not get to kill the
-// guest, so the write is clamped to that bound instead — the same thing the strncpy
-// wrapper below has always done. Without the clamp the wrapper's own diagnostic is the
-// only thing that changes: it reports the overflow and then performs it, which lands on
-// the guest's heap as corruption that surfaces later as an unrelated crash.
-//
-// (size_t)-1 means "size unknown": a trailing flexible-array member or a pointer whose
-// object size could not be computed both report that value, and clamping to it would
-// truncate a legitimate copy. The call then goes through unchanged, which is also what
-// _FORTIFY_SOURCE documents for an unknown size.
-// ─────────────────────────────────────────────────────────────────────────────
+// Validate fortified string and memory operations.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 static bool fortifyHaveBound(size_t declared_len) {
     return declared_len != static_cast<size_t>(-1);
@@ -82,11 +82,11 @@ extern "C" int bionic___sprintf_chk(char* s, int flag, size_t slen, const char* 
     return r;
 }
 
-// Fortified string copies: Unity's error path builds messages from a JNI
-// string whose chars came back NULL (GetStringUTFChars on a cleared
-// exception), and host strncpy traps on the null source. An empty string is
-// what the copy would have produced from missing data — and exactly what the
-// caller's snprintf/append expects to find.
+// Handle fortified string copies using the guest ABI.
+
+
+
+
 extern "C" char* bionic___strncpy_chk(char* dst, const char* src, size_t n, size_t dst_len) {
     if (!dst) return nullptr;
     if (!src) {
@@ -140,8 +140,8 @@ extern "C" unsigned long bionic___fdelt_chk(unsigned long fd) {
     return fd / (8UL * sizeof(unsigned long));
 }
 
-// bionic: void android_set_abort_message(const char* msg)
-// Store guest abort messages for tombstone crash logs (e.g. Unity FATAL messages).
+// Store the guest abort message for crash reports.
+
 extern "C" void bionic_android_set_abort_message(const char* msg) {
     if (msg && *msg) {
         kudroid_store_abort_message(msg);

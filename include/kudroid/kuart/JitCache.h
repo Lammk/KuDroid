@@ -1,21 +1,21 @@
-// Executable memory for KuART's JIT.
-//
-// Executable memory is provided by kudroid::ExecMemory, which selects a strategy
-// by probing the kernel once (dual-map aliasing, MAP_JIT write-toggle, or legacy
-// RW->RX mprotect) — no OS version checks. Callers write code through the region's
-// writeView and execute it through execView; on every strategy except dual-map the
-// two views are the same pointer.
-//
-// iOS refuses PROT_EXEC on anonymous memory unless the process is being debugged or
-// carries the JIT entitlement, and under LiveContainer's JITLess mode neither holds.
-// That is not an error to work around — it is a permission the platform declines to
-// grant, and the only correct response is to run the interpreter instead. So every
-// entry point here is null-safe and `IsAvailable()` is the gate callers check once.
-//
-// Allocation is bump-pointer within large blocks, and nothing is ever freed. A JIT that
-// frees code needs to know no thread is executing inside it, which needs safepoints;
-// KuART has no safepoints, and a Java method compiled once is executed for the life of
-// the process anyway. Bounding total size is the substitute for freeing.
+// Executable memory for the DEX runtime's JIT.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 #ifndef KUDROID_KUART_JITCACHE_H
 #define KUDROID_KUART_JITCACHE_H
 
@@ -94,7 +94,7 @@ private:
     size_t bytes_allocated_ = 0;
 };
 
-}  // namespace kuart
-}  // namespace kudroid
+}  // namespace
+}  // namespace
 
 #endif  // KUDROID_KUART_JITCACHE_H

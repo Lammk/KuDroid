@@ -1,9 +1,5 @@
 #!/usr/bin/env python3
-"""Embed framework/build/framework.dex into C++ header for KuART.
-
-DEX must reside in binary (not loaded from file) because iOS app bundle is read-only
-and KuART needs the framework before mounting any VFS.
-"""
+"""Embed framework DEX bytes in a C++ header for startup."""
 import pathlib
 import sys
 

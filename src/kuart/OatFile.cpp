@@ -127,5 +127,5 @@ void OatFile::InvalidateChecksum(uint32_t dex_checksum) {
     }
 }
 
-}  // namespace kuart
-}  // namespace kudroid
+}  // namespace
+}  // namespace

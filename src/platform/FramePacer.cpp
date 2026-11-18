@@ -1,31 +1,31 @@
 // Frame pacing: AChoreographer and ANativeWindow_setFrameRate.
-//
-// Why this exists. ULTRAKILL launched, brought up Vulkan on the A13, created its
-// swapchain — and then stopped, permanently, with no crash and nothing in the log
-// after the last symbol lookup. The lookups were these:
-//
-//     missing symbol bound to dummy: ANativeWindow_setFrameRate
-//     missing symbol bound to dummy: AChoreographer_getInstance
-//     missing symbol bound to dummy: AChoreographer_postFrameCallback
-//     ...
-//     thread-create                       tid=UnityMain
-//     cond-wait-enter cond=0x300f15e10    tid=UnityMain      <-- forever
-//     thread-entry tid=3711786
-//     thread-exit  tid=3711786            <-- started and left immediately
-//
-// All five bound to kudroid_universal_dummy, which returns 0. So getInstance()
-// returned NULL, Unity's frame-pacer thread had nothing to post a callback to and
-// exited without ever signalling the condition variable UnityMain was waiting on.
-// UnityMain sat in __psynch_cvwait for the rest of the session: five thread samples
-// forty seconds apart, identical pc, identical sp, cpu_ms unchanged at 383.
-// UnityGfxDeviceWorker never accumulated a millisecond, so not one frame was ever
-// submitted.
-//
-// A dummy that returns 0 is the worst possible answer for a factory function. It is
-// indistinguishable from "no Choreographer on this thread", which on Android is a
-// real and rare condition that callers handle by giving up — so the guest did
-// exactly what it was written to do, and the failure surfaced as a hang in a
-// condition variable several layers away from the cause.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 #include "kudroid/platform/FramePacer.h"
 #include "kudroid/kuart/VmLock.h"
 
@@ -74,21 +74,21 @@ constexpr int kLooperEventInput = 0x0001;
 // and cannot be confused with the input queue's.
 constexpr int kFrameLooperIdent = 0x4B465250;  // 'KFRP'
 
-// Direct mode is the fallback that delivers a guest's frame callbacks from the pacer
-// thread itself. It must never beat a real poller to the punch, so it is earned only
-// after a sustained, unambiguous silence — not two frames during startup, which is
-// exactly when a guest legitimately leaves a post uncollected for an interval (its
-// poller thread may still be starting). ULTRAKILL misclassified here: its
-// SwappyChoreographer thread polls this process's single looper, but the first two
-// frames arrived before that poller ever saw the wake pipe, so direct mode latched,
-// the poller then starved, and the frame cadence fell to ~320 ms per callback.
+// Direct mode is the fallback that delivers a guest's frame callbacks from the pacer thread itself.
+
+
+
+
+
+
+
 constexpr unsigned kDirectModeMinMissedFrames = 8;
 constexpr uint64_t kDirectModeMinSilenceMs = 2000;
 
-// Telemetry: one line every ~5 s with the delivery counts. The gap between the two
-// counters is the whole question when a guest renders at a fraction of its target
-// rate — a pacer delivering at 60 while the guest renders at 6 says the wake never
-// reaches the poller, and that is what made ULTRAKILL look like a GPU stall.
+// Telemetry: one line every ~5 s with the delivery counts.
+
+
+
 constexpr uint64_t kTelemetryIntervalMs = 5000;
 
 void paceLog(const char* fmt, ...) __attribute__((format(printf, 1, 2)));
@@ -162,28 +162,28 @@ struct Choreographer {
     std::atomic<unsigned> pending{0};
 };
 
-// ── pacer state ─────────────────────────────────────────────────────────────
-//
-// Everything with a non-trivial destructor lives in one heap object that is never
-// freed. That is deliberate, and it is the second shutdown bug this seam produced.
-//
-// The pacer thread outlives main(). It has to: a guest can post a frame and return,
-// and there is no point in the lifecycle where KuDroid can prove no further frame
-// will be asked for. So at process exit the thread is typically parked on the
-// condition variable — and if these objects have static storage duration, static
-// destruction runs `~condition_variable` and `~mutex` underneath it, plus `~vector`
-// on every queue the thread scans.
-//
-// Both failure modes were observed. Holding the thread in a global `std::thread`
-// aborted at exit ("terminate called without an active exception", because ~thread()
-// saw joinable()). Detaching it fixed that and produced a HANG instead: exit()
-// destroying a condition_variable that still has a waiter never returns on glibc.
-// Neither showed up in the test suite, because every test calls the reset seam first
-// — so the suite was green while any real app that rendered one frame failed to exit.
-//
-// Leaking is the correct answer rather than a workaround: the memory is reclaimed by
-// the OS at process teardown, and there is no window in which a live thread can
-// observe a destroyed object.
+// Retain shared frame-pacer state for process lifetime.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 struct PacerState {
     Choreographer instances[kMaxInstances];
     // For a thread that could not claim a slot.
@@ -334,15 +334,15 @@ int64_t vsync_period_ns() {
 }
 
 int64_t interval_ns() {
-    // The display's own period, full stop.
-    //
-    // ANativeWindow_setFrameRate is a per-surface HINT on Android: it tells the
-    // compositor which rate a surface prefers and never throttles the app's frame
-    // callbacks — a Choreographer callback arrives on vsync, and a guest that wants
-    // to render slower paces itself from the timestamps. Forcing every instance's
-    // interval to the hint fused two pacing layers into one: ULTRAKILL's Swappy
-    // requests 30 fps through setFrameRate and then does its own pacing on top, and
-    // the combined offsets produced the 600 ms beat the device rendered at.
+    // Return the host display period.
+
+
+
+
+
+
+
+
     return vsync_period_ns();
 }
 
@@ -582,13 +582,13 @@ void pacer_main() {
                     uint64_t expected = 0;
                     g_first_direct_ns.compare_exchange_strong(expected, now,
                                                               std::memory_order_relaxed);
-                    // Direct mode is a fallback for guests with no poller at all, so
-                    // it must not latch on startup jitter. It takes eight uncollected
-                    // frames AND two seconds of sustained silence — an instance with a
-                    // registered wake pipe is presumed to have a poller and is never
-                    // condemned. The old two-strikes rule fired during ULTRAKILL's
-                    // startup, starved its polling SwappyChoreographer thread, and
-                    // cost the game four fifths of its frame rate.
+                    // Direct mode is a fallback for guests with no poller at all, so it must not latch on startup jitter.
+
+
+
+
+
+
                     const uint64_t direct_missed =
                         g_direct_missed.fetch_add(static_cast<uint64_t>(ran),
                                                   std::memory_order_relaxed) +
@@ -917,19 +917,19 @@ void frame_pacer_reset_for_relaunch() {
 
 void frame_pacer_reset_for_test() { frame_pacer_reset_for_relaunch(); }
 
-}  // namespace kudroid
+}  // namespace
 
 // ─────────────────────────────────────────────────────────────────────────────
 // NDK entry points
 // ─────────────────────────────────────────────────────────────────────────────
 
 extern "C" void* bionic_AChoreographer_getInstance(void) {
-    // Never NULL. On Android this returns NULL only when the calling thread has no
-    // Looper; KuDroid's ALooper_forThread creates one on demand, so the precondition
-    // always holds. Returning NULL — which the universal dummy did, by returning 0 —
-    // reads to a guest as "this thread cannot receive frames", and Unity's pacer thread
-    // answered that by exiting immediately, leaving its render thread parked on a
-    // condition variable for the rest of the session.
+    // On Android this returns NULL only when the calling thread has no Looper; the runtime's ALooper_forThread creates one on demand, so the precondition always holds.
+
+
+
+
+
     return kudroid::frame_pacer_native_instance_for_this_thread();
 }
 

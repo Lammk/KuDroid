@@ -38,10 +38,10 @@ ANGLE_COMMIT="$(git rev-parse HEAD)"
 python3 scripts/bootstrap.py
 gclient sync --no-history --shallow --reset --force
 
-# Work around vulkan-loader error: define sysconfdir / fallback_*_dirs.
-# ANGLE's gn build passes no extra_cflags to third_party targets, while
-# vulkan-loader needs these macros (cmake builds define them), so patch them
-# directly into the sources that reference them.
+# Define loader path macros required by the build.
+
+
+
 LOADER_PATCH='
 #ifndef SYSCONFDIR
 #define SYSCONFDIR "/etc"
@@ -139,7 +139,7 @@ trap 'rm -rf "$INSTALL_DIR"' EXIT
 
 cp -R include/EGL include/GLES include/GLES2 include/GLES3 include/KHR "$OUTPUT_DIR/include/"
 
-# angle on ios produces .framework packages
+# Copy generated graphics frameworks.
 if [[ -d "$BUILD_DIR/libEGL.framework" ]]; then
     cp -R "$BUILD_DIR/libEGL.framework" "$INSTALL_DIR/"
 fi

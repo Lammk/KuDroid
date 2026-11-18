@@ -1,19 +1,19 @@
 package android.database;
 
-/**
- * android.database.ContentObserver — a callback for content changes.
- *
- * All five real APKs in the corpus construct one with
- * {@code ContentObserver(Landroid/os/Handler;)V} and hand it to
- * ContentResolver.registerContentObserver. The generated stub had only a no-argument
- * constructor, so that reference resolved to nothing: apps failed while setting up their
- * observers, before doing anything an observer would report on.
- *
- * KuDroid has no content providers, so nothing ever calls onChange. The class exists so
- * registration succeeds and the app carries on — an app that cannot register an observer
- * usually treats that as fatal, while an observer that never fires is indistinguishable
- * from a provider whose data never changed.
- */
+/** Receive callbacks when content changes. */
+
+
+
+
+
+
+
+
+
+
+
+
+
 public class ContentObserver {
     private final android.os.Handler mHandler;
 
@@ -51,12 +51,12 @@ public class ContentObserver {
         onChange(selfChange, uri);
     }
 
-    /**
-     * Dispatch a change to this observer on its Handler's thread.
-     *
-     * Not called by anything in KuDroid — there are no providers to report changes — but
-     * present because it is public API and because an app may drive its own observers.
-     */
+    /** Dispatch a change to this observer on its Handler's thread. */
+
+
+
+
+
     public final void dispatchChange(boolean selfChange, android.net.Uri uri) {
         if (mHandler == null) {
             onChange(selfChange, uri);

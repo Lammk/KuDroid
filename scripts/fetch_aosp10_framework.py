@@ -1,8 +1,5 @@
 #!/usr/bin/env python3
-"""
-Fetch core Java framework sources from official AOSP Android 10 (android-10.0.0_r47) repository.
-Cleans internal annotations (@UnsupportedAppUsage, @hide, etc.) so standard javac can compile seamlessly for KuART.
-"""
+"""Fetch Android 10 framework sources and remove unsupported annotations."""
 
 import base64
 import os

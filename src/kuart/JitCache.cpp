@@ -28,10 +28,10 @@ JitCache::~JitCache() {
 }
 
 bool JitCache::IsAvailable() {
-    // No separate cache here: ExecMemory::IsFetchable() is one load, and its
-    // answer can legitimately flip from false to true when a debugger attaches
-    // after launch (StikDebug), which re-probes through the bridge. A static
-    // copy of the startup verdict would keep the DEX JIT off forever.
+    // Read the current executable-memory capability.
+
+
+
     const bool available = ExecMemory::IsFetchable();
     if (!available) {
         static std::atomic<int> reported{0};
@@ -103,5 +103,5 @@ size_t JitCache::BudgetBytes() const {
     return EffectiveBudgetBytes(query_system_memory());
 }
 
-}  // namespace kuart
-}  // namespace kudroid
+}  // namespace
+}  // namespace

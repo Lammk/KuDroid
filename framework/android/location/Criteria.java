@@ -1,11 +1,11 @@
 package android.location;
 
-/**
- * simulate android.location.criteria.
- *
- * describes the criteria for selecting a placement provider. for minimal framework
- * by kudroid, this is a simulation.
- */
+/** Describe criteria for selecting a location provider. */
+
+
+
+
+
 public class Criteria {
 /**   ch nh x c: kh ng c  y u c u. */
     public static final int NO_REQUIREMENT = 0;

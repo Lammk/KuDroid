@@ -44,17 +44,17 @@ extern "C" int bionic_sched_setaffinity(pid_t pid, size_t cpusetsize, const void
     return 0;
 }
 
-// __sched_cpucount — count the set bits in a cpu_set_t.
-//
-// This is the prime suspect for "Cores = 0". It was not in the shim table at all, so the
-// ELF loader bound it to kudroid_universal_dummy, which returns 0 — and CPU_COUNT() is a
-// macro over this function, so every guest asking how many CPUs its affinity mask names
-// got zero no matter what the mask actually contained. That is the exact shape of Unity's
-// "Cores = 0" alongside a mask this shim had filled in.
-//
-// bionic's signature is `int __sched_cpucount(size_t setsize, const cpu_set_t* set)`, and
-// it counts over the CALLER's declared size rather than a fixed width: a guest with a
-// larger cpu_set_t must have all of its words counted.
+// Count the set bits in a CPU affinity mask.
+
+
+
+
+
+
+
+
+
+
 extern "C" int bionic___sched_cpucount(size_t setsize, const void* set) {
     if (set == nullptr || setsize == 0) return 0;
     const unsigned char* bytes = static_cast<const unsigned char*>(set);

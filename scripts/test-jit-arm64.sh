@@ -6,14 +6,14 @@ set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 CC=aarch64-linux-gnu-gcc
-QEMU=qemu-aarch64-static
+QEMU="$(command -v qemu-aarch64-static || command -v qemu-aarch64 || true)"
 
 if ! command -v "$CC" > /dev/null 2>&1; then
     echo "SKIP: $CC not found (install gcc-aarch64-linux-gnu to run this)"
     exit 0
 fi
-if ! command -v "$QEMU" > /dev/null 2>&1; then
-    echo "SKIP: $QEMU not found (install qemu-user-static to run this)"
+if [[ -z "$QEMU" ]]; then
+    echo "SKIP: ARM64 QEMU not found (install qemu-user to run this)"
     exit 0
 fi
 

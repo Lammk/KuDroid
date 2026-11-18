@@ -43,4 +43,4 @@ bool fault_skip_branches_through(uint32_t nextWord, unsigned reg);
 FaultSkipPlan fault_decode_skip(uint32_t w, uint64_t pc, uint64_t baseVal,
                                 uint64_t rmVal);
 
-}  // namespace kudroid
+}  // namespace

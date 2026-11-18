@@ -1,19 +1,19 @@
 namespace {
 
-// ─────────────────────────────────────────────────────────────────────────────
-// EGL ↔ ANGLE translation
-//
-// ANGLE on iOS expects a CAMetalLayer/UIView as the native window. Because
-// bionic_ANativeWindow_fromSurface returns g_metalLayer directly, the window
-// pointer IS the CAMetalLayer — pass it straight through.
-//
-// IMPORTANT: must export FULL EGL entry points, not just 4-5 functions. ELF
-// loader resolve import of game via BionicShim (shim table + RTLD_DEFAULT) —
-// ANGLE load RTLD_LOCAL should not be in RTLD_DEFAULT. Previously 17 functions
-// egl* remaining (eglInitialize, eglChooseConfig, eglCreateContext, eglMakeCurrent,
-// eglSwapBuffers...) falls into dummy returning 0 → Unity receives eglCreateContext=NULL →
-// crash NULL+0x50. Now each function forwards directly to ANGLE via get_egl_func().
-// ─────────────────────────────────────────────────────────────────────────────
+// Translate native windows into backend presentation layers.
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 typedef void* EGLSurface;
 typedef void* EGLConfig;
@@ -98,8 +98,8 @@ extern "C" EGLSurface bionic_eglCreateWindowSurface(EGLDisplay dpy, EGLConfig co
             resolvedLayer = get_or_create_fallback_metal_layer();
         }
 #endif
-        // ANGLE presents into a sublayer of its own; resolvedLayer stays the host
-        // that ownership and canvas decisions are keyed on.
+        // Key surface ownership by the host presentation layer.
+
         auto resolveRenderLayer = [&]() -> void* {
 #if defined(__APPLE__)
             if (windowFrame) return render_layer_for_host(resolvedLayer, &g_glLayers,
@@ -112,7 +112,9 @@ extern "C" EGLSurface bionic_eglCreateWindowSurface(EGLDisplay dpy, EGLConfig co
         gpuLog("eglCreateWindowSurface: calling ANGLE with layer=%p (host=%p)...", (void*)nativeWin, resolvedLayer);
 #if defined(__APPLE__)
         void* pool = objc_autoreleasePoolPush();
+        trace_render_layer(nativeWin, "before-create");
         EGLSurface s = host_func(dpy, config, nativeWin, attrib_list);
+        trace_render_layer(nativeWin, "after-create");
         if (!s && s_activeEglSurface && host_destroy) {
             gpuLog("eglCreateWindowSurface failed, auto-recycling stale EGLSurface %p on layer %p...", s_activeEglSurface, (void*)nativeWin);
             host_destroy(s_activeEglDisplay ? s_activeEglDisplay : dpy, s_activeEglSurface);
@@ -181,12 +183,12 @@ extern "C" bool kudroid_gpu_has_active_surface(void) {
     return s_activeEglSurface != nullptr || !g_nativeWindows.empty();
 }
 
-// ── EGL 1.x entry points missing — forward straight to ANGLE ────────────────
+// Forward EGL entry points to the graphics backend.
 
 #define EGL_FORWARD_ERR(name, what) gpuLog("%s: ANGLE %s not available", name, what)
 
-// Collect function get part ANGLE + check NULL: return function pointer with correct signature or
-// nullptr (caller automatically logs errors). Remove the PFN typedef boilerplate from each function.
+// Resolve a typed EGL function pointer.
+
 template <typename Signature>
 Signature* eglFn(const char* name) {
     return reinterpret_cast<Signature*>(get_egl_func(name));
@@ -195,9 +197,9 @@ Signature* eglFn(const char* name) {
 extern "C" EGLBoolean bionic_eglInitialize(EGLDisplay dpy, EGLint* major, EGLint* minor) {
     auto f = eglFn<EGLBoolean(EGLDisplay, EGLint*, EGLint*)>("eglInitialize");
     if (!f) { EGL_FORWARD_ERR("eglInitialize", ""); return EGL_FALSE; }
-    // Guest (e.g. TriangleGLES calls eglInitialize(display, 0, 0)) can pass
-    // NULL out-params — EGL spec allows, but some ANGLE versions dereference
-    // them → abort. Forward with local buffer then copy the result back.
+    // Provide storage for optional EGL initialization outputs.
+
+
     EGLint localMajor = 0, localMinor = 0;
     gpuLog("eglInitialize: calling ANGLE eglInitialize(dpy=%p, major=%s, minor=%s)...",
            (void*)dpy, major ? "ptr" : "NULL", minor ? "ptr" : "NULL");
@@ -384,11 +386,11 @@ extern "C" EGLBoolean bionic_eglMakeCurrent(EGLDisplay dpy, EGLSurface draw,
     gpuLog("eglMakeCurrent(ctx=%p, draw=%p) -> %s", (void*)ctx, (void*)draw,
            r ? "true" : "false");
 #if defined(__APPLE__)
-    // Manage thread-local autorelease pool for ANGLE Metal.
-    // When a context is bound, push a pool so all subsequent GL calls
-    // (glCreateShader, glCompileShader, glDrawArrays, etc.) have a valid
-    // autorelease pool for ANGLE Metal's internal ObjC allocations.
-    // When the context is unbound (ctx==nullptr), pop the pool.
+    // Maintain a thread-local autorelease pool for rendering.
+
+
+
+
     if (r) {
         if (ctx) {
             if (!tls_autorelease_pool) {
@@ -565,8 +567,8 @@ extern "C" EGLBoolean bionic_eglSwapBuffers(EGLDisplay dpy, EGLSurface surface) 
             kudroid_boot_mark("first-swap");
         }
     }
-    // Slow-swap detector: a present path that blocks (drawable starvation,
-    // vsync wedge) shows up here, not in Unity timings. Rare when healthy.
+    // Report slow swap operations.
+
     if (swapMs > 50) {
         gpuLog("eglSwapBuffers slow: %llums", (unsigned long long)swapMs);
     }
@@ -739,9 +741,9 @@ extern "C" EGLBoolean bionic_eglWaitNative(EGLint engine) {
     return r;
 }
 
-// ── The EGL/GLES function was once ELF loader bind dummy (Discord log: "missing symbol
-// bound to dummy: ...") because missing in table shim + ANGLE load RTLD_LOCAL.
-// Real forward to ANGLE — dummy returns 0 causing the game to receive the wrong value → crash. ──
+// Resolve EGL and GLES entry points through the configured backend.
+
+
 
 extern "C" unsigned int bionic_eglQueryContext(void* dpy, void* ctx, unsigned int attribute,
                                                 int* value) {

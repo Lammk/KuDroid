@@ -1,12 +1,12 @@
 package android.view.inputmethod;
 
-/**
- * Description of one installed input method.
- *
- * KuDroid installs none, so getInputMethodList() returns an empty list and nothing
- * constructs this. It exists so that the list's element type resolves — an app that
- * iterates the (empty) list still references the class in its bytecode.
- */
+/** Description of one installed input method. */
+
+
+
+
+
+
 public final class InputMethodInfo {
     private final String mId;
     private final String mPackageName;

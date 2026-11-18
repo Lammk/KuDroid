@@ -132,8 +132,8 @@ extern "C" int bionic_setsockopt(int fd, int level, int name, const void* value,
 #if defined(__APPLE__)
     int hostLevel = 0, hostName = 0;
     if (!kudroid::SocketOptionToHost(level, name, &hostLevel, &hostName)) {
-        // Unknown or Linux-specific socket option: accept and ignore (return 0)
-        // libcurl, okhttp, and mono when they set SO_BINDTODEVICE, SO_MARK, etc.
+        // Handle unsupported socket options.
+
         return 0;
     }
     return net_result(::setsockopt(fd, hostLevel, hostName, value, len));

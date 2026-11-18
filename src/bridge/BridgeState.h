@@ -27,11 +27,11 @@ extern char g_docsDir[1024];
 extern char g_logDir[1024];
 extern const char* g_kudroid_log_dir_ptr;
 
-// ── Gentle crash state ───────────────────────────────────────────────────────
-//
-// A crash buffer is useful for faults handled by KuDroid, but SIGKILL skips
-// every handler; the persistent breadcrumb journal below covers that case.
-// Static allocation keeps the buffer signal-handler safe (no heap use).
+// Persist crash breadcrumbs before process termination.
+
+
+
+
 
 extern char g_crashBuf[262144];
 extern volatile sig_atomic_t g_crashLen;

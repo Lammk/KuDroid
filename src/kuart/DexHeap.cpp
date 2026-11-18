@@ -57,5 +57,5 @@ const char* DexHeap::InternString(const char* s) {
     return copy;
 }
 
-}  // namespace kuart
-}  // namespace kudroid
+}  // namespace
+}  // namespace

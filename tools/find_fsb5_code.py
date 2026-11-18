@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Locate FMOD's FSB5 parser and error strings inside a libunity.so (audit only)."""
+"""Locate audio-bank parser functions and error strings for audit."""
 import struct
 import sys
 
@@ -41,7 +41,7 @@ for off in hits:
     print(f"  off=0x{off:x} {kind} w{reg}")
 print(f"  ({len(hits)} hits)")
 
-# 3. FMOD error strings: find "Error loading file" and the surrounding table.
+# Locate parser error strings and their surrounding table.
 needle = b"Error loading file"
 idx = data.find(needle, RODATA_OFF, RODATA_OFF + RODATA_SIZE)
 print("== error strings ==")

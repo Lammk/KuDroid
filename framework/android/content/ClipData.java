@@ -28,18 +28,18 @@ public class ClipData implements Parcelable {
         public android.net.Uri getUri() { return mUri; }
         public Intent getIntent() { return mIntent; }
 
-        /**
-         * The item as text, whatever it actually holds.
-         *
-         * Needed by all five real APKs in the corpus: this is what paste handling calls,
-         * because a clip item may be text, a URI or an Intent and the caller only wants
-         * characters.
-         *
-         * A URI is returned as its own string rather than resolved through the
-         * ContentResolver. Android reads the content and returns what it finds; KuDroid has
-         * no providers, so there is nothing to read — and the URI text is at least the
-         * information the clip carried, where an empty string would silently lose it.
-         */
+        /** The item as text, whatever it actually holds. */
+
+
+
+
+
+
+
+
+
+
+
         public CharSequence coerceToText(Context context) {
             if (mText != null) return mText;
             if (mUri != null) return mUri.toString();

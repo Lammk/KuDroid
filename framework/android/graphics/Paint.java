@@ -1,11 +1,11 @@
 package android.graphics;
 
-/**
- * minimal android.graphics.paint implementation.
- *
- * stores style and color information for drawing. for minimal framework
- * of kudroid, it stores basic drawing properties.
- */
+/** Stores style and color information for drawing. */
+
+
+
+
+
 public class Paint {
     /** drawing style: fill. */
     public static final int STYLE_FILL = 0;
@@ -184,14 +184,14 @@ public class Paint {
         return mTextSize;
     }
 
-    /**
-     * Fill in vertical text extents.
-     *
-     * TextView and every custom text layout uses these to place baselines, so the
-     * numbers have to be self-consistent even though KuDroid has no real font
-     * metrics: ascent above the baseline is negative, descent below is positive, and
-     * top/bottom add the leading. Zeroes here collapse every line onto one baseline.
-     */
+    /** Fill in vertical text extents. */
+
+
+
+
+
+
+
     public int getFontMetricsInt(FontMetricsInt fmi) {
         if (fmi == null) return (int) mTextSize;
         // Proportions of a typical sans-serif face; scaled with the text size so

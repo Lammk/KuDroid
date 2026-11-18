@@ -91,14 +91,14 @@ static ManifestInfo parseAxml(const std::vector<std::uint8_t>& data) {
         cur += read32(data, cur + 4);
     }
 
-    // State finds LAUNCHER activity: manifest contains MANY <activity>, only
-    // activity (or activity-alias) has <intent-filter> with
-    // <action android:name="android.intent.action.MAIN"> +
-    // <category android:name="android.intent.category.LAUNCHER"> is
-    // entry point that the Android launcher opens. Get the first activity as before
-    // This is WRONG (e.g. Minecraft: the first activity is not a launcher).
-    // IMPORTANT: state must be OUTSIDE the while loop — AXML splits into multiple
-    // chunk (one chunk per tag), declared in loop will reset each chunk.
+    // Find the activity declaring the main launcher intent.
+
+
+
+
+
+
+
     static const char* kActionMain = "android.intent.action.MAIN";
     static const char* kCategoryLauncher = "android.intent.category.LAUNCHER";
     std::string currentActivity;   // name of the <activity>/<activity-alias> being browsed
@@ -662,12 +662,12 @@ static std::string prettifyAppName(const std::string& raw) {
         s = s.substr(0, s.size() - 4);
     }
 
-    // The cleanup below (strip repacker tags and version numbers, then title-case)
-    // derives a readable name from any package or file name. A table mapping specific
-    // apps to their branded spelling used to sit here — "minecraft"/"mojang" to
-    // "Minecraft", plus Discord, ULTRAKILL and Rolling Sky — which only ever helped
-    // four apps and mislabelled anything whose name happened to contain one of those
-    // words.
+    // The cleanup below derives a readable name from any package or file name.
+
+
+
+
+
 
     // 2. Separate common junk prefixes/suffixes in mod/port APK file names
     for (char& c : s) {

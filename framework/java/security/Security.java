@@ -3,22 +3,22 @@ package java.security;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * java.security.Security.
- *
- * The provider list used to start empty, and that is not a state real Java ever has:
- * every JVM and every Android build ships at least one provider. Library code relies
- * on it — {@code Security.getProviders()[0]} appears verbatim in okhttp's platform
- * detection — so an empty list produced an ArrayIndexOutOfBoundsException inside a
- * class initialiser, which marks that class failed for the whole process. On okhttp
- * that means every HTTP call afterwards throws NoClassDefFoundError.
- *
- * A default provider is therefore installed at class-initialisation time. It is
- * named the way Android names its default ("AndroidOpenSSL") because that is what
- * platform-detection code compares against; the algorithms it advertises are the
- * ones KuDroid's MessageDigest actually implements, so nothing is claimed that
- * cannot be delivered.
- */
+/** Expose the available cryptographic providers. */
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 public final class Security {
 
     private static final List<Provider> providers = new ArrayList<Provider>();
@@ -39,9 +39,9 @@ public final class Security {
     static final class AndroidOpenSSLProvider extends Provider {
         AndroidOpenSSLProvider() {
             super("AndroidOpenSSL", 1.0, "KuDroid default provider");
-            // Only what java.security.MessageDigest can really do here. Claiming
-            // ciphers KuDroid does not implement would turn a clean
-            // NoSuchAlgorithmException into a wrong result.
+            // List supported message-digest algorithms.
+
+
             put("MessageDigest.MD5", "java.security.MessageDigest");
             put("MessageDigest.SHA-1", "java.security.MessageDigest");
             put("MessageDigest.SHA-256", "java.security.MessageDigest");

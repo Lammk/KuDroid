@@ -127,4 +127,4 @@ bool gles31_package_listed(std::string_view listText, std::string_view pkg) {
     return false;
 }
 
-}  // namespace kudroid
+}  // namespace

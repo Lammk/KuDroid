@@ -1,37 +1,37 @@
 // Frame pacing: AChoreographer and ANativeWindow_setFrameRate.
-//
-// Why this exists. ULTRAKILL launched, brought up Vulkan on the A13, created its
-// swapchain — and then stopped, permanently, with no crash and nothing in the log
-// after the last symbol lookup. The lookups were these:
-//
-//     missing symbol bound to dummy: ANativeWindow_setFrameRate
-//     missing symbol bound to dummy: AChoreographer_getInstance
-//     missing symbol bound to dummy: AChoreographer_postFrameCallback
-//     ...
-//     thread-create                       tid=UnityMain
-//     cond-wait-enter cond=0x300f15e10    tid=UnityMain      <-- forever
-//     thread-entry tid=3711786
-//     thread-exit  tid=3711786            <-- started and left immediately
-//
-// All five bound to kudroid_universal_dummy, which returns 0. So getInstance()
-// returned NULL, Unity's frame-pacer thread had nothing to post a callback to and
-// exited without ever signalling the condition variable UnityMain was waiting on.
-// UnityMain sat in __psynch_cvwait for the rest of the session: five thread samples
-// forty seconds apart, identical pc, identical sp, cpu_ms unchanged at 383.
-// UnityGfxDeviceWorker never accumulated a millisecond, so not one frame was ever
-// submitted.
-//
-// A dummy that returns 0 is the worst possible answer for a factory function. It is
-// indistinguishable from "no Choreographer on this thread", which on Android is a
-// real and rare condition that callers handle by giving up — so the guest did
-// exactly what it was written to do, and the failure surfaced as a hang in a
-// condition variable several layers away from the cause.
-//
-// What this provides. A real Choreographer: per-thread instances, one-shot frame
-// callbacks with monotonic timestamps on the same clock the guest reads through
-// clock_gettime(CLOCK_MONOTONIC), refresh-rate callbacks carrying the host display's
-// actual vsync period, and a pacer thread that only runs while something is waiting
-// on a frame.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 #ifndef KUDROID_PLATFORM_FRAMEPACER_H
 #define KUDROID_PLATFORM_FRAMEPACER_H
 
@@ -41,12 +41,12 @@
 extern "C" {
 #endif
 
-// ── AChoreographer (NDK) ────────────────────────────────────────────────────
-//
-// getInstance never returns NULL here. On Android it does when the calling thread
-// has no Looper; KuDroid's ALooper_forThread creates one on demand, so the
-// precondition always holds — and returning NULL is precisely the failure that
-// wedged ULTRAKILL.
+// Provide choreographer instances for frame callbacks.
+
+
+
+
+
 void* bionic_AChoreographer_getInstance(void);
 
 // One-shot, as on Android: the callback must re-post itself to receive another
@@ -155,7 +155,7 @@ void frame_pacer_reset_for_relaunch();
 // invokes this, and the pacer only steps in for a callback nobody came to collect.
 int frame_pacer_dispatch_due();
 
-}  // namespace kudroid
+}  // namespace
 
 #endif  // __cplusplus
 

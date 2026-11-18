@@ -1,13 +1,13 @@
 package java.text;
 
-/**
- * java.text.DateFormatSymbols — the names a date formatter substitutes.
- *
- * English only. Locale-specific names live in the ICU data KuDroid does not ship, and
- * an app that formats a date still needs *some* names; falling back to English keeps
- * output readable rather than empty. setters are honoured so an app can supply its own
- * localised names.
- */
+/** Provide names used by date formatters. */
+
+
+
+
+
+
+
 public class DateFormatSymbols implements java.io.Serializable, Cloneable {
 
     private String localPatternChars = "GyMdkHmsSEDFwWahKzZ";

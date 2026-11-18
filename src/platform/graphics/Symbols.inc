@@ -230,17 +230,17 @@ const SymbolEntry kGraphicsSymbols[] = {
     {"vkEnumerateInstanceExtensionProperties", reinterpret_cast<void*>(&bionic_vkEnumerateInstanceExtensionProperties)},
 
     // Frame pacing, implemented in FramePacer.cpp.
-    //
-    // These were the six symbols that wedged ULTRAKILL. All of them bound to
-    // kudroid_universal_dummy, which returns 0 — so AChoreographer_getInstance
-    // answered NULL, Unity's pacer thread read that as "no Choreographer on this
-    // thread" and exited without signalling the condition variable its render thread
-    // was waiting on. The app did not crash; it stopped, with the log ending on the
-    // dlsym that resolved the last of these.
-    //
-    // ANativeWindow_setFrameRate belongs with them rather than with the other
-    // ANativeWindow entries: it sets the interval the Choreographer paces at, so its
-    // state is the pacer's.
+
+
+
+
+
+
+
+
+
+
+
     {"AChoreographer_getInstance", reinterpret_cast<void*>(&bionic_AChoreographer_getInstance)},
     {"AChoreographer_postFrameCallback", reinterpret_cast<void*>(&bionic_AChoreographer_postFrameCallback)},
     {"AChoreographer_postFrameCallbackDelayed", reinterpret_cast<void*>(&bionic_AChoreographer_postFrameCallbackDelayed)},
@@ -267,4 +267,4 @@ const SymbolEntry* get_graphics_symbols(size_t* count) {
     return kGraphicsSymbols;
 }
 
-} // namespace kudroid
+} // namespace

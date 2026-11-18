@@ -17,19 +17,19 @@
 
 package org.apache.harmony.regex.internal.nls;
 
-/**
- * Message lookup for java.util.regex, ported from Apache Harmony.
- *
- * Harmony's original loads localised text from a ResourceBundle. KuDroid has no
- * resource-bundle machinery and these strings only ever appear inside
- * PatternSyntaxException, so the keys are mapped to plain English here. That keeps
- * the regex sources byte-identical to upstream — the only alternative was editing
- * 40 call sites across 7 files, which would make future updates from Harmony
- * painful for no benefit.
- *
- * Unknown keys return the key itself, so a message added by a later Harmony
- * revision degrades to something searchable rather than throwing.
- */
+/** Resolve regular-expression diagnostic messages. */
+
+
+
+
+
+
+
+
+
+
+
+
 public class Messages {
 
     public static String getString(String key) {

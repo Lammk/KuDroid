@@ -25,10 +25,10 @@ static void* bionic_thread_wrapper(void* rawArgs) {
 #endif
     }
 
-    // iOS: ANGLE/Metal/ObjC require an autorelease pool on EVERY thread that
-    // touches them. Guest render threads are raw pthreads with NO pool — GPU test passes because
-    // it runs on the main/GCD thread (pool present). Without a pool → abort()
-    // inside ANGLE eglInitialize (Metal device/queue creation).
+    // IOS: the graphics backend/Metal/ObjC require an autorelease pool on EVERY thread that touches them.
+
+
+
 #if defined(__APPLE__)
     void* pool = objc_autoreleasePoolPush();
 #endif
@@ -114,7 +114,7 @@ const KudroidProp kKnownProps[] = {
     {"ro.build.fingerprint",
      KUDROID_DEVICE_BRAND "/" KUDROID_DEVICE_NAME "/" KUDROID_DEVICE_BOARD
      ":" KUDROID_ANDROID_RELEASE "/QP1A.190711.020/6000000:user/release-keys"},
-    // KuDroid, not a spoofed Pixel, so apps avoid device-specific paths.
+    // The runtime, not a spoofed Pixel, so apps avoid device-specific paths.
     {"ro.product.model", KUDROID_DEVICE_MODEL},
     {"ro.product.manufacturer", KUDROID_DEVICE_MANUFACTURER},
     {"ro.product.brand", KUDROID_DEVICE_BRAND},
