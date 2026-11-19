@@ -422,7 +422,9 @@ if(CMAKE_SYSTEM_NAME STREQUAL "iOS")
 
     # Note: Copying of MoltenVK and ANGLE frameworks into KuDroidShell.app/Frameworks 
     # will be handled by build.yml script after xcodebuild.
-elseif(KUDROID_BUILD_HOST_TESTS)
+elseif(KUDROID_BUILD_HOST_TESTS
+       AND IS_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/tests"
+       AND IS_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/kuart-tests")
     # ─────────────────────────────────────────────────────────────────────────
     # Host-side tests (not built for iOS)
     # ─────────────────────────────────────────────────────────────────────────
@@ -1028,6 +1030,9 @@ elseif(KUDROID_BUILD_HOST_TESTS)
         endif()
     endforeach()
 
+endif()
+
+if(NOT CMAKE_SYSTEM_NAME STREQUAL "iOS" AND KUDROID_BUILD_HOST_TESTS)
     # kuart_verify — what a guest APK references that KuART cannot resolve.
     #
     # A developer tool, not a test: it takes extracted APK directories and reports the
@@ -1053,6 +1058,14 @@ elseif(KUDROID_BUILD_HOST_TESTS)
 endif()
 
 if(NOT CMAKE_SYSTEM_NAME STREQUAL "iOS")
+    add_executable(benchmark_elf_map tools/benchmark_elf_map.cpp)
+    target_link_libraries(benchmark_elf_map PRIVATE kudroid_core)
+    target_include_directories(benchmark_elf_map PRIVATE include)
+endif()
+
+if(NOT CMAKE_SYSTEM_NAME STREQUAL "iOS"
+   AND IS_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/tests"
+   AND IS_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/kuart-tests")
     find_package(Threads REQUIRED)
     add_executable(test_native_window_geometry tests/test_native_window_geometry.cpp)
     target_link_libraries(test_native_window_geometry PRIVATE kudroid_core)
@@ -1113,9 +1126,6 @@ if(NOT CMAKE_SYSTEM_NAME STREQUAL "iOS")
         target_link_libraries(test_manifest_services PRIVATE kudroid_core)
         target_include_directories(test_manifest_services PRIVATE include)
     endif()
-    add_executable(benchmark_elf_map tools/benchmark_elf_map.cpp)
-    target_link_libraries(benchmark_elf_map PRIVATE kudroid_core)
-    target_include_directories(benchmark_elf_map PRIVATE include)
     add_executable(test_android_tts tests/test_android_tts.cpp)
     target_link_libraries(test_android_tts PRIVATE kudroid_core art_dex)
     target_include_directories(test_android_tts PRIVATE include)
