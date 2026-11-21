@@ -1,0 +1,3344 @@
+{
+  "schema_version": 1,
+  "audit_date": "2026-11-22",
+  "scope": "Imported framework Java files and JNI headers carrying Apache-2.0 or GPLv2+CPE notices",
+  "source_reference_note": "References identify upstream licensed implementations; adapted and factored files are not claimed to be byte-identical imports.",
+  "entries": [
+    {
+      "path": "framework/android/animation/AnimationHandler.java",
+      "license": "Apache-2.0",
+      "origin": "AOSP frameworks/base",
+      "sources": [
+        {
+          "url": "https://android.googlesource.com/platform/frameworks/base/+/37a24f52e6be75e7f7db461e3bee465152318c99/core/java/android/animation/AnimationHandler.java?format=TEXT",
+          "sha256": "b68ed5bc4ddfd3c5306ddfef9d10f1b5aef56cd96f1969ee17996ce89d4a49f0"
+        }
+      ],
+      "kind": "file",
+      "modified": false,
+      "retained_header_sha256": "3eef9d928917c18427704cbdf31a57e9548a88a918cbb3924a2cfbff04a86ffd"
+    },
+    {
+      "path": "framework/android/animation/Animator.java",
+      "license": "Apache-2.0",
+      "origin": "AOSP frameworks/base",
+      "sources": [
+        {
+          "url": "https://android.googlesource.com/platform/frameworks/base/+/37a24f52e6be75e7f7db461e3bee465152318c99/core/java/android/animation/Animator.java?format=TEXT",
+          "sha256": "1e317c0de5717b783155a9853a934e91c7389cd216672150912d86be9ac79bef"
+        }
+      ],
+      "kind": "file",
+      "modified": true,
+      "retained_header_sha256": "41845febcd9458cc67174fa6c5de8d6070fdab00f336f834d22135c0e7e29ecd"
+    },
+    {
+      "path": "framework/android/animation/AnimatorInflater.java",
+      "license": "Apache-2.0",
+      "origin": "AOSP frameworks/base",
+      "sources": [
+        {
+          "url": "https://android.googlesource.com/platform/frameworks/base/+/37a24f52e6be75e7f7db461e3bee465152318c99/core/java/android/animation/AnimatorInflater.java?format=TEXT",
+          "sha256": "391e88effd01f33f17ec7de944e3853fb717c9de573dc082aaba673887240841"
+        }
+      ],
+      "kind": "file",
+      "modified": true,
+      "retained_header_sha256": "41845febcd9458cc67174fa6c5de8d6070fdab00f336f834d22135c0e7e29ecd"
+    },
+    {
+      "path": "framework/android/animation/AnimatorListenerAdapter.java",
+      "license": "Apache-2.0",
+      "origin": "AOSP frameworks/base",
+      "sources": [
+        {
+          "url": "https://android.googlesource.com/platform/frameworks/base/+/37a24f52e6be75e7f7db461e3bee465152318c99/core/java/android/animation/AnimatorListenerAdapter.java?format=TEXT",
+          "sha256": "7e7a547c2e85a8cc76d9018a4f742df66cdbfe5b38178881dc247477c1f37da4"
+        }
+      ],
+      "kind": "file",
+      "modified": false,
+      "retained_header_sha256": "41845febcd9458cc67174fa6c5de8d6070fdab00f336f834d22135c0e7e29ecd"
+    },
+    {
+      "path": "framework/android/animation/AnimatorSet.java",
+      "license": "Apache-2.0",
+      "origin": "AOSP frameworks/base",
+      "sources": [
+        {
+          "url": "https://android.googlesource.com/platform/frameworks/base/+/37a24f52e6be75e7f7db461e3bee465152318c99/core/java/android/animation/AnimatorSet.java?format=TEXT",
+          "sha256": "abd400c77786e997559702453ff06c40dc51b8ffecc28e065fad55f34e5721d5"
+        }
+      ],
+      "kind": "file",
+      "modified": true,
+      "retained_header_sha256": "41845febcd9458cc67174fa6c5de8d6070fdab00f336f834d22135c0e7e29ecd"
+    },
+    {
+      "path": "framework/android/animation/AnimatorSetNode.java",
+      "license": "Apache-2.0",
+      "origin": "AOSP frameworks/base",
+      "sources": [
+        {
+          "url": "https://android.googlesource.com/platform/frameworks/base/+/37a24f52e6be75e7f7db461e3bee465152318c99/core/java/android/animation/AnimatorSet.java?format=TEXT",
+          "sha256": "abd400c77786e997559702453ff06c40dc51b8ffecc28e065fad55f34e5721d5"
+        }
+      ],
+      "kind": "factored",
+      "modified": true,
+      "retained_header_sha256": "41845febcd9458cc67174fa6c5de8d6070fdab00f336f834d22135c0e7e29ecd"
+    },
+    {
+      "path": "framework/android/animation/ArgbEvaluator.java",
+      "license": "Apache-2.0",
+      "origin": "AOSP frameworks/base",
+      "sources": [
+        {
+          "url": "https://android.googlesource.com/platform/frameworks/base/+/37a24f52e6be75e7f7db461e3bee465152318c99/core/java/android/animation/ArgbEvaluator.java?format=TEXT",
+          "sha256": "619a60d1c4c707f6c94fdb1e61456a7d8dc86834fe279ac900ce7a1031cee515"
+        }
+      ],
+      "kind": "file",
+      "modified": true,
+      "retained_header_sha256": "41845febcd9458cc67174fa6c5de8d6070fdab00f336f834d22135c0e7e29ecd"
+    },
+    {
+      "path": "framework/android/animation/BidirectionalTypeConverter.java",
+      "license": "Apache-2.0",
+      "origin": "AOSP frameworks/base",
+      "sources": [
+        {
+          "url": "https://android.googlesource.com/platform/frameworks/base/+/37a24f52e6be75e7f7db461e3bee465152318c99/core/java/android/animation/BidirectionalTypeConverter.java?format=TEXT",
+          "sha256": "5dd31f8e30958f31be4f7e4129532d890e69b33cdb0457048bd5050c5d1ac109"
+        }
+      ],
+      "kind": "file",
+      "modified": false,
+      "retained_header_sha256": "112331fa20ed11a2311644f2b9cef74da0274eac198f18ec6b16bac4e6f82613"
+    },
+    {
+      "path": "framework/android/animation/FloatArrayEvaluator.java",
+      "license": "Apache-2.0",
+      "origin": "AOSP frameworks/base",
+      "sources": [
+        {
+          "url": "https://android.googlesource.com/platform/frameworks/base/+/37a24f52e6be75e7f7db461e3bee465152318c99/core/java/android/animation/FloatArrayEvaluator.java?format=TEXT",
+          "sha256": "2104300fd24e2f922e3b188af3092fc1174074d029de4a027b17e23cdfbdfbbc"
+        }
+      ],
+      "kind": "file",
+      "modified": false,
+      "retained_header_sha256": "324242fc42ca1fe5892a57220c8a8720f68f1d5923bd69f0fc4e63f2b032656f"
+    },
+    {
+      "path": "framework/android/animation/FloatEvaluator.java",
+      "license": "Apache-2.0",
+      "origin": "AOSP frameworks/base",
+      "sources": [
+        {
+          "url": "https://android.googlesource.com/platform/frameworks/base/+/37a24f52e6be75e7f7db461e3bee465152318c99/core/java/android/animation/FloatEvaluator.java?format=TEXT",
+          "sha256": "df8d5ca65e38c573be9ad888b347d60748adadabeb8b4f514ee4bd11c3c3ae58"
+        }
+      ],
+      "kind": "file",
+      "modified": false,
+      "retained_header_sha256": "41845febcd9458cc67174fa6c5de8d6070fdab00f336f834d22135c0e7e29ecd"
+    },
+    {
+      "path": "framework/android/animation/FloatKeyframeSet.java",
+      "license": "Apache-2.0",
+      "origin": "AOSP frameworks/base",
+      "sources": [
+        {
+          "url": "https://android.googlesource.com/platform/frameworks/base/+/37a24f52e6be75e7f7db461e3bee465152318c99/core/java/android/animation/FloatKeyframeSet.java?format=TEXT",
+          "sha256": "4ddf161195d4c7ed791c2231fbbab6b187092b86f7a191bbf173396a7615084f"
+        }
+      ],
+      "kind": "file",
+      "modified": false,
+      "retained_header_sha256": "41845febcd9458cc67174fa6c5de8d6070fdab00f336f834d22135c0e7e29ecd"
+    },
+    {
+      "path": "framework/android/animation/IntArrayEvaluator.java",
+      "license": "Apache-2.0",
+      "origin": "AOSP frameworks/base",
+      "sources": [
+        {
+          "url": "https://android.googlesource.com/platform/frameworks/base/+/37a24f52e6be75e7f7db461e3bee465152318c99/core/java/android/animation/IntArrayEvaluator.java?format=TEXT",
+          "sha256": "83cae5d384c859d5ccb3c36ab87d44f51821dec1dad76c06bda6b5a06df51c7b"
+        }
+      ],
+      "kind": "file",
+      "modified": false,
+      "retained_header_sha256": "324242fc42ca1fe5892a57220c8a8720f68f1d5923bd69f0fc4e63f2b032656f"
+    },
+    {
+      "path": "framework/android/animation/IntEvaluator.java",
+      "license": "Apache-2.0",
+      "origin": "AOSP frameworks/base",
+      "sources": [
+        {
+          "url": "https://android.googlesource.com/platform/frameworks/base/+/37a24f52e6be75e7f7db461e3bee465152318c99/core/java/android/animation/IntEvaluator.java?format=TEXT",
+          "sha256": "e8ae75e7ba047dc96433d72fd142a9e3bac4a49ff77381b7f53a098719ce7c93"
+        }
+      ],
+      "kind": "file",
+      "modified": false,
+      "retained_header_sha256": "41845febcd9458cc67174fa6c5de8d6070fdab00f336f834d22135c0e7e29ecd"
+    },
+    {
+      "path": "framework/android/animation/IntKeyframeSet.java",
+      "license": "Apache-2.0",
+      "origin": "AOSP frameworks/base",
+      "sources": [
+        {
+          "url": "https://android.googlesource.com/platform/frameworks/base/+/37a24f52e6be75e7f7db461e3bee465152318c99/core/java/android/animation/IntKeyframeSet.java?format=TEXT",
+          "sha256": "5d10edb3d796b7450d83fad8ea3c815c23fe403a0134eb33cf836f6d0a9348e0"
+        }
+      ],
+      "kind": "file",
+      "modified": false,
+      "retained_header_sha256": "41845febcd9458cc67174fa6c5de8d6070fdab00f336f834d22135c0e7e29ecd"
+    },
+    {
+      "path": "framework/android/animation/Keyframe.java",
+      "license": "Apache-2.0",
+      "origin": "AOSP frameworks/base",
+      "sources": [
+        {
+          "url": "https://android.googlesource.com/platform/frameworks/base/+/37a24f52e6be75e7f7db461e3bee465152318c99/core/java/android/animation/Keyframe.java?format=TEXT",
+          "sha256": "f6f488b1ac1b35de88431468e5fd1ea3ceb3966f9425c65ca394e151410bf6f4"
+        }
+      ],
+      "kind": "file",
+      "modified": false,
+      "retained_header_sha256": "41845febcd9458cc67174fa6c5de8d6070fdab00f336f834d22135c0e7e29ecd"
+    },
+    {
+      "path": "framework/android/animation/KeyframeSet.java",
+      "license": "Apache-2.0",
+      "origin": "AOSP frameworks/base",
+      "sources": [
+        {
+          "url": "https://android.googlesource.com/platform/frameworks/base/+/37a24f52e6be75e7f7db461e3bee465152318c99/core/java/android/animation/KeyframeSet.java?format=TEXT",
+          "sha256": "858fc4981b7d8d3ea9e8f8a8ae466021226bd0a882060ae2f48695c090bbfba7"
+        }
+      ],
+      "kind": "file",
+      "modified": false,
+      "retained_header_sha256": "41845febcd9458cc67174fa6c5de8d6070fdab00f336f834d22135c0e7e29ecd"
+    },
+    {
+      "path": "framework/android/animation/Keyframes.java",
+      "license": "Apache-2.0",
+      "origin": "AOSP frameworks/base",
+      "sources": [
+        {
+          "url": "https://android.googlesource.com/platform/frameworks/base/+/37a24f52e6be75e7f7db461e3bee465152318c99/core/java/android/animation/Keyframes.java?format=TEXT",
+          "sha256": "9de9c1b7069b3ffc00c675e4af455041798869f037b9aea29c2f72af6f6f9b15"
+        }
+      ],
+      "kind": "file",
+      "modified": false,
+      "retained_header_sha256": "112331fa20ed11a2311644f2b9cef74da0274eac198f18ec6b16bac4e6f82613"
+    },
+    {
+      "path": "framework/android/animation/LayoutTransition.java",
+      "license": "Apache-2.0",
+      "origin": "AOSP frameworks/base",
+      "sources": [
+        {
+          "url": "https://android.googlesource.com/platform/frameworks/base/+/37a24f52e6be75e7f7db461e3bee465152318c99/core/java/android/animation/LayoutTransition.java?format=TEXT",
+          "sha256": "95b5228a94732eda0131b52a43cbd08c23f40865762fd5df728cedcac5ca7069"
+        }
+      ],
+      "kind": "file",
+      "modified": true,
+      "retained_header_sha256": "41845febcd9458cc67174fa6c5de8d6070fdab00f336f834d22135c0e7e29ecd"
+    },
+    {
+      "path": "framework/android/animation/ObjectAnimator.java",
+      "license": "Apache-2.0",
+      "origin": "AOSP frameworks/base",
+      "sources": [
+        {
+          "url": "https://android.googlesource.com/platform/frameworks/base/+/37a24f52e6be75e7f7db461e3bee465152318c99/core/java/android/animation/ObjectAnimator.java?format=TEXT",
+          "sha256": "e63c101439ae234d69e60a26d212809de3fd7cb65962da57bcc0cedb770462cd"
+        }
+      ],
+      "kind": "file",
+      "modified": false,
+      "retained_header_sha256": "41845febcd9458cc67174fa6c5de8d6070fdab00f336f834d22135c0e7e29ecd"
+    },
+    {
+      "path": "framework/android/animation/PathKeyframes.java",
+      "license": "Apache-2.0",
+      "origin": "AOSP frameworks/base",
+      "sources": [
+        {
+          "url": "https://android.googlesource.com/platform/frameworks/base/+/37a24f52e6be75e7f7db461e3bee465152318c99/core/java/android/animation/PathKeyframes.java?format=TEXT",
+          "sha256": "2823713acd2875d9e9a99bedb16330a9689c62ca20d9d8931478d14ff0b21eeb"
+        }
+      ],
+      "kind": "file",
+      "modified": false,
+      "retained_header_sha256": "112331fa20ed11a2311644f2b9cef74da0274eac198f18ec6b16bac4e6f82613"
+    },
+    {
+      "path": "framework/android/animation/PointFEvaluator.java",
+      "license": "Apache-2.0",
+      "origin": "AOSP frameworks/base",
+      "sources": [
+        {
+          "url": "https://android.googlesource.com/platform/frameworks/base/+/37a24f52e6be75e7f7db461e3bee465152318c99/core/java/android/animation/PointFEvaluator.java?format=TEXT",
+          "sha256": "967b0a51c23cdb55b7e02542b19c87ec162e49103827a5240ea7fd98191722dc"
+        }
+      ],
+      "kind": "file",
+      "modified": false,
+      "retained_header_sha256": "324242fc42ca1fe5892a57220c8a8720f68f1d5923bd69f0fc4e63f2b032656f"
+    },
+    {
+      "path": "framework/android/animation/PropertyValuesHolder.java",
+      "license": "Apache-2.0",
+      "origin": "AOSP frameworks/base",
+      "sources": [
+        {
+          "url": "https://android.googlesource.com/platform/frameworks/base/+/37a24f52e6be75e7f7db461e3bee465152318c99/core/java/android/animation/PropertyValuesHolder.java?format=TEXT",
+          "sha256": "bfc6624a8c6f35d0bb6d7960151023b4b77811f0a5b876648200bd7689ec670d"
+        }
+      ],
+      "kind": "file",
+      "modified": true,
+      "retained_header_sha256": "41845febcd9458cc67174fa6c5de8d6070fdab00f336f834d22135c0e7e29ecd"
+    },
+    {
+      "path": "framework/android/animation/RectEvaluator.java",
+      "license": "Apache-2.0",
+      "origin": "AOSP frameworks/base",
+      "sources": [
+        {
+          "url": "https://android.googlesource.com/platform/frameworks/base/+/37a24f52e6be75e7f7db461e3bee465152318c99/core/java/android/animation/RectEvaluator.java?format=TEXT",
+          "sha256": "bb406b832d00f4511790dd27d048e964264eb06904ec039ee080bc75ba4ed2f0"
+        }
+      ],
+      "kind": "file",
+      "modified": false,
+      "retained_header_sha256": "324242fc42ca1fe5892a57220c8a8720f68f1d5923bd69f0fc4e63f2b032656f"
+    },
+    {
+      "path": "framework/android/animation/StateListAnimator.java",
+      "license": "Apache-2.0",
+      "origin": "AOSP frameworks/base",
+      "sources": [
+        {
+          "url": "https://android.googlesource.com/platform/frameworks/base/+/37a24f52e6be75e7f7db461e3bee465152318c99/core/java/android/animation/StateListAnimator.java?format=TEXT",
+          "sha256": "45a29ccac971270af596f8a5bd757b63a2bc5c029d57a4c62e10caa6c18a97a7"
+        }
+      ],
+      "kind": "file",
+      "modified": false,
+      "retained_header_sha256": "112331fa20ed11a2311644f2b9cef74da0274eac198f18ec6b16bac4e6f82613"
+    },
+    {
+      "path": "framework/android/animation/TimeAnimator.java",
+      "license": "Apache-2.0",
+      "origin": "AOSP frameworks/base",
+      "sources": [
+        {
+          "url": "https://android.googlesource.com/platform/frameworks/base/+/37a24f52e6be75e7f7db461e3bee465152318c99/core/java/android/animation/TimeAnimator.java?format=TEXT",
+          "sha256": "c230cbc8cef792d8dd55032e0a35288361045115beac7d9e47806288f4debd03"
+        }
+      ],
+      "kind": "file",
+      "modified": false,
+      "retained_header_sha256": "41845febcd9458cc67174fa6c5de8d6070fdab00f336f834d22135c0e7e29ecd"
+    },
+    {
+      "path": "framework/android/animation/TimeInterpolator.java",
+      "license": "Apache-2.0",
+      "origin": "AOSP frameworks/base",
+      "sources": [
+        {
+          "url": "https://android.googlesource.com/platform/frameworks/base/+/37a24f52e6be75e7f7db461e3bee465152318c99/core/java/android/animation/TimeInterpolator.java?format=TEXT",
+          "sha256": "eea3b99b09619ed2b463a7c3e16e03b08e0449de5e4adcfa8f85fde29c1b855f"
+        }
+      ],
+      "kind": "file",
+      "modified": false,
+      "retained_header_sha256": "41845febcd9458cc67174fa6c5de8d6070fdab00f336f834d22135c0e7e29ecd"
+    },
+    {
+      "path": "framework/android/animation/TypeConverter.java",
+      "license": "Apache-2.0",
+      "origin": "AOSP frameworks/base",
+      "sources": [
+        {
+          "url": "https://android.googlesource.com/platform/frameworks/base/+/37a24f52e6be75e7f7db461e3bee465152318c99/core/java/android/animation/TypeConverter.java?format=TEXT",
+          "sha256": "5d23e145f6787c536044e99d951671a1257a851790ace61796012b75bb8fab97"
+        }
+      ],
+      "kind": "file",
+      "modified": false,
+      "retained_header_sha256": "324242fc42ca1fe5892a57220c8a8720f68f1d5923bd69f0fc4e63f2b032656f"
+    },
+    {
+      "path": "framework/android/animation/TypeEvaluator.java",
+      "license": "Apache-2.0",
+      "origin": "AOSP frameworks/base",
+      "sources": [
+        {
+          "url": "https://android.googlesource.com/platform/frameworks/base/+/37a24f52e6be75e7f7db461e3bee465152318c99/core/java/android/animation/TypeEvaluator.java?format=TEXT",
+          "sha256": "ae49e00328068d44f33a877f1a7e9a3bf41092c932fb024dd02f633d0b0a817a"
+        }
+      ],
+      "kind": "file",
+      "modified": false,
+      "retained_header_sha256": "41845febcd9458cc67174fa6c5de8d6070fdab00f336f834d22135c0e7e29ecd"
+    },
+    {
+      "path": "framework/android/animation/ValueAnimator.java",
+      "license": "Apache-2.0",
+      "origin": "AOSP frameworks/base",
+      "sources": [
+        {
+          "url": "https://android.googlesource.com/platform/frameworks/base/+/37a24f52e6be75e7f7db461e3bee465152318c99/core/java/android/animation/ValueAnimator.java?format=TEXT",
+          "sha256": "349c2ab7c7bd7af6a6ba9056a98eaddd4dd55dcc4c8524d4741894bd9a21d329"
+        }
+      ],
+      "kind": "file",
+      "modified": true,
+      "retained_header_sha256": "41845febcd9458cc67174fa6c5de8d6070fdab00f336f834d22135c0e7e29ecd"
+    },
+    {
+      "path": "framework/android/content/res/ConstantState.java",
+      "license": "Apache-2.0",
+      "origin": "AOSP frameworks/base",
+      "sources": [
+        {
+          "url": "https://android.googlesource.com/platform/frameworks/base/+/37a24f52e6be75e7f7db461e3bee465152318c99/core/java/android/content/res/ConstantState.java?format=TEXT",
+          "sha256": "e0ef078544866a621e4e27cd7da8fe19de56a4987f60db869a2bd400bc8a9c7b"
+        }
+      ],
+      "kind": "file",
+      "modified": false,
+      "retained_header_sha256": "a6022c7ae8cce6ed913ec95694c56403627966c3d3b733f01a153b664f62c8c2"
+    },
+    {
+      "path": "framework/android/graphics/BlendMode.java",
+      "license": "Apache-2.0",
+      "origin": "AOSP frameworks/base",
+      "sources": [
+        {
+          "url": "https://android.googlesource.com/platform/frameworks/base/+/37a24f52e6be75e7f7db461e3bee465152318c99/graphics/java/android/graphics/BlendMode.java?format=TEXT",
+          "sha256": "229d880ac0d5f20b34e2988b5d8e95272d60acda189feadb980c8f7d0f490b48"
+        }
+      ],
+      "kind": "file",
+      "modified": true,
+      "retained_header_sha256": "9d0f46e29c70c3c5e1bf9827a8b6f89dd4633da52ce437ab334a833487c84e14"
+    },
+    {
+      "path": "framework/android/graphics/Insets.java",
+      "license": "Apache-2.0",
+      "origin": "AOSP frameworks/base",
+      "sources": [
+        {
+          "url": "https://android.googlesource.com/platform/frameworks/base/+/37a24f52e6be75e7f7db461e3bee465152318c99/graphics/java/android/graphics/Insets.java?format=TEXT",
+          "sha256": "96bfa5610b6f2705a22fc0b065e05a24cfe9e9517c24866a19b9412903583d72"
+        }
+      ],
+      "kind": "file",
+      "modified": true,
+      "retained_header_sha256": "df2436a6f58c1a53985d26b2293d48e74ab788ca813cc8b2adb76e8f85a96677"
+    },
+    {
+      "path": "framework/android/graphics/Outline.java",
+      "license": "Apache-2.0",
+      "origin": "AOSP frameworks/base",
+      "sources": [
+        {
+          "url": "https://android.googlesource.com/platform/frameworks/base/+/37a24f52e6be75e7f7db461e3bee465152318c99/graphics/java/android/graphics/Outline.java?format=TEXT",
+          "sha256": "96356a2ac4d29aff4c5773ac138e7bf4a96e0df85ab7ad15f69547acab07e017"
+        }
+      ],
+      "kind": "file",
+      "modified": true,
+      "retained_header_sha256": "112331fa20ed11a2311644f2b9cef74da0274eac198f18ec6b16bac4e6f82613"
+    },
+    {
+      "path": "framework/android/graphics/Rect.java",
+      "license": "Apache-2.0",
+      "origin": "AOSP frameworks/base",
+      "sources": [
+        {
+          "url": "https://android.googlesource.com/platform/frameworks/base/+/37a24f52e6be75e7f7db461e3bee465152318c99/graphics/java/android/graphics/Rect.java?format=TEXT",
+          "sha256": "dc401afbd3d3ccf09a1c79bfc1a076591d15100fe8fdb101ca4c84546647c2c7"
+        }
+      ],
+      "kind": "file",
+      "modified": true,
+      "retained_header_sha256": "df2436a6f58c1a53985d26b2293d48e74ab788ca813cc8b2adb76e8f85a96677"
+    },
+    {
+      "path": "framework/android/graphics/RectF.java",
+      "license": "Apache-2.0",
+      "origin": "AOSP frameworks/base",
+      "sources": [
+        {
+          "url": "https://android.googlesource.com/platform/frameworks/base/+/37a24f52e6be75e7f7db461e3bee465152318c99/graphics/java/android/graphics/RectF.java?format=TEXT",
+          "sha256": "39e6e3fcdb001bd39fcf70047fdf116ae3017a74c46de9e9151086996c201dc5"
+        }
+      ],
+      "kind": "file",
+      "modified": true,
+      "retained_header_sha256": "df2436a6f58c1a53985d26b2293d48e74ab788ca813cc8b2adb76e8f85a96677"
+    },
+    {
+      "path": "framework/android/media/Image.java",
+      "license": "Apache-2.0",
+      "origin": "AOSP frameworks/base",
+      "sources": [
+        {
+          "url": "https://android.googlesource.com/platform/frameworks/base/+/37a24f52e6be75e7f7db461e3bee465152318c99/media/java/android/media/Image.java?format=TEXT",
+          "sha256": "deef04ed251d3655c3955ebe2f53848830900eb76ca672e62b312944f06e0d18"
+        }
+      ],
+      "kind": "file",
+      "modified": true,
+      "retained_header_sha256": "324242fc42ca1fe5892a57220c8a8720f68f1d5923bd69f0fc4e63f2b032656f"
+    },
+    {
+      "path": "framework/android/os/OperationCanceledException.java",
+      "license": "Apache-2.0",
+      "origin": "AOSP frameworks/base",
+      "sources": [
+        {
+          "url": "https://android.googlesource.com/platform/frameworks/base/+/37a24f52e6be75e7f7db461e3bee465152318c99/core/java/android/os/OperationCanceledException.java?format=TEXT",
+          "sha256": "f9e7a480cf54613eb10c1600cb267f3b2104d54fecb60ad4c5489e2dd55c52bd"
+        }
+      ],
+      "kind": "file",
+      "modified": false,
+      "retained_header_sha256": "a1dfc2b88d1a51e2574ccf5b123ffb2c7c518a5ed10f4c57dfc43faec195907c"
+    },
+    {
+      "path": "framework/android/util/ArrayMap.java",
+      "license": "Apache-2.0",
+      "origin": "AOSP frameworks/base",
+      "sources": [
+        {
+          "url": "https://android.googlesource.com/platform/frameworks/base/+/37a24f52e6be75e7f7db461e3bee465152318c99/core/java/android/util/ArrayMap.java?format=TEXT",
+          "sha256": "5123a67e37afc616c203e71612fc191da691f761f18150c9f0f5325331a52a44"
+        }
+      ],
+      "kind": "file",
+      "modified": true,
+      "retained_header_sha256": "324242fc42ca1fe5892a57220c8a8720f68f1d5923bd69f0fc4e63f2b032656f"
+    },
+    {
+      "path": "framework/android/util/DisplayMetrics.java",
+      "license": "Apache-2.0",
+      "origin": "AOSP frameworks/base",
+      "sources": [
+        {
+          "url": "https://android.googlesource.com/platform/frameworks/base/+/37a24f52e6be75e7f7db461e3bee465152318c99/core/java/android/util/DisplayMetrics.java?format=TEXT",
+          "sha256": "3c71d8334d958e564da51e595c35c07bac2c68816e5be17f78cc053e5bd7afdc"
+        }
+      ],
+      "kind": "file",
+      "modified": true,
+      "retained_header_sha256": "df2436a6f58c1a53985d26b2293d48e74ab788ca813cc8b2adb76e8f85a96677"
+    },
+    {
+      "path": "framework/android/util/FloatProperty.java",
+      "license": "Apache-2.0",
+      "origin": "AOSP frameworks/base",
+      "sources": [
+        {
+          "url": "https://android.googlesource.com/platform/frameworks/base/+/37a24f52e6be75e7f7db461e3bee465152318c99/core/java/android/util/FloatProperty.java?format=TEXT",
+          "sha256": "c76234f48e03d4fca0448ec93540d6d8c7f1259e2cac4f6bc6f4c27fbbdf1dff"
+        }
+      ],
+      "kind": "file",
+      "modified": false,
+      "retained_header_sha256": "b9fc24a6ca136cc571f5237f1b82536034946353b635870a7640a1443eb2e209"
+    },
+    {
+      "path": "framework/android/util/Half.java",
+      "license": "Apache-2.0",
+      "origin": "AOSP frameworks/base",
+      "sources": [
+        {
+          "url": "https://android.googlesource.com/platform/frameworks/base/+/37a24f52e6be75e7f7db461e3bee465152318c99/core/java/android/util/Half.java?format=TEXT",
+          "sha256": "542af1ac93044f6f9359418d3273a53181984f8be6a6f130bf52f7ab116e0e06"
+        }
+      ],
+      "kind": "file",
+      "modified": true,
+      "retained_header_sha256": "bd681efb8799978450f2abfdb13bf66aa8e2050c974625bf6ab8e184d4500b65"
+    },
+    {
+      "path": "framework/android/util/IntProperty.java",
+      "license": "Apache-2.0",
+      "origin": "AOSP frameworks/base",
+      "sources": [
+        {
+          "url": "https://android.googlesource.com/platform/frameworks/base/+/37a24f52e6be75e7f7db461e3bee465152318c99/core/java/android/util/IntProperty.java?format=TEXT",
+          "sha256": "51d706270a13479ad2ca9c3e8f683af44113a3a4bc0548bb4e35df507361e1db"
+        }
+      ],
+      "kind": "file",
+      "modified": false,
+      "retained_header_sha256": "b9fc24a6ca136cc571f5237f1b82536034946353b635870a7640a1443eb2e209"
+    },
+    {
+      "path": "framework/android/util/LogPrinter.java",
+      "license": "Apache-2.0",
+      "origin": "AOSP frameworks/base",
+      "sources": [
+        {
+          "url": "https://android.googlesource.com/platform/frameworks/base/+/37a24f52e6be75e7f7db461e3bee465152318c99/core/java/android/util/LogPrinter.java?format=TEXT",
+          "sha256": "fcaee6a7b3605e5528203378fcc3bb385f05869af9eb6cf2e53072d6bf05394e"
+        }
+      ],
+      "kind": "file",
+      "modified": true,
+      "retained_header_sha256": "df2436a6f58c1a53985d26b2293d48e74ab788ca813cc8b2adb76e8f85a96677"
+    },
+    {
+      "path": "framework/android/util/MapCollections.java",
+      "license": "Apache-2.0",
+      "origin": "AOSP frameworks/base",
+      "sources": [
+        {
+          "url": "https://android.googlesource.com/platform/frameworks/base/+/37a24f52e6be75e7f7db461e3bee465152318c99/core/java/android/util/MapCollections.java?format=TEXT",
+          "sha256": "615f76fe2d962afc0b069250278adf67b1a559e4eaaf4b9fc935f0729a0a497d"
+        }
+      ],
+      "kind": "file",
+      "modified": false,
+      "retained_header_sha256": "324242fc42ca1fe5892a57220c8a8720f68f1d5923bd69f0fc4e63f2b032656f"
+    },
+    {
+      "path": "framework/android/util/NoSuchPropertyException.java",
+      "license": "Apache-2.0",
+      "origin": "AOSP frameworks/base",
+      "sources": [
+        {
+          "url": "https://android.googlesource.com/platform/frameworks/base/+/37a24f52e6be75e7f7db461e3bee465152318c99/core/java/android/util/NoSuchPropertyException.java?format=TEXT",
+          "sha256": "8760c314cb98295249b3554dfa376738f5f4803e96f2863fafdb5c1ec34b85c9"
+        }
+      ],
+      "kind": "file",
+      "modified": false,
+      "retained_header_sha256": "b9fc24a6ca136cc571f5237f1b82536034946353b635870a7640a1443eb2e209"
+    },
+    {
+      "path": "framework/android/util/Printer.java",
+      "license": "Apache-2.0",
+      "origin": "AOSP frameworks/base",
+      "sources": [
+        {
+          "url": "https://android.googlesource.com/platform/frameworks/base/+/37a24f52e6be75e7f7db461e3bee465152318c99/core/java/android/util/Printer.java?format=TEXT",
+          "sha256": "9c0ee0efc19ecd352edf514e9216ee11c7203e01470bf964cb1db27f2f7c7bb3"
+        }
+      ],
+      "kind": "file",
+      "modified": false,
+      "retained_header_sha256": "df2436a6f58c1a53985d26b2293d48e74ab788ca813cc8b2adb76e8f85a96677"
+    },
+    {
+      "path": "framework/android/util/Property.java",
+      "license": "Apache-2.0",
+      "origin": "AOSP frameworks/base",
+      "sources": [
+        {
+          "url": "https://android.googlesource.com/platform/frameworks/base/+/37a24f52e6be75e7f7db461e3bee465152318c99/core/java/android/util/Property.java?format=TEXT",
+          "sha256": "63eafe3b00c60817c4643f9b323e354d0dfe469d375bb188c9d58b163544b3cb"
+        }
+      ],
+      "kind": "file",
+      "modified": false,
+      "retained_header_sha256": "b9fc24a6ca136cc571f5237f1b82536034946353b635870a7640a1443eb2e209"
+    },
+    {
+      "path": "framework/android/util/Range.java",
+      "license": "Apache-2.0",
+      "origin": "AOSP frameworks/base",
+      "sources": [
+        {
+          "url": "https://android.googlesource.com/platform/frameworks/base/+/37a24f52e6be75e7f7db461e3bee465152318c99/core/java/android/util/Range.java?format=TEXT",
+          "sha256": "5cd12b13393d9105328e60f71ef9559b45f28b4f821b0f3055e0510f676f5188"
+        }
+      ],
+      "kind": "file",
+      "modified": true,
+      "retained_header_sha256": "112331fa20ed11a2311644f2b9cef74da0274eac198f18ec6b16bac4e6f82613"
+    },
+    {
+      "path": "framework/android/util/Rational.java",
+      "license": "Apache-2.0",
+      "origin": "AOSP frameworks/base",
+      "sources": [
+        {
+          "url": "https://android.googlesource.com/platform/frameworks/base/+/37a24f52e6be75e7f7db461e3bee465152318c99/core/java/android/util/Rational.java?format=TEXT",
+          "sha256": "097500446358c64f9e256e204d7f34b6b6b6d661a815c88957545852c911f5b2"
+        }
+      ],
+      "kind": "file",
+      "modified": true,
+      "retained_header_sha256": "324242fc42ca1fe5892a57220c8a8720f68f1d5923bd69f0fc4e63f2b032656f"
+    },
+    {
+      "path": "framework/android/util/ReflectiveProperty.java",
+      "license": "Apache-2.0",
+      "origin": "AOSP frameworks/base",
+      "sources": [
+        {
+          "url": "https://android.googlesource.com/platform/frameworks/base/+/37a24f52e6be75e7f7db461e3bee465152318c99/core/java/android/util/ReflectiveProperty.java?format=TEXT",
+          "sha256": "f8e76b95c481b6ffb41ef22f4294de3a46581d76d2d747ffd231fd9241c40852"
+        }
+      ],
+      "kind": "file",
+      "modified": false,
+      "retained_header_sha256": "b9fc24a6ca136cc571f5237f1b82536034946353b635870a7640a1443eb2e209"
+    },
+    {
+      "path": "framework/android/util/Size.java",
+      "license": "Apache-2.0",
+      "origin": "AOSP frameworks/base",
+      "sources": [
+        {
+          "url": "https://android.googlesource.com/platform/frameworks/base/+/37a24f52e6be75e7f7db461e3bee465152318c99/core/java/android/util/Size.java?format=TEXT",
+          "sha256": "bf7c5157ffdb18113f455982c0f02c7f9bbcf2dd6cacf04e0c22f481ebceea73"
+        }
+      ],
+      "kind": "file",
+      "modified": false,
+      "retained_header_sha256": "324242fc42ca1fe5892a57220c8a8720f68f1d5923bd69f0fc4e63f2b032656f"
+    },
+    {
+      "path": "framework/android/util/SizeF.java",
+      "license": "Apache-2.0",
+      "origin": "AOSP frameworks/base",
+      "sources": [
+        {
+          "url": "https://android.googlesource.com/platform/frameworks/base/+/37a24f52e6be75e7f7db461e3bee465152318c99/core/java/android/util/SizeF.java?format=TEXT",
+          "sha256": "7e95bbcee9278bdee2f017110868433b418272f903602fe3e4ae899e91e1ea8f"
+        }
+      ],
+      "kind": "file",
+      "modified": false,
+      "retained_header_sha256": "112331fa20ed11a2311644f2b9cef74da0274eac198f18ec6b16bac4e6f82613"
+    },
+    {
+      "path": "framework/android/util/StateSet.java",
+      "license": "Apache-2.0",
+      "origin": "AOSP frameworks/base",
+      "sources": [
+        {
+          "url": "https://android.googlesource.com/platform/frameworks/base/+/37a24f52e6be75e7f7db461e3bee465152318c99/core/java/android/util/StateSet.java?format=TEXT",
+          "sha256": "4e1243c35a75631cb059ab128ce28895f2d203c1841f0de2c4f585f1f0d02eef"
+        }
+      ],
+      "kind": "file",
+      "modified": false,
+      "retained_header_sha256": "3220a495d3e12782373bef3360279aef43eb994534e030b6747b2a39265d7b8c"
+    },
+    {
+      "path": "framework/android/util/TimingLogger.java",
+      "license": "Apache-2.0",
+      "origin": "AOSP frameworks/base",
+      "sources": [
+        {
+          "url": "https://android.googlesource.com/platform/frameworks/base/+/37a24f52e6be75e7f7db461e3bee465152318c99/core/java/android/util/TimingLogger.java?format=TEXT",
+          "sha256": "4168d88c984e2eaba6ba83ec644b8969bc7b006c0b8a57f2f7762f3d8c96a5f8"
+        }
+      ],
+      "kind": "file",
+      "modified": false,
+      "retained_header_sha256": "3220a495d3e12782373bef3360279aef43eb994534e030b6747b2a39265d7b8c"
+    },
+    {
+      "path": "framework/android/util/TypedValue.java",
+      "license": "Apache-2.0",
+      "origin": "AOSP frameworks/base",
+      "sources": [
+        {
+          "url": "https://android.googlesource.com/platform/frameworks/base/+/37a24f52e6be75e7f7db461e3bee465152318c99/core/java/android/util/TypedValue.java?format=TEXT",
+          "sha256": "6db9af83bcf613b618e7b7a748b1eb3da7a23a4012b76e43591ff3c320dd3b6f"
+        }
+      ],
+      "kind": "file",
+      "modified": false,
+      "retained_header_sha256": "3220a495d3e12782373bef3360279aef43eb994534e030b6747b2a39265d7b8c"
+    },
+    {
+      "path": "framework/android/view/AbsSavedState.java",
+      "license": "Apache-2.0",
+      "origin": "AOSP frameworks/base",
+      "sources": [
+        {
+          "url": "https://android.googlesource.com/platform/frameworks/base/+/37a24f52e6be75e7f7db461e3bee465152318c99/core/java/android/view/AbsSavedState.java?format=TEXT",
+          "sha256": "08de1651b118a6cd1d94daf72a965512e76f5839d19d357f0a6a62317916c56c"
+        }
+      ],
+      "kind": "file",
+      "modified": false,
+      "retained_header_sha256": "df2436a6f58c1a53985d26b2293d48e74ab788ca813cc8b2adb76e8f85a96677"
+    },
+    {
+      "path": "framework/android/view/GestureDetector.java",
+      "license": "Apache-2.0",
+      "origin": "AOSP frameworks/base",
+      "sources": [
+        {
+          "url": "https://android.googlesource.com/platform/frameworks/base/+/37a24f52e6be75e7f7db461e3bee465152318c99/core/java/android/view/GestureDetector.java?format=TEXT",
+          "sha256": "93fb1f3a752c1de2502b7b97fed613fcea384745cbdcbceef569702eb8cfcb5b"
+        }
+      ],
+      "kind": "file",
+      "modified": true,
+      "retained_header_sha256": "b017391556bb0ba3f5a7f174556f221e676665fc84a7f1762dac518d02880126"
+    },
+    {
+      "path": "framework/android/view/Gravity.java",
+      "license": "Apache-2.0",
+      "origin": "AOSP frameworks/base",
+      "sources": [
+        {
+          "url": "https://android.googlesource.com/platform/frameworks/base/+/37a24f52e6be75e7f7db461e3bee465152318c99/core/java/android/view/Gravity.java?format=TEXT",
+          "sha256": "808caed8a1837235fd3d08fd2b75b7534ce4b9482138176daf56acf5d61f51ba"
+        }
+      ],
+      "kind": "file",
+      "modified": false,
+      "retained_header_sha256": "df2436a6f58c1a53985d26b2293d48e74ab788ca813cc8b2adb76e8f85a96677"
+    },
+    {
+      "path": "framework/android/view/InflateException.java",
+      "license": "Apache-2.0",
+      "origin": "AOSP frameworks/base",
+      "sources": [
+        {
+          "url": "https://android.googlesource.com/platform/frameworks/base/+/37a24f52e6be75e7f7db461e3bee465152318c99/core/java/android/view/InflateException.java?format=TEXT",
+          "sha256": "a6c024bd421ec4c8686632805526ce773204e12b3ddf8be23f08c15a8e71ff2d"
+        }
+      ],
+      "kind": "file",
+      "modified": false,
+      "retained_header_sha256": "3220a495d3e12782373bef3360279aef43eb994534e030b6747b2a39265d7b8c"
+    },
+    {
+      "path": "framework/android/view/LayoutInflater.java",
+      "license": "Apache-2.0",
+      "origin": "AOSP frameworks/base",
+      "sources": [
+        {
+          "url": "https://android.googlesource.com/platform/frameworks/base/+/37a24f52e6be75e7f7db461e3bee465152318c99/core/java/android/view/LayoutInflater.java?format=TEXT",
+          "sha256": "aac97f4f2aa924a142ef618e486359483997f47e9793ff9fe21afd0e2fac4941"
+        }
+      ],
+      "kind": "file",
+      "modified": true,
+      "retained_header_sha256": "3220a495d3e12782373bef3360279aef43eb994534e030b6747b2a39265d7b8c"
+    },
+    {
+      "path": "framework/android/view/ViewOutlineProvider.java",
+      "license": "Apache-2.0",
+      "origin": "AOSP frameworks/base",
+      "sources": [
+        {
+          "url": "https://android.googlesource.com/platform/frameworks/base/+/37a24f52e6be75e7f7db461e3bee465152318c99/core/java/android/view/ViewOutlineProvider.java?format=TEXT",
+          "sha256": "310e1ed4ffd8350364a8b7a72732bc951f2fa9a0e10b44b1f23a583af32829fa"
+        }
+      ],
+      "kind": "file",
+      "modified": false,
+      "retained_header_sha256": "112331fa20ed11a2311644f2b9cef74da0274eac198f18ec6b16bac4e6f82613"
+    },
+    {
+      "path": "framework/android/view/ViewStub.java",
+      "license": "Apache-2.0",
+      "origin": "AOSP frameworks/base",
+      "sources": [
+        {
+          "url": "https://android.googlesource.com/platform/frameworks/base/+/37a24f52e6be75e7f7db461e3bee465152318c99/core/java/android/view/ViewStub.java?format=TEXT",
+          "sha256": "50f729e5abbf3b007dff7f56a15ad29557b202b35910be6f17d3d3f677b9ace7"
+        }
+      ],
+      "kind": "file",
+      "modified": true,
+      "retained_header_sha256": "b017391556bb0ba3f5a7f174556f221e676665fc84a7f1762dac518d02880126"
+    },
+    {
+      "path": "framework/android/view/animation/AccelerateDecelerateInterpolator.java",
+      "license": "Apache-2.0",
+      "origin": "AOSP frameworks/base",
+      "sources": [
+        {
+          "url": "https://android.googlesource.com/platform/frameworks/base/+/37a24f52e6be75e7f7db461e3bee465152318c99/core/java/android/view/animation/AccelerateDecelerateInterpolator.java?format=TEXT",
+          "sha256": "c933c420fe502dd285a319aac8cb0d020b70dc5854dfa1f2cd23c2000b6f2f49"
+        }
+      ],
+      "kind": "file",
+      "modified": true,
+      "retained_header_sha256": "3220a495d3e12782373bef3360279aef43eb994534e030b6747b2a39265d7b8c"
+    },
+    {
+      "path": "framework/android/view/animation/AccelerateInterpolator.java",
+      "license": "Apache-2.0",
+      "origin": "AOSP frameworks/base",
+      "sources": [
+        {
+          "url": "https://android.googlesource.com/platform/frameworks/base/+/37a24f52e6be75e7f7db461e3bee465152318c99/core/java/android/view/animation/AccelerateInterpolator.java?format=TEXT",
+          "sha256": "dd0efbc13a19cbd69b7866ba997d5c6d8b2a60526a218df66d90389e40d1b610"
+        }
+      ],
+      "kind": "file",
+      "modified": true,
+      "retained_header_sha256": "df2436a6f58c1a53985d26b2293d48e74ab788ca813cc8b2adb76e8f85a96677"
+    },
+    {
+      "path": "framework/android/view/animation/AlphaAnimation.java",
+      "license": "Apache-2.0",
+      "origin": "AOSP frameworks/base",
+      "sources": [
+        {
+          "url": "https://android.googlesource.com/platform/frameworks/base/+/37a24f52e6be75e7f7db461e3bee465152318c99/core/java/android/view/animation/AlphaAnimation.java?format=TEXT",
+          "sha256": "01f4491c5c1d1b497fb58c2ad51e0c928997b0fde6a787146a46bbc3aad57ea1"
+        }
+      ],
+      "kind": "file",
+      "modified": false,
+      "retained_header_sha256": "df2436a6f58c1a53985d26b2293d48e74ab788ca813cc8b2adb76e8f85a96677"
+    },
+    {
+      "path": "framework/android/view/animation/Animation.java",
+      "license": "Apache-2.0",
+      "origin": "AOSP frameworks/base",
+      "sources": [
+        {
+          "url": "https://android.googlesource.com/platform/frameworks/base/+/37a24f52e6be75e7f7db461e3bee465152318c99/core/java/android/view/animation/Animation.java?format=TEXT",
+          "sha256": "4b2d1ef363678018c2bfd705697271497aa2a003d76d4ff28c86932504a95d0a"
+        }
+      ],
+      "kind": "file",
+      "modified": true,
+      "retained_header_sha256": "df2436a6f58c1a53985d26b2293d48e74ab788ca813cc8b2adb76e8f85a96677"
+    },
+    {
+      "path": "framework/android/view/animation/AnimationSet.java",
+      "license": "Apache-2.0",
+      "origin": "AOSP frameworks/base",
+      "sources": [
+        {
+          "url": "https://android.googlesource.com/platform/frameworks/base/+/37a24f52e6be75e7f7db461e3bee465152318c99/core/java/android/view/animation/AnimationSet.java?format=TEXT",
+          "sha256": "778af44fc0ab225cf8d5e944074f1bfb4261aeffdb59ef805ecbe2ddafde8f2e"
+        }
+      ],
+      "kind": "file",
+      "modified": false,
+      "retained_header_sha256": "df2436a6f58c1a53985d26b2293d48e74ab788ca813cc8b2adb76e8f85a96677"
+    },
+    {
+      "path": "framework/android/view/animation/AnimationUtils.java",
+      "license": "Apache-2.0",
+      "origin": "AOSP frameworks/base",
+      "sources": [
+        {
+          "url": "https://android.googlesource.com/platform/frameworks/base/+/37a24f52e6be75e7f7db461e3bee465152318c99/core/java/android/view/animation/AnimationUtils.java?format=TEXT",
+          "sha256": "ba38cedfdf95850452598bfefbc68e0554caaee0092084a8cda86a0935930476"
+        }
+      ],
+      "kind": "file",
+      "modified": true,
+      "retained_header_sha256": "3220a495d3e12782373bef3360279aef43eb994534e030b6747b2a39265d7b8c"
+    },
+    {
+      "path": "framework/android/view/animation/AnticipateInterpolator.java",
+      "license": "Apache-2.0",
+      "origin": "AOSP frameworks/base",
+      "sources": [
+        {
+          "url": "https://android.googlesource.com/platform/frameworks/base/+/37a24f52e6be75e7f7db461e3bee465152318c99/core/java/android/view/animation/AnticipateInterpolator.java?format=TEXT",
+          "sha256": "bded002969c424f32df53f82cfb8b82716cbc14b6e22ae8bd9702b9b2410eae2"
+        }
+      ],
+      "kind": "file",
+      "modified": true,
+      "retained_header_sha256": "623d3727872cbcb7ff339b9a151f6f1a6eeb5bdf9f0afe2d7d51b2804fb6591c"
+    },
+    {
+      "path": "framework/android/view/animation/AnticipateOvershootInterpolator.java",
+      "license": "Apache-2.0",
+      "origin": "AOSP frameworks/base",
+      "sources": [
+        {
+          "url": "https://android.googlesource.com/platform/frameworks/base/+/37a24f52e6be75e7f7db461e3bee465152318c99/core/java/android/view/animation/AnticipateOvershootInterpolator.java?format=TEXT",
+          "sha256": "ed6e533bb507ee1814d0a27095f504acbe503a7685ed0ee6c84bf118da868620"
+        }
+      ],
+      "kind": "file",
+      "modified": true,
+      "retained_header_sha256": "623d3727872cbcb7ff339b9a151f6f1a6eeb5bdf9f0afe2d7d51b2804fb6591c"
+    },
+    {
+      "path": "framework/android/view/animation/BaseInterpolator.java",
+      "license": "Apache-2.0",
+      "origin": "AOSP frameworks/base",
+      "sources": [
+        {
+          "url": "https://android.googlesource.com/platform/frameworks/base/+/37a24f52e6be75e7f7db461e3bee465152318c99/core/java/android/view/animation/BaseInterpolator.java?format=TEXT",
+          "sha256": "cb33e26481aa4ee30f600203ee5dd319137dc407addaa00458b20dd8c2de4aa3"
+        }
+      ],
+      "kind": "file",
+      "modified": false,
+      "retained_header_sha256": "112331fa20ed11a2311644f2b9cef74da0274eac198f18ec6b16bac4e6f82613"
+    },
+    {
+      "path": "framework/android/view/animation/BounceInterpolator.java",
+      "license": "Apache-2.0",
+      "origin": "AOSP frameworks/base",
+      "sources": [
+        {
+          "url": "https://android.googlesource.com/platform/frameworks/base/+/37a24f52e6be75e7f7db461e3bee465152318c99/core/java/android/view/animation/BounceInterpolator.java?format=TEXT",
+          "sha256": "be184de989af99b796f71d9dd76bda3b028ddc1f0ff75412b4cab3470b3d76f8"
+        }
+      ],
+      "kind": "file",
+      "modified": true,
+      "retained_header_sha256": "623d3727872cbcb7ff339b9a151f6f1a6eeb5bdf9f0afe2d7d51b2804fb6591c"
+    },
+    {
+      "path": "framework/android/view/animation/CycleInterpolator.java",
+      "license": "Apache-2.0",
+      "origin": "AOSP frameworks/base",
+      "sources": [
+        {
+          "url": "https://android.googlesource.com/platform/frameworks/base/+/37a24f52e6be75e7f7db461e3bee465152318c99/core/java/android/view/animation/CycleInterpolator.java?format=TEXT",
+          "sha256": "ce9cf849c4dfda27a034fb71e6fa4ba8dc62922b356d4132cea58af0321c34fc"
+        }
+      ],
+      "kind": "file",
+      "modified": true,
+      "retained_header_sha256": "3220a495d3e12782373bef3360279aef43eb994534e030b6747b2a39265d7b8c"
+    },
+    {
+      "path": "framework/android/view/animation/DecelerateInterpolator.java",
+      "license": "Apache-2.0",
+      "origin": "AOSP frameworks/base",
+      "sources": [
+        {
+          "url": "https://android.googlesource.com/platform/frameworks/base/+/37a24f52e6be75e7f7db461e3bee465152318c99/core/java/android/view/animation/DecelerateInterpolator.java?format=TEXT",
+          "sha256": "6642fed098f8ca73fb545c1d1be21de7890224540c19842597dbf302e07e6624"
+        }
+      ],
+      "kind": "file",
+      "modified": true,
+      "retained_header_sha256": "3220a495d3e12782373bef3360279aef43eb994534e030b6747b2a39265d7b8c"
+    },
+    {
+      "path": "framework/android/view/animation/GridLayoutAnimationController.java",
+      "license": "Apache-2.0",
+      "origin": "AOSP frameworks/base",
+      "sources": [
+        {
+          "url": "https://android.googlesource.com/platform/frameworks/base/+/37a24f52e6be75e7f7db461e3bee465152318c99/core/java/android/view/animation/GridLayoutAnimationController.java?format=TEXT",
+          "sha256": "e19c01d26c3315ed3b993772a27f41511e01c107a8157e5f50e61d4023d5981e"
+        }
+      ],
+      "kind": "file",
+      "modified": false,
+      "retained_header_sha256": "3220a495d3e12782373bef3360279aef43eb994534e030b6747b2a39265d7b8c"
+    },
+    {
+      "path": "framework/android/view/animation/Interpolator.java",
+      "license": "Apache-2.0",
+      "origin": "AOSP frameworks/base",
+      "sources": [
+        {
+          "url": "https://android.googlesource.com/platform/frameworks/base/+/37a24f52e6be75e7f7db461e3bee465152318c99/core/java/android/view/animation/Interpolator.java?format=TEXT",
+          "sha256": "b3c62ac8f8433b9d7a3b179610c3f5ee02d3fb3c8dd2185f419201ac6e3407f2"
+        }
+      ],
+      "kind": "file",
+      "modified": false,
+      "retained_header_sha256": "df2436a6f58c1a53985d26b2293d48e74ab788ca813cc8b2adb76e8f85a96677"
+    },
+    {
+      "path": "framework/android/view/animation/LayoutAnimationController.java",
+      "license": "Apache-2.0",
+      "origin": "AOSP frameworks/base",
+      "sources": [
+        {
+          "url": "https://android.googlesource.com/platform/frameworks/base/+/37a24f52e6be75e7f7db461e3bee465152318c99/core/java/android/view/animation/LayoutAnimationController.java?format=TEXT",
+          "sha256": "c9eddd9d62f2d8a9161e7893c5eadd3eefca2f434caf523a68985e68e7fb9995"
+        }
+      ],
+      "kind": "file",
+      "modified": false,
+      "retained_header_sha256": "3220a495d3e12782373bef3360279aef43eb994534e030b6747b2a39265d7b8c"
+    },
+    {
+      "path": "framework/android/view/animation/LinearInterpolator.java",
+      "license": "Apache-2.0",
+      "origin": "AOSP frameworks/base",
+      "sources": [
+        {
+          "url": "https://android.googlesource.com/platform/frameworks/base/+/37a24f52e6be75e7f7db461e3bee465152318c99/core/java/android/view/animation/LinearInterpolator.java?format=TEXT",
+          "sha256": "d618042371e7026d5db6c88b1e442d0d34fd86c8a4ed5c4a69c20b873cbce3e3"
+        }
+      ],
+      "kind": "file",
+      "modified": true,
+      "retained_header_sha256": "df2436a6f58c1a53985d26b2293d48e74ab788ca813cc8b2adb76e8f85a96677"
+    },
+    {
+      "path": "framework/android/view/animation/OvershootInterpolator.java",
+      "license": "Apache-2.0",
+      "origin": "AOSP frameworks/base",
+      "sources": [
+        {
+          "url": "https://android.googlesource.com/platform/frameworks/base/+/37a24f52e6be75e7f7db461e3bee465152318c99/core/java/android/view/animation/OvershootInterpolator.java?format=TEXT",
+          "sha256": "28d9a795a3aa27e07c1d32833f1f268919468448ef300335bfb02ff84cd6a0bf"
+        }
+      ],
+      "kind": "file",
+      "modified": true,
+      "retained_header_sha256": "623d3727872cbcb7ff339b9a151f6f1a6eeb5bdf9f0afe2d7d51b2804fb6591c"
+    },
+    {
+      "path": "framework/android/view/animation/PathInterpolator.java",
+      "license": "Apache-2.0",
+      "origin": "AOSP frameworks/base",
+      "sources": [
+        {
+          "url": "https://android.googlesource.com/platform/frameworks/base/+/37a24f52e6be75e7f7db461e3bee465152318c99/core/java/android/view/animation/PathInterpolator.java?format=TEXT",
+          "sha256": "b5b5bf92bb915d6d7f76f74dd1a3a8f1b6540b74a8a0232259266386940cdd98"
+        }
+      ],
+      "kind": "file",
+      "modified": true,
+      "retained_header_sha256": "324242fc42ca1fe5892a57220c8a8720f68f1d5923bd69f0fc4e63f2b032656f"
+    },
+    {
+      "path": "framework/android/view/animation/RotateAnimation.java",
+      "license": "Apache-2.0",
+      "origin": "AOSP frameworks/base",
+      "sources": [
+        {
+          "url": "https://android.googlesource.com/platform/frameworks/base/+/37a24f52e6be75e7f7db461e3bee465152318c99/core/java/android/view/animation/RotateAnimation.java?format=TEXT",
+          "sha256": "33d1bb835ee1a8c819609dad98ee578bdb0cd8225fc091aacadd9d2ad9f8e216"
+        }
+      ],
+      "kind": "file",
+      "modified": false,
+      "retained_header_sha256": "df2436a6f58c1a53985d26b2293d48e74ab788ca813cc8b2adb76e8f85a96677"
+    },
+    {
+      "path": "framework/android/view/animation/ScaleAnimation.java",
+      "license": "Apache-2.0",
+      "origin": "AOSP frameworks/base",
+      "sources": [
+        {
+          "url": "https://android.googlesource.com/platform/frameworks/base/+/37a24f52e6be75e7f7db461e3bee465152318c99/core/java/android/view/animation/ScaleAnimation.java?format=TEXT",
+          "sha256": "90ee6b38c843b4f43e4910a0920608652843f7dc8d1116ba4f7dfb16cece5e53"
+        }
+      ],
+      "kind": "file",
+      "modified": false,
+      "retained_header_sha256": "df2436a6f58c1a53985d26b2293d48e74ab788ca813cc8b2adb76e8f85a96677"
+    },
+    {
+      "path": "framework/android/view/animation/Transformation.java",
+      "license": "Apache-2.0",
+      "origin": "AOSP frameworks/base",
+      "sources": [
+        {
+          "url": "https://android.googlesource.com/platform/frameworks/base/+/37a24f52e6be75e7f7db461e3bee465152318c99/core/java/android/view/animation/Transformation.java?format=TEXT",
+          "sha256": "4e79fc052c9f34d4b4dea9250c882209684cdfbeaac7677bccb5fe978ed2872c"
+        }
+      ],
+      "kind": "file",
+      "modified": true,
+      "retained_header_sha256": "df2436a6f58c1a53985d26b2293d48e74ab788ca813cc8b2adb76e8f85a96677"
+    },
+    {
+      "path": "framework/android/view/animation/TranslateAnimation.java",
+      "license": "Apache-2.0",
+      "origin": "AOSP frameworks/base",
+      "sources": [
+        {
+          "url": "https://android.googlesource.com/platform/frameworks/base/+/37a24f52e6be75e7f7db461e3bee465152318c99/core/java/android/view/animation/TranslateAnimation.java?format=TEXT",
+          "sha256": "a02fdd43e8750c43f9bada8d7c05a00c01edd227918c3f08455d976e28908d15"
+        }
+      ],
+      "kind": "file",
+      "modified": true,
+      "retained_header_sha256": "df2436a6f58c1a53985d26b2293d48e74ab788ca813cc8b2adb76e8f85a96677"
+    },
+    {
+      "path": "framework/android/view/animation/TranslateXAnimation.java",
+      "license": "Apache-2.0",
+      "origin": "AOSP frameworks/base",
+      "sources": [
+        {
+          "url": "https://android.googlesource.com/platform/frameworks/base/+/37a24f52e6be75e7f7db461e3bee465152318c99/core/java/android/view/animation/TranslateXAnimation.java?format=TEXT",
+          "sha256": "a1ab799b32ec83a023447e64733aecb58aea146ce0934984d2bdba66109958e2"
+        }
+      ],
+      "kind": "file",
+      "modified": false,
+      "retained_header_sha256": "3eef9d928917c18427704cbdf31a57e9548a88a918cbb3924a2cfbff04a86ffd"
+    },
+    {
+      "path": "framework/android/view/animation/TranslateYAnimation.java",
+      "license": "Apache-2.0",
+      "origin": "AOSP frameworks/base",
+      "sources": [
+        {
+          "url": "https://android.googlesource.com/platform/frameworks/base/+/37a24f52e6be75e7f7db461e3bee465152318c99/core/java/android/view/animation/TranslateYAnimation.java?format=TEXT",
+          "sha256": "0f22f9431174a74970df549406f98168c8cfbbff5c9d520b095d385a608aba67"
+        }
+      ],
+      "kind": "file",
+      "modified": true,
+      "retained_header_sha256": "3eef9d928917c18427704cbdf31a57e9548a88a918cbb3924a2cfbff04a86ffd"
+    },
+    {
+      "path": "framework/android/widget/Space.java",
+      "license": "Apache-2.0",
+      "origin": "AOSP frameworks/base",
+      "sources": [
+        {
+          "url": "https://android.googlesource.com/platform/frameworks/base/+/37a24f52e6be75e7f7db461e3bee465152318c99/core/java/android/widget/Space.java?format=TEXT",
+          "sha256": "74af269ff3834bfafc97517383bc90781d00ad78e891f269445e5dd9491b0d1e"
+        }
+      ],
+      "kind": "file",
+      "modified": false,
+      "retained_header_sha256": "b9fc24a6ca136cc571f5237f1b82536034946353b635870a7640a1443eb2e209"
+    },
+    {
+      "path": "framework/com/android/internal/R.java",
+      "license": "Apache-2.0",
+      "origin": "AOSP resource tables",
+      "sources": [
+        {
+          "url": "https://android.googlesource.com/platform/frameworks/base/+/37a24f52e6be75e7f7db461e3bee465152318c99/core/res/res/values/attrs.xml?format=TEXT",
+          "sha256": "44384221804431d70cae0002f425f528005214a1093026965b3d7e39bc0ff444"
+        },
+        {
+          "url": "https://android.googlesource.com/platform/frameworks/base/+/37a24f52e6be75e7f7db461e3bee465152318c99/core/res/res/values/public.xml?format=TEXT",
+          "sha256": "098326a3a8cb92eeea35b794f8f8a24c875ff66a464bbeaeebbe5fed352ff803"
+        }
+      ],
+      "kind": "generated",
+      "modified": true,
+      "retained_header_sha256": "6cd49d44f6203c2a672c65ca2ae5189f90271bc15e9ade36b71c3e475d32f07c"
+    },
+    {
+      "path": "framework/com/android/internal/RStyleableArrays.java",
+      "license": "Apache-2.0",
+      "origin": "AOSP resource tables",
+      "sources": [
+        {
+          "url": "https://android.googlesource.com/platform/frameworks/base/+/37a24f52e6be75e7f7db461e3bee465152318c99/core/res/res/values/attrs.xml?format=TEXT",
+          "sha256": "44384221804431d70cae0002f425f528005214a1093026965b3d7e39bc0ff444"
+        },
+        {
+          "url": "https://android.googlesource.com/platform/frameworks/base/+/37a24f52e6be75e7f7db461e3bee465152318c99/core/res/res/values/public.xml?format=TEXT",
+          "sha256": "098326a3a8cb92eeea35b794f8f8a24c875ff66a464bbeaeebbe5fed352ff803"
+        }
+      ],
+      "kind": "generated",
+      "modified": true,
+      "retained_header_sha256": "6cd49d44f6203c2a672c65ca2ae5189f90271bc15e9ade36b71c3e475d32f07c"
+    },
+    {
+      "path": "framework/com/android/internal/util/ArrayUtils.java",
+      "license": "Apache-2.0",
+      "origin": "AOSP frameworks/base",
+      "sources": [
+        {
+          "url": "https://android.googlesource.com/platform/frameworks/base/+/37a24f52e6be75e7f7db461e3bee465152318c99/core/java/com/android/internal/util/ArrayUtils.java?format=TEXT",
+          "sha256": "028f549c8508a3a62d68f99969685a2da3ee9a8bd2132a866dd2796262de296d"
+        }
+      ],
+      "kind": "file",
+      "modified": true,
+      "retained_header_sha256": "df2436a6f58c1a53985d26b2293d48e74ab788ca813cc8b2adb76e8f85a96677"
+    },
+    {
+      "path": "framework/com/android/internal/util/GrowingArrayUtils.java",
+      "license": "Apache-2.0",
+      "origin": "AOSP frameworks/base",
+      "sources": [
+        {
+          "url": "https://android.googlesource.com/platform/frameworks/base/+/37a24f52e6be75e7f7db461e3bee465152318c99/core/java/com/android/internal/util/GrowingArrayUtils.java?format=TEXT",
+          "sha256": "5dffd84e952c7a616242e4bf9c2aaa64e3cc9e218e8469553c400ca931136ee0"
+        }
+      ],
+      "kind": "file",
+      "modified": true,
+      "retained_header_sha256": "112331fa20ed11a2311644f2b9cef74da0274eac198f18ec6b16bac4e6f82613"
+    },
+    {
+      "path": "framework/java/math/BigDecimal.java",
+      "license": "Apache-2.0",
+      "origin": "Apache Harmony",
+      "sources": [
+        {
+          "url": "https://raw.githubusercontent.com/apache/harmony/02970cb7227a335edd2c8457ebdde0195a735733/classlib/modules/math/src/main/java/java/math/BigDecimal.java",
+          "sha256": "6be37261873be5a95849cfcae3d3debb014828b3f476b665da8b2c142a357982"
+        }
+      ],
+      "kind": "file",
+      "modified": true,
+      "retained_header_sha256": "6860b687cdee19b777f075dfe66a0234d9da6f8a362da8e1d05db124a919d2e1"
+    },
+    {
+      "path": "framework/java/math/BigDecimalConversions.java",
+      "license": "Apache-2.0",
+      "origin": "Apache Harmony",
+      "sources": [
+        {
+          "url": "https://raw.githubusercontent.com/apache/harmony/02970cb7227a335edd2c8457ebdde0195a735733/classlib/modules/math/src/main/java/java/math/BigDecimal.java",
+          "sha256": "6be37261873be5a95849cfcae3d3debb014828b3f476b665da8b2c142a357982"
+        }
+      ],
+      "kind": "factored",
+      "modified": true,
+      "retained_header_sha256": "6860b687cdee19b777f075dfe66a0234d9da6f8a362da8e1d05db124a919d2e1"
+    },
+    {
+      "path": "framework/java/math/BigDecimalRounding.java",
+      "license": "Apache-2.0",
+      "origin": "Apache Harmony",
+      "sources": [
+        {
+          "url": "https://raw.githubusercontent.com/apache/harmony/02970cb7227a335edd2c8457ebdde0195a735733/classlib/modules/math/src/main/java/java/math/BigDecimal.java",
+          "sha256": "6be37261873be5a95849cfcae3d3debb014828b3f476b665da8b2c142a357982"
+        }
+      ],
+      "kind": "factored",
+      "modified": true,
+      "retained_header_sha256": "6860b687cdee19b777f075dfe66a0234d9da6f8a362da8e1d05db124a919d2e1"
+    },
+    {
+      "path": "framework/java/math/BigInt.java",
+      "license": "Apache-2.0",
+      "origin": "AOSP libcore",
+      "sources": [
+        {
+          "url": "https://android.googlesource.com/platform/libcore/+/refs/tags/android-4.4_r1/luni/src/main/java/java/math/BigInt.java?format=TEXT",
+          "sha256": "572ed438fab85c16fbbada2b41ac755772edc0da07b239e69d1b2a93ca569c64"
+        }
+      ],
+      "kind": "file",
+      "modified": true,
+      "retained_header_sha256": "b017391556bb0ba3f5a7f174556f221e676665fc84a7f1762dac518d02880126"
+    },
+    {
+      "path": "framework/java/math/BigInteger.java",
+      "license": "Apache-2.0",
+      "origin": "Apache Harmony",
+      "sources": [
+        {
+          "url": "https://raw.githubusercontent.com/apache/harmony/02970cb7227a335edd2c8457ebdde0195a735733/classlib/modules/math/src/main/java/java/math/BigInteger.java",
+          "sha256": "e7ab7811243d60c53104aa7dd67e52e692b34ee4241ee1e691ff45591323bf81"
+        }
+      ],
+      "kind": "file",
+      "modified": true,
+      "retained_header_sha256": "6860b687cdee19b777f075dfe66a0234d9da6f8a362da8e1d05db124a919d2e1"
+    },
+    {
+      "path": "framework/java/math/BitLevel.java",
+      "license": "Apache-2.0",
+      "origin": "Apache Harmony",
+      "sources": [
+        {
+          "url": "https://raw.githubusercontent.com/apache/harmony/02970cb7227a335edd2c8457ebdde0195a735733/classlib/modules/math/src/main/java/java/math/BitLevel.java",
+          "sha256": "09265e070368c06c86d38faf3fe699231fad0b474987fa4b4a7684752e99a291"
+        }
+      ],
+      "kind": "file",
+      "modified": true,
+      "retained_header_sha256": "6860b687cdee19b777f075dfe66a0234d9da6f8a362da8e1d05db124a919d2e1"
+    },
+    {
+      "path": "framework/java/math/Conversion.java",
+      "license": "Apache-2.0",
+      "origin": "Apache Harmony",
+      "sources": [
+        {
+          "url": "https://raw.githubusercontent.com/apache/harmony/02970cb7227a335edd2c8457ebdde0195a735733/classlib/modules/math/src/main/java/java/math/Conversion.java",
+          "sha256": "5f52e9ca875712747e80e280783de7cf7a9c62cf1bb46881936403a835fc5c28"
+        }
+      ],
+      "kind": "file",
+      "modified": true,
+      "retained_header_sha256": "6860b687cdee19b777f075dfe66a0234d9da6f8a362da8e1d05db124a919d2e1"
+    },
+    {
+      "path": "framework/java/math/Division.java",
+      "license": "Apache-2.0",
+      "origin": "Apache Harmony",
+      "sources": [
+        {
+          "url": "https://raw.githubusercontent.com/apache/harmony/02970cb7227a335edd2c8457ebdde0195a735733/classlib/modules/math/src/main/java/java/math/Division.java",
+          "sha256": "f4f8c791f47fb3997c7e0c19c37c68860dd7a73e220dda90f1fd6fd08f6c92b9"
+        }
+      ],
+      "kind": "file",
+      "modified": true,
+      "retained_header_sha256": "6860b687cdee19b777f075dfe66a0234d9da6f8a362da8e1d05db124a919d2e1"
+    },
+    {
+      "path": "framework/java/math/Logical.java",
+      "license": "Apache-2.0",
+      "origin": "Apache Harmony",
+      "sources": [
+        {
+          "url": "https://raw.githubusercontent.com/apache/harmony/02970cb7227a335edd2c8457ebdde0195a735733/classlib/modules/math/src/main/java/java/math/Logical.java",
+          "sha256": "72b2c6119bee383dcdf657c7665e1deb60bcf273a4e950b1949a3d3fa27c3350"
+        }
+      ],
+      "kind": "file",
+      "modified": true,
+      "retained_header_sha256": "6860b687cdee19b777f075dfe66a0234d9da6f8a362da8e1d05db124a919d2e1"
+    },
+    {
+      "path": "framework/java/math/MathContext.java",
+      "license": "Apache-2.0",
+      "origin": "Apache Harmony",
+      "sources": [
+        {
+          "url": "https://raw.githubusercontent.com/apache/harmony/02970cb7227a335edd2c8457ebdde0195a735733/classlib/modules/math/src/main/java/java/math/MathContext.java",
+          "sha256": "77280146700a63dab09126a187f0dc982fb5f25e2bbb5b31e070c9759e59e37c"
+        }
+      ],
+      "kind": "file",
+      "modified": true,
+      "retained_header_sha256": "6860b687cdee19b777f075dfe66a0234d9da6f8a362da8e1d05db124a919d2e1"
+    },
+    {
+      "path": "framework/java/math/Multiplication.java",
+      "license": "Apache-2.0",
+      "origin": "Apache Harmony",
+      "sources": [
+        {
+          "url": "https://raw.githubusercontent.com/apache/harmony/02970cb7227a335edd2c8457ebdde0195a735733/classlib/modules/math/src/main/java/java/math/Multiplication.java",
+          "sha256": "4af126cfed2f5c2f74572725dcab2806cce9638d767bbeafb30225d801d39d5b"
+        }
+      ],
+      "kind": "file",
+      "modified": true,
+      "retained_header_sha256": "6860b687cdee19b777f075dfe66a0234d9da6f8a362da8e1d05db124a919d2e1"
+    },
+    {
+      "path": "framework/java/math/NativeBN.java",
+      "license": "Apache-2.0",
+      "origin": "AOSP libcore",
+      "sources": [
+        {
+          "url": "https://android.googlesource.com/platform/libcore/+/refs/tags/android-4.4_r1/luni/src/main/java/java/math/NativeBN.java?format=TEXT",
+          "sha256": "484efea544f030311a8edbe1051621d7b1dc1d28c01775de73aade116ce6ec35"
+        }
+      ],
+      "kind": "file",
+      "modified": true,
+      "retained_header_sha256": "b017391556bb0ba3f5a7f174556f221e676665fc84a7f1762dac518d02880126"
+    },
+    {
+      "path": "framework/java/math/Primality.java",
+      "license": "Apache-2.0",
+      "origin": "Apache Harmony",
+      "sources": [
+        {
+          "url": "https://raw.githubusercontent.com/apache/harmony/02970cb7227a335edd2c8457ebdde0195a735733/classlib/modules/math/src/main/java/java/math/Primality.java",
+          "sha256": "be89d994492a2429d3d303fde43a8ccf746bba65fb1a5102fa3b8e953638c8c4"
+        }
+      ],
+      "kind": "file",
+      "modified": true,
+      "retained_header_sha256": "6860b687cdee19b777f075dfe66a0234d9da6f8a362da8e1d05db124a919d2e1"
+    },
+    {
+      "path": "framework/java/math/RoundingMode.java",
+      "license": "Apache-2.0",
+      "origin": "Apache Harmony",
+      "sources": [
+        {
+          "url": "https://raw.githubusercontent.com/apache/harmony/02970cb7227a335edd2c8457ebdde0195a735733/classlib/modules/math/src/main/java/java/math/RoundingMode.java",
+          "sha256": "009d7d24940149de6a4df37df9eca754744d9830d4991f58fc9b570fe68593b0"
+        }
+      ],
+      "kind": "file",
+      "modified": true,
+      "retained_header_sha256": "6860b687cdee19b777f075dfe66a0234d9da6f8a362da8e1d05db124a919d2e1"
+    },
+    {
+      "path": "framework/java/util/BitSet.java",
+      "license": "GPL-2.0-only WITH Classpath-exception-2.0",
+      "origin": "OpenJDK via AOSP libcore",
+      "sources": [
+        {
+          "url": "https://android.googlesource.com/platform/libcore/+/refs/tags/android-10.0.0_r47/ojluni/src/main/java/java/util/BitSet.java?format=TEXT",
+          "sha256": "fea427fa35b1d8c10b1d48c30a70f85a455fb0783f82e5e556a39773d60060d3"
+        }
+      ],
+      "kind": "file",
+      "modified": true,
+      "retained_header_sha256": "3d05912cfbcf1501ff7eeed10bdb5802676628249bc529137901c8a8048b85ea"
+    },
+    {
+      "path": "framework/java/util/Optional.java",
+      "license": "GPL-2.0-only WITH Classpath-exception-2.0",
+      "origin": "OpenJDK via AOSP libcore",
+      "sources": [
+        {
+          "url": "https://android.googlesource.com/platform/libcore/+/refs/tags/android-10.0.0_r47/ojluni/src/main/java/java/util/Optional.java?format=TEXT",
+          "sha256": "7395c3358a2b776661c7d5afc4d625e669abe71219a24304cd60b3318691c17b"
+        }
+      ],
+      "kind": "file",
+      "modified": false,
+      "retained_header_sha256": "53063e3031377cf7e8cd81bf761c8a40a21d84ea9a8a2b67dd43164b2fb77465"
+    },
+    {
+      "path": "framework/java/util/OptionalDouble.java",
+      "license": "GPL-2.0-only WITH Classpath-exception-2.0",
+      "origin": "OpenJDK via AOSP libcore",
+      "sources": [
+        {
+          "url": "https://android.googlesource.com/platform/libcore/+/refs/tags/android-10.0.0_r47/ojluni/src/main/java/java/util/OptionalDouble.java?format=TEXT",
+          "sha256": "d7a61e5eb5b2f0fee121001c82324c13c2dbc64e490d27c4e62a8103649ad314"
+        }
+      ],
+      "kind": "file",
+      "modified": false,
+      "retained_header_sha256": "53063e3031377cf7e8cd81bf761c8a40a21d84ea9a8a2b67dd43164b2fb77465"
+    },
+    {
+      "path": "framework/java/util/OptionalInt.java",
+      "license": "GPL-2.0-only WITH Classpath-exception-2.0",
+      "origin": "OpenJDK via AOSP libcore",
+      "sources": [
+        {
+          "url": "https://android.googlesource.com/platform/libcore/+/refs/tags/android-10.0.0_r47/ojluni/src/main/java/java/util/OptionalInt.java?format=TEXT",
+          "sha256": "c8c4d85f90793d7061c264230766b230fafdfa85969cf231cc9dd97e2329f934"
+        }
+      ],
+      "kind": "file",
+      "modified": false,
+      "retained_header_sha256": "53063e3031377cf7e8cd81bf761c8a40a21d84ea9a8a2b67dd43164b2fb77465"
+    },
+    {
+      "path": "framework/java/util/OptionalLong.java",
+      "license": "GPL-2.0-only WITH Classpath-exception-2.0",
+      "origin": "OpenJDK via AOSP libcore",
+      "sources": [
+        {
+          "url": "https://android.googlesource.com/platform/libcore/+/refs/tags/android-10.0.0_r47/ojluni/src/main/java/java/util/OptionalLong.java?format=TEXT",
+          "sha256": "390787577ce1f344e80ba2450eeb65ae7852dab7a8aa043fdfc328a7d8b66a46"
+        }
+      ],
+      "kind": "file",
+      "modified": false,
+      "retained_header_sha256": "53063e3031377cf7e8cd81bf761c8a40a21d84ea9a8a2b67dd43164b2fb77465"
+    },
+    {
+      "path": "framework/java/util/PriorityQueue.java",
+      "license": "GPL-2.0-only WITH Classpath-exception-2.0",
+      "origin": "OpenJDK via AOSP libcore",
+      "sources": [
+        {
+          "url": "https://android.googlesource.com/platform/libcore/+/refs/tags/android-10.0.0_r47/ojluni/src/main/java/java/util/PriorityQueue.java?format=TEXT",
+          "sha256": "a6123d7dde001cdb628b9f255b1672dbf046c317e9775ecf55cca8541fcbb7c0"
+        }
+      ],
+      "kind": "file",
+      "modified": true,
+      "retained_header_sha256": "91ec184b2ad7def0d98bfb17d20456542505e3a13f0e3a8b6228e6f10ff3d4cc"
+    },
+    {
+      "path": "framework/java/util/StringJoiner.java",
+      "license": "GPL-2.0-only WITH Classpath-exception-2.0",
+      "origin": "OpenJDK via AOSP libcore",
+      "sources": [
+        {
+          "url": "https://android.googlesource.com/platform/libcore/+/refs/tags/android-10.0.0_r47/ojluni/src/main/java/java/util/StringJoiner.java?format=TEXT",
+          "sha256": "14282396b179f13608d02c6918fb534aa0fbc90f0ac482c5c202f3d7f011e888"
+        }
+      ],
+      "kind": "file",
+      "modified": false,
+      "retained_header_sha256": "b6be737bf4a4fe2f4d90420931f32a3da6a091ac073c90a70b609a039c8bd7d0"
+    },
+    {
+      "path": "framework/java/util/concurrent/PriorityBlockingQueue.java",
+      "license": "GPL-2.0-only WITH Classpath-exception-2.0",
+      "origin": "OpenJDK via AOSP libcore",
+      "sources": [
+        {
+          "url": "https://android.googlesource.com/platform/libcore/+/refs/tags/android-10.0.0_r47/ojluni/src/main/java/java/util/concurrent/PriorityBlockingQueue.java?format=TEXT",
+          "sha256": "e8d8f49d7cc4760cc7ce170995db2564025669fe123c5dda706454ec18a0fe77"
+        }
+      ],
+      "kind": "file",
+      "modified": true,
+      "retained_header_sha256": "97b5d3a8a1ef58c11a5ebcf6855f296180565b687789c56c131a3bd20776e78b"
+    },
+    {
+      "path": "framework/java/util/concurrent/ThreadPoolExecutor.java",
+      "license": "GPL-2.0-only WITH Classpath-exception-2.0",
+      "origin": "OpenJDK via AOSP libcore",
+      "sources": [
+        {
+          "url": "https://android.googlesource.com/platform/libcore/+/refs/tags/android-10.0.0_r47/ojluni/src/main/java/java/util/concurrent/ThreadPoolExecutor.java?format=TEXT",
+          "sha256": "8be7000c5b535b01d0985a0e3edfee2a47eca14e2d987bb479ec3bac7c573969"
+        }
+      ],
+      "kind": "file",
+      "modified": true,
+      "retained_header_sha256": "97b5d3a8a1ef58c11a5ebcf6855f296180565b687789c56c131a3bd20776e78b"
+    },
+    {
+      "path": "framework/java/util/concurrent/locks/AbstractOwnableSynchronizer.java",
+      "license": "GPL-2.0-only WITH Classpath-exception-2.0",
+      "origin": "OpenJDK via AOSP libcore",
+      "sources": [
+        {
+          "url": "https://android.googlesource.com/platform/libcore/+/refs/tags/android-10.0.0_r47/ojluni/src/main/java/java/util/concurrent/locks/AbstractOwnableSynchronizer.java?format=TEXT",
+          "sha256": "1883e4f1e03d8926619e7d5588c59bceec8f5dafd401131fdf2fb7287c5d4592"
+        }
+      ],
+      "kind": "file",
+      "modified": true,
+      "retained_header_sha256": "97b5d3a8a1ef58c11a5ebcf6855f296180565b687789c56c131a3bd20776e78b"
+    },
+    {
+      "path": "framework/java/util/concurrent/locks/AbstractQueuedSynchronizer.java",
+      "license": "GPL-2.0-only WITH Classpath-exception-2.0",
+      "origin": "OpenJDK via AOSP libcore",
+      "sources": [
+        {
+          "url": "https://android.googlesource.com/platform/libcore/+/refs/tags/android-10.0.0_r47/ojluni/src/main/java/java/util/concurrent/locks/AbstractQueuedSynchronizer.java?format=TEXT",
+          "sha256": "0a6212ae8ad401e64099725ab65a3a201686f0330f808fdb7872c397fbb63638"
+        }
+      ],
+      "kind": "file",
+      "modified": true,
+      "retained_header_sha256": "97b5d3a8a1ef58c11a5ebcf6855f296180565b687789c56c131a3bd20776e78b"
+    },
+    {
+      "path": "framework/java/util/concurrent/locks/ReentrantLock.java",
+      "license": "GPL-2.0-only WITH Classpath-exception-2.0",
+      "origin": "OpenJDK via AOSP libcore",
+      "sources": [
+        {
+          "url": "https://android.googlesource.com/platform/libcore/+/refs/tags/android-10.0.0_r47/ojluni/src/main/java/java/util/concurrent/locks/ReentrantLock.java?format=TEXT",
+          "sha256": "0ddd84fd16dc7d80be2f1d04eded6b416499cff03d06a609bf97b80141c0eb32"
+        }
+      ],
+      "kind": "file",
+      "modified": true,
+      "retained_header_sha256": "97b5d3a8a1ef58c11a5ebcf6855f296180565b687789c56c131a3bd20776e78b"
+    },
+    {
+      "path": "framework/java/util/regex/AbstractCharClass.java",
+      "license": "Apache-2.0",
+      "origin": "Apache Harmony",
+      "sources": [
+        {
+          "url": "https://raw.githubusercontent.com/apache/harmony/02970cb7227a335edd2c8457ebdde0195a735733/classlib/modules/regex/src/main/java/java/util/regex/AbstractCharClass.java",
+          "sha256": "6c384bf5b6d1965f9ea45311a83e5eb82a87ef9c60bbe15fb3440d8081b8d4ca"
+        }
+      ],
+      "kind": "file",
+      "modified": false,
+      "retained_header_sha256": "6860b687cdee19b777f075dfe66a0234d9da6f8a362da8e1d05db124a919d2e1"
+    },
+    {
+      "path": "framework/java/util/regex/AbstractLineTerminator.java",
+      "license": "Apache-2.0",
+      "origin": "Apache Harmony",
+      "sources": [
+        {
+          "url": "https://raw.githubusercontent.com/apache/harmony/02970cb7227a335edd2c8457ebdde0195a735733/classlib/modules/regex/src/main/java/java/util/regex/AbstractLineTerminator.java",
+          "sha256": "33a94a6701b655243ba12cb6a0355edba882eb2989c7c4a1dd0bfb4de67a2be9"
+        }
+      ],
+      "kind": "file",
+      "modified": false,
+      "retained_header_sha256": "6860b687cdee19b777f075dfe66a0234d9da6f8a362da8e1d05db124a919d2e1"
+    },
+    {
+      "path": "framework/java/util/regex/AbstractSet.java",
+      "license": "Apache-2.0",
+      "origin": "Apache Harmony",
+      "sources": [
+        {
+          "url": "https://raw.githubusercontent.com/apache/harmony/02970cb7227a335edd2c8457ebdde0195a735733/classlib/modules/regex/src/main/java/java/util/regex/AbstractSet.java",
+          "sha256": "5eed11f9c89b86e9a7d87ca806ff57ccd43010b82c5d37d13e8419c4f1b2c76e"
+        }
+      ],
+      "kind": "file",
+      "modified": false,
+      "retained_header_sha256": "6860b687cdee19b777f075dfe66a0234d9da6f8a362da8e1d05db124a919d2e1"
+    },
+    {
+      "path": "framework/java/util/regex/AheadFSet.java",
+      "license": "Apache-2.0",
+      "origin": "Apache Harmony",
+      "sources": [
+        {
+          "url": "https://raw.githubusercontent.com/apache/harmony/02970cb7227a335edd2c8457ebdde0195a735733/classlib/modules/regex/src/main/java/java/util/regex/AheadFSet.java",
+          "sha256": "0fa9f69cf6a4cf253140d31b86d638e5c11820f140bd2971be3efd3b93db6eb3"
+        }
+      ],
+      "kind": "file",
+      "modified": false,
+      "retained_header_sha256": "6860b687cdee19b777f075dfe66a0234d9da6f8a362da8e1d05db124a919d2e1"
+    },
+    {
+      "path": "framework/java/util/regex/AltGroupQuantifierSet.java",
+      "license": "Apache-2.0",
+      "origin": "Apache Harmony",
+      "sources": [
+        {
+          "url": "https://raw.githubusercontent.com/apache/harmony/02970cb7227a335edd2c8457ebdde0195a735733/classlib/modules/regex/src/main/java/java/util/regex/AltGroupQuantifierSet.java",
+          "sha256": "5d51e53bc83014e690f051dc76369a65e78dbc8598cda51d164b98f5f791e008"
+        }
+      ],
+      "kind": "file",
+      "modified": false,
+      "retained_header_sha256": "6860b687cdee19b777f075dfe66a0234d9da6f8a362da8e1d05db124a919d2e1"
+    },
+    {
+      "path": "framework/java/util/regex/AltQuantifierSet.java",
+      "license": "Apache-2.0",
+      "origin": "Apache Harmony",
+      "sources": [
+        {
+          "url": "https://raw.githubusercontent.com/apache/harmony/02970cb7227a335edd2c8457ebdde0195a735733/classlib/modules/regex/src/main/java/java/util/regex/AltQuantifierSet.java",
+          "sha256": "ff647545ee66e20320738a3111eaaff143b10b6610758b887a96f07263958045"
+        }
+      ],
+      "kind": "file",
+      "modified": false,
+      "retained_header_sha256": "6860b687cdee19b777f075dfe66a0234d9da6f8a362da8e1d05db124a919d2e1"
+    },
+    {
+      "path": "framework/java/util/regex/AtomicFSet.java",
+      "license": "Apache-2.0",
+      "origin": "Apache Harmony",
+      "sources": [
+        {
+          "url": "https://raw.githubusercontent.com/apache/harmony/02970cb7227a335edd2c8457ebdde0195a735733/classlib/modules/regex/src/main/java/java/util/regex/AtomicFSet.java",
+          "sha256": "26f6b51450f07779121fca29889a44167ce1b7beb5632651031829504feae973"
+        }
+      ],
+      "kind": "file",
+      "modified": false,
+      "retained_header_sha256": "6860b687cdee19b777f075dfe66a0234d9da6f8a362da8e1d05db124a919d2e1"
+    },
+    {
+      "path": "framework/java/util/regex/AtomicJointSet.java",
+      "license": "Apache-2.0",
+      "origin": "Apache Harmony",
+      "sources": [
+        {
+          "url": "https://raw.githubusercontent.com/apache/harmony/02970cb7227a335edd2c8457ebdde0195a735733/classlib/modules/regex/src/main/java/java/util/regex/AtomicJointSet.java",
+          "sha256": "4985e2de9f59b043cb2d962fc22daa5f4cdd07be3246975675346184fa7487ac"
+        }
+      ],
+      "kind": "file",
+      "modified": false,
+      "retained_header_sha256": "6860b687cdee19b777f075dfe66a0234d9da6f8a362da8e1d05db124a919d2e1"
+    },
+    {
+      "path": "framework/java/util/regex/BackReferenceSet.java",
+      "license": "Apache-2.0",
+      "origin": "Apache Harmony",
+      "sources": [
+        {
+          "url": "https://raw.githubusercontent.com/apache/harmony/02970cb7227a335edd2c8457ebdde0195a735733/classlib/modules/regex/src/main/java/java/util/regex/BackReferenceSet.java",
+          "sha256": "427457281676de77c112a699e9c6acd6b3b514f2119a91025e6a751abe4cd1b1"
+        }
+      ],
+      "kind": "file",
+      "modified": false,
+      "retained_header_sha256": "6860b687cdee19b777f075dfe66a0234d9da6f8a362da8e1d05db124a919d2e1"
+    },
+    {
+      "path": "framework/java/util/regex/BackReferencedSingleSet.java",
+      "license": "Apache-2.0",
+      "origin": "Apache Harmony",
+      "sources": [
+        {
+          "url": "https://raw.githubusercontent.com/apache/harmony/02970cb7227a335edd2c8457ebdde0195a735733/classlib/modules/regex/src/main/java/java/util/regex/BackReferencedSingleSet.java",
+          "sha256": "4475948d0865035ae7b4fff66ba54719d1f74402c239ae39dda2d8fc512430fc"
+        }
+      ],
+      "kind": "file",
+      "modified": false,
+      "retained_header_sha256": "6860b687cdee19b777f075dfe66a0234d9da6f8a362da8e1d05db124a919d2e1"
+    },
+    {
+      "path": "framework/java/util/regex/BehindFSet.java",
+      "license": "Apache-2.0",
+      "origin": "Apache Harmony",
+      "sources": [
+        {
+          "url": "https://raw.githubusercontent.com/apache/harmony/02970cb7227a335edd2c8457ebdde0195a735733/classlib/modules/regex/src/main/java/java/util/regex/BehindFSet.java",
+          "sha256": "08b8b15cfa0354249e1c01e22c5a1f7f1793c37a53ff0cc7376ef697d8a20f64"
+        }
+      ],
+      "kind": "file",
+      "modified": false,
+      "retained_header_sha256": "6860b687cdee19b777f075dfe66a0234d9da6f8a362da8e1d05db124a919d2e1"
+    },
+    {
+      "path": "framework/java/util/regex/CIBackReferenceSet.java",
+      "license": "Apache-2.0",
+      "origin": "Apache Harmony",
+      "sources": [
+        {
+          "url": "https://raw.githubusercontent.com/apache/harmony/02970cb7227a335edd2c8457ebdde0195a735733/classlib/modules/regex/src/main/java/java/util/regex/CIBackReferenceSet.java",
+          "sha256": "61f2479f9fe6c19d6d76c53147dfeafbc8a523c4ca133e502ea9213e9b0f5f36"
+        }
+      ],
+      "kind": "file",
+      "modified": false,
+      "retained_header_sha256": "6860b687cdee19b777f075dfe66a0234d9da6f8a362da8e1d05db124a919d2e1"
+    },
+    {
+      "path": "framework/java/util/regex/CICharSet.java",
+      "license": "Apache-2.0",
+      "origin": "Apache Harmony",
+      "sources": [
+        {
+          "url": "https://raw.githubusercontent.com/apache/harmony/02970cb7227a335edd2c8457ebdde0195a735733/classlib/modules/regex/src/main/java/java/util/regex/CICharSet.java",
+          "sha256": "3ae5fccb3b9177f0ce23bb6275c71ef7ad436213b0ec47865e2b6cb7fc71d193"
+        }
+      ],
+      "kind": "file",
+      "modified": false,
+      "retained_header_sha256": "6860b687cdee19b777f075dfe66a0234d9da6f8a362da8e1d05db124a919d2e1"
+    },
+    {
+      "path": "framework/java/util/regex/CIDecomposedCharSet.java",
+      "license": "Apache-2.0",
+      "origin": "Apache Harmony",
+      "sources": [
+        {
+          "url": "https://raw.githubusercontent.com/apache/harmony/02970cb7227a335edd2c8457ebdde0195a735733/classlib/modules/regex/src/main/java/java/util/regex/CIDecomposedCharSet.java",
+          "sha256": "8f0fcb6ab9e74d8f9c3d174bbab1bcd838c43791c0962df76f5999719f2417c5"
+        }
+      ],
+      "kind": "file",
+      "modified": false,
+      "retained_header_sha256": "6860b687cdee19b777f075dfe66a0234d9da6f8a362da8e1d05db124a919d2e1"
+    },
+    {
+      "path": "framework/java/util/regex/CISequenceSet.java",
+      "license": "Apache-2.0",
+      "origin": "Apache Harmony",
+      "sources": [
+        {
+          "url": "https://raw.githubusercontent.com/apache/harmony/02970cb7227a335edd2c8457ebdde0195a735733/classlib/modules/regex/src/main/java/java/util/regex/CISequenceSet.java",
+          "sha256": "a007f38fe1f39be1d936d4c1a204dac7a405d25a9e713fc1ecde6636d9489c7b"
+        }
+      ],
+      "kind": "file",
+      "modified": false,
+      "retained_header_sha256": "6860b687cdee19b777f075dfe66a0234d9da6f8a362da8e1d05db124a919d2e1"
+    },
+    {
+      "path": "framework/java/util/regex/CanClasses.java",
+      "license": "Apache-2.0",
+      "origin": "Apache Harmony",
+      "sources": [
+        {
+          "url": "https://raw.githubusercontent.com/apache/harmony/02970cb7227a335edd2c8457ebdde0195a735733/classlib/modules/regex/src/main/java/java/util/regex/CanClasses.java",
+          "sha256": "54360b0e0f4d43424dcc00995b800597320e5382db9d6c0ba6db22cefd96b475"
+        }
+      ],
+      "kind": "file",
+      "modified": false,
+      "retained_header_sha256": "6860b687cdee19b777f075dfe66a0234d9da6f8a362da8e1d05db124a919d2e1"
+    },
+    {
+      "path": "framework/java/util/regex/CharClass.java",
+      "license": "Apache-2.0",
+      "origin": "Apache Harmony",
+      "sources": [
+        {
+          "url": "https://raw.githubusercontent.com/apache/harmony/02970cb7227a335edd2c8457ebdde0195a735733/classlib/modules/regex/src/main/java/java/util/regex/CharClass.java",
+          "sha256": "3e1216ec6bed2eb6062034e11d99ef35ae473d571afa3e1f862c50e1d5406fbd"
+        }
+      ],
+      "kind": "file",
+      "modified": false,
+      "retained_header_sha256": "6860b687cdee19b777f075dfe66a0234d9da6f8a362da8e1d05db124a919d2e1"
+    },
+    {
+      "path": "framework/java/util/regex/CharSet.java",
+      "license": "Apache-2.0",
+      "origin": "Apache Harmony",
+      "sources": [
+        {
+          "url": "https://raw.githubusercontent.com/apache/harmony/02970cb7227a335edd2c8457ebdde0195a735733/classlib/modules/regex/src/main/java/java/util/regex/CharSet.java",
+          "sha256": "9d26d157aaa2c12a80424e8a39a924b8e8f0d7bef1059a4b93e42e63db26601e"
+        }
+      ],
+      "kind": "file",
+      "modified": false,
+      "retained_header_sha256": "6860b687cdee19b777f075dfe66a0234d9da6f8a362da8e1d05db124a919d2e1"
+    },
+    {
+      "path": "framework/java/util/regex/CompositeGroupQuantifierSet.java",
+      "license": "Apache-2.0",
+      "origin": "Apache Harmony",
+      "sources": [
+        {
+          "url": "https://raw.githubusercontent.com/apache/harmony/02970cb7227a335edd2c8457ebdde0195a735733/classlib/modules/regex/src/main/java/java/util/regex/CompositeGroupQuantifierSet.java",
+          "sha256": "2bab98f9ffd6bfe8a8706455dec15d36625c63354f516b79fa38fe5ca28bddd1"
+        }
+      ],
+      "kind": "file",
+      "modified": false,
+      "retained_header_sha256": "6860b687cdee19b777f075dfe66a0234d9da6f8a362da8e1d05db124a919d2e1"
+    },
+    {
+      "path": "framework/java/util/regex/CompositeQuantifierSet.java",
+      "license": "Apache-2.0",
+      "origin": "Apache Harmony",
+      "sources": [
+        {
+          "url": "https://raw.githubusercontent.com/apache/harmony/02970cb7227a335edd2c8457ebdde0195a735733/classlib/modules/regex/src/main/java/java/util/regex/CompositeQuantifierSet.java",
+          "sha256": "f2ca282f7969e8fb8459b51daae75544fb798ea1dea3849aa853da3c2c093544"
+        }
+      ],
+      "kind": "file",
+      "modified": false,
+      "retained_header_sha256": "6860b687cdee19b777f075dfe66a0234d9da6f8a362da8e1d05db124a919d2e1"
+    },
+    {
+      "path": "framework/java/util/regex/CompositeRangeSet.java",
+      "license": "Apache-2.0",
+      "origin": "Apache Harmony",
+      "sources": [
+        {
+          "url": "https://raw.githubusercontent.com/apache/harmony/02970cb7227a335edd2c8457ebdde0195a735733/classlib/modules/regex/src/main/java/java/util/regex/CompositeRangeSet.java",
+          "sha256": "b06fe3f19c428b7be7cd6502934fc3286acb542831051a22b0342e9cb470dcb1"
+        }
+      ],
+      "kind": "file",
+      "modified": true,
+      "retained_header_sha256": "6860b687cdee19b777f075dfe66a0234d9da6f8a362da8e1d05db124a919d2e1"
+    },
+    {
+      "path": "framework/java/util/regex/DecomposedCharSet.java",
+      "license": "Apache-2.0",
+      "origin": "Apache Harmony",
+      "sources": [
+        {
+          "url": "https://raw.githubusercontent.com/apache/harmony/02970cb7227a335edd2c8457ebdde0195a735733/classlib/modules/regex/src/main/java/java/util/regex/DecomposedCharSet.java",
+          "sha256": "eeaab80689eb1654b192790482c0c4ff39a90dabd55a12709ca5a87f374d46d4"
+        }
+      ],
+      "kind": "file",
+      "modified": false,
+      "retained_header_sha256": "6860b687cdee19b777f075dfe66a0234d9da6f8a362da8e1d05db124a919d2e1"
+    },
+    {
+      "path": "framework/java/util/regex/DotAllQuantifierSet.java",
+      "license": "Apache-2.0",
+      "origin": "Apache Harmony",
+      "sources": [
+        {
+          "url": "https://raw.githubusercontent.com/apache/harmony/02970cb7227a335edd2c8457ebdde0195a735733/classlib/modules/regex/src/main/java/java/util/regex/DotAllQuantifierSet.java",
+          "sha256": "9e4942422df5bc00326ba859e0ab6f5fdbdd57e10cd4f6193419381e83ba9bd5"
+        }
+      ],
+      "kind": "file",
+      "modified": false,
+      "retained_header_sha256": "6860b687cdee19b777f075dfe66a0234d9da6f8a362da8e1d05db124a919d2e1"
+    },
+    {
+      "path": "framework/java/util/regex/DotAllSet.java",
+      "license": "Apache-2.0",
+      "origin": "Apache Harmony",
+      "sources": [
+        {
+          "url": "https://raw.githubusercontent.com/apache/harmony/02970cb7227a335edd2c8457ebdde0195a735733/classlib/modules/regex/src/main/java/java/util/regex/DotAllSet.java",
+          "sha256": "f03992559813457fec44c194080abfefd25e864e949addc30744d99ee59a8f05"
+        }
+      ],
+      "kind": "file",
+      "modified": false,
+      "retained_header_sha256": "6860b687cdee19b777f075dfe66a0234d9da6f8a362da8e1d05db124a919d2e1"
+    },
+    {
+      "path": "framework/java/util/regex/DotQuantifierSet.java",
+      "license": "Apache-2.0",
+      "origin": "Apache Harmony",
+      "sources": [
+        {
+          "url": "https://raw.githubusercontent.com/apache/harmony/02970cb7227a335edd2c8457ebdde0195a735733/classlib/modules/regex/src/main/java/java/util/regex/DotQuantifierSet.java",
+          "sha256": "6f3898017d5e3bf23ac3ab91b351cff35deedb0fbfb7af22d5da5c2ff6f2ac71"
+        }
+      ],
+      "kind": "file",
+      "modified": false,
+      "retained_header_sha256": "6860b687cdee19b777f075dfe66a0234d9da6f8a362da8e1d05db124a919d2e1"
+    },
+    {
+      "path": "framework/java/util/regex/DotSet.java",
+      "license": "Apache-2.0",
+      "origin": "Apache Harmony",
+      "sources": [
+        {
+          "url": "https://raw.githubusercontent.com/apache/harmony/02970cb7227a335edd2c8457ebdde0195a735733/classlib/modules/regex/src/main/java/java/util/regex/DotSet.java",
+          "sha256": "af8a7b0ba3e42f625dc1ed324c5b7c54377350b2f2cbad0898b53876a821e03d"
+        }
+      ],
+      "kind": "file",
+      "modified": false,
+      "retained_header_sha256": "6860b687cdee19b777f075dfe66a0234d9da6f8a362da8e1d05db124a919d2e1"
+    },
+    {
+      "path": "framework/java/util/regex/EOISet.java",
+      "license": "Apache-2.0",
+      "origin": "Apache Harmony",
+      "sources": [
+        {
+          "url": "https://raw.githubusercontent.com/apache/harmony/02970cb7227a335edd2c8457ebdde0195a735733/classlib/modules/regex/src/main/java/java/util/regex/EOISet.java",
+          "sha256": "e0e221b70286139afcc1802590af798f735e05b554f49033535a9bff2eedb959"
+        }
+      ],
+      "kind": "file",
+      "modified": false,
+      "retained_header_sha256": "6860b687cdee19b777f075dfe66a0234d9da6f8a362da8e1d05db124a919d2e1"
+    },
+    {
+      "path": "framework/java/util/regex/EOLSet.java",
+      "license": "Apache-2.0",
+      "origin": "Apache Harmony",
+      "sources": [
+        {
+          "url": "https://raw.githubusercontent.com/apache/harmony/02970cb7227a335edd2c8457ebdde0195a735733/classlib/modules/regex/src/main/java/java/util/regex/EOLSet.java",
+          "sha256": "b243caa97ac80c039cf31892e5ae51aa4523aca8dcd466789bd43a159dbb770a"
+        }
+      ],
+      "kind": "file",
+      "modified": false,
+      "retained_header_sha256": "6860b687cdee19b777f075dfe66a0234d9da6f8a362da8e1d05db124a919d2e1"
+    },
+    {
+      "path": "framework/java/util/regex/EmptySet.java",
+      "license": "Apache-2.0",
+      "origin": "Apache Harmony",
+      "sources": [
+        {
+          "url": "https://raw.githubusercontent.com/apache/harmony/02970cb7227a335edd2c8457ebdde0195a735733/classlib/modules/regex/src/main/java/java/util/regex/EmptySet.java",
+          "sha256": "92fef73350191df4b763ef89a2b845bbe870a9dbe2e034b2518190a06d9e27f8"
+        }
+      ],
+      "kind": "file",
+      "modified": false,
+      "retained_header_sha256": "6860b687cdee19b777f075dfe66a0234d9da6f8a362da8e1d05db124a919d2e1"
+    },
+    {
+      "path": "framework/java/util/regex/FSet.java",
+      "license": "Apache-2.0",
+      "origin": "Apache Harmony",
+      "sources": [
+        {
+          "url": "https://raw.githubusercontent.com/apache/harmony/02970cb7227a335edd2c8457ebdde0195a735733/classlib/modules/regex/src/main/java/java/util/regex/FSet.java",
+          "sha256": "713483a1eb3ce5da25bfa84e1f751325242011b39cd49ffb0a18c779054199ba"
+        }
+      ],
+      "kind": "file",
+      "modified": false,
+      "retained_header_sha256": "6860b687cdee19b777f075dfe66a0234d9da6f8a362da8e1d05db124a919d2e1"
+    },
+    {
+      "path": "framework/java/util/regex/FinalSet.java",
+      "license": "Apache-2.0",
+      "origin": "Apache Harmony",
+      "sources": [
+        {
+          "url": "https://raw.githubusercontent.com/apache/harmony/02970cb7227a335edd2c8457ebdde0195a735733/classlib/modules/regex/src/main/java/java/util/regex/FinalSet.java",
+          "sha256": "c3a4158f6c7fb44cf136698ab185c6588170a40b0bdc93319de1ebfba181e20d"
+        }
+      ],
+      "kind": "file",
+      "modified": false,
+      "retained_header_sha256": "6860b687cdee19b777f075dfe66a0234d9da6f8a362da8e1d05db124a919d2e1"
+    },
+    {
+      "path": "framework/java/util/regex/GroupQuantifierSet.java",
+      "license": "Apache-2.0",
+      "origin": "Apache Harmony",
+      "sources": [
+        {
+          "url": "https://raw.githubusercontent.com/apache/harmony/02970cb7227a335edd2c8457ebdde0195a735733/classlib/modules/regex/src/main/java/java/util/regex/GroupQuantifierSet.java",
+          "sha256": "2fd2a31d9f1ad15c1d004980bc8d1c5a5c872179b678b7d5ba6d1e16e68561e9"
+        }
+      ],
+      "kind": "file",
+      "modified": false,
+      "retained_header_sha256": "6860b687cdee19b777f075dfe66a0234d9da6f8a362da8e1d05db124a919d2e1"
+    },
+    {
+      "path": "framework/java/util/regex/HangulDecomposedCharSet.java",
+      "license": "Apache-2.0",
+      "origin": "Apache Harmony",
+      "sources": [
+        {
+          "url": "https://raw.githubusercontent.com/apache/harmony/02970cb7227a335edd2c8457ebdde0195a735733/classlib/modules/regex/src/main/java/java/util/regex/HangulDecomposedCharSet.java",
+          "sha256": "d38a37259cc2f0ab4c0de28776de16ae85930902dbb29c4a486a3d4ab2c02ebb"
+        }
+      ],
+      "kind": "file",
+      "modified": false,
+      "retained_header_sha256": "6860b687cdee19b777f075dfe66a0234d9da6f8a362da8e1d05db124a919d2e1"
+    },
+    {
+      "path": "framework/java/util/regex/HashDecompositionData.java",
+      "license": "Apache-2.0",
+      "origin": "Apache Harmony",
+      "sources": [
+        {
+          "url": "https://raw.githubusercontent.com/apache/harmony/02970cb7227a335edd2c8457ebdde0195a735733/classlib/modules/regex/src/main/java/java/util/regex/HashDecompositions.java",
+          "sha256": "4ba3bc1a471f39e7acae5ca3a819d389175adb4cea1b5bd23bcc2e666295c116"
+        }
+      ],
+      "kind": "factored",
+      "modified": true,
+      "retained_header_sha256": "6860b687cdee19b777f075dfe66a0234d9da6f8a362da8e1d05db124a919d2e1"
+    },
+    {
+      "path": "framework/java/util/regex/HashDecompositionSupplement.java",
+      "license": "Apache-2.0",
+      "origin": "Apache Harmony",
+      "sources": [
+        {
+          "url": "https://raw.githubusercontent.com/apache/harmony/02970cb7227a335edd2c8457ebdde0195a735733/classlib/modules/regex/src/main/java/java/util/regex/HashDecompositions.java",
+          "sha256": "4ba3bc1a471f39e7acae5ca3a819d389175adb4cea1b5bd23bcc2e666295c116"
+        }
+      ],
+      "kind": "factored",
+      "modified": true,
+      "retained_header_sha256": "6860b687cdee19b777f075dfe66a0234d9da6f8a362da8e1d05db124a919d2e1"
+    },
+    {
+      "path": "framework/java/util/regex/HashDecompositions.java",
+      "license": "Apache-2.0",
+      "origin": "Apache Harmony",
+      "sources": [
+        {
+          "url": "https://raw.githubusercontent.com/apache/harmony/02970cb7227a335edd2c8457ebdde0195a735733/classlib/modules/regex/src/main/java/java/util/regex/HashDecompositions.java",
+          "sha256": "4ba3bc1a471f39e7acae5ca3a819d389175adb4cea1b5bd23bcc2e666295c116"
+        }
+      ],
+      "kind": "file",
+      "modified": true,
+      "retained_header_sha256": "6860b687cdee19b777f075dfe66a0234d9da6f8a362da8e1d05db124a919d2e1"
+    },
+    {
+      "path": "framework/java/util/regex/HighSurrogateCharSet.java",
+      "license": "Apache-2.0",
+      "origin": "Apache Harmony",
+      "sources": [
+        {
+          "url": "https://raw.githubusercontent.com/apache/harmony/02970cb7227a335edd2c8457ebdde0195a735733/classlib/modules/regex/src/main/java/java/util/regex/HighSurrogateCharSet.java",
+          "sha256": "3cc16268984b5db1ea7ae38fd4c4bd171666b19e971a123e0bd9a0293ee02e0e"
+        }
+      ],
+      "kind": "file",
+      "modified": false,
+      "retained_header_sha256": "6860b687cdee19b777f075dfe66a0234d9da6f8a362da8e1d05db124a919d2e1"
+    },
+    {
+      "path": "framework/java/util/regex/IntArrHash.java",
+      "license": "Apache-2.0",
+      "origin": "Apache Harmony",
+      "sources": [
+        {
+          "url": "https://raw.githubusercontent.com/apache/harmony/02970cb7227a335edd2c8457ebdde0195a735733/classlib/modules/regex/src/main/java/java/util/regex/IntArrHash.java",
+          "sha256": "3ca84704bb427d666e73360384457d1cd3139250599c30ea2cb2450ccbf2934c"
+        }
+      ],
+      "kind": "file",
+      "modified": false,
+      "retained_header_sha256": "6860b687cdee19b777f075dfe66a0234d9da6f8a362da8e1d05db124a919d2e1"
+    },
+    {
+      "path": "framework/java/util/regex/IntHash.java",
+      "license": "Apache-2.0",
+      "origin": "Apache Harmony",
+      "sources": [
+        {
+          "url": "https://raw.githubusercontent.com/apache/harmony/02970cb7227a335edd2c8457ebdde0195a735733/classlib/modules/regex/src/main/java/java/util/regex/IntHash.java",
+          "sha256": "26c055fa5c6bb972deb422a30cf38230909fab38b41780642c771dde07686d46"
+        }
+      ],
+      "kind": "file",
+      "modified": false,
+      "retained_header_sha256": "6860b687cdee19b777f075dfe66a0234d9da6f8a362da8e1d05db124a919d2e1"
+    },
+    {
+      "path": "framework/java/util/regex/JointSet.java",
+      "license": "Apache-2.0",
+      "origin": "Apache Harmony",
+      "sources": [
+        {
+          "url": "https://raw.githubusercontent.com/apache/harmony/02970cb7227a335edd2c8457ebdde0195a735733/classlib/modules/regex/src/main/java/java/util/regex/JointSet.java",
+          "sha256": "44de0138a2017be43e3c94baf58b5d066117f3a5a5d6e2609ac91f38b43842cf"
+        }
+      ],
+      "kind": "file",
+      "modified": false,
+      "retained_header_sha256": "6860b687cdee19b777f075dfe66a0234d9da6f8a362da8e1d05db124a919d2e1"
+    },
+    {
+      "path": "framework/java/util/regex/LeafQuantifierSet.java",
+      "license": "Apache-2.0",
+      "origin": "Apache Harmony",
+      "sources": [
+        {
+          "url": "https://raw.githubusercontent.com/apache/harmony/02970cb7227a335edd2c8457ebdde0195a735733/classlib/modules/regex/src/main/java/java/util/regex/LeafQuantifierSet.java",
+          "sha256": "1e843eb919a26b2e87edcec716db279bee8052015d7e26f7bd24832cd97e3df7"
+        }
+      ],
+      "kind": "file",
+      "modified": false,
+      "retained_header_sha256": "6860b687cdee19b777f075dfe66a0234d9da6f8a362da8e1d05db124a919d2e1"
+    },
+    {
+      "path": "framework/java/util/regex/LeafSet.java",
+      "license": "Apache-2.0",
+      "origin": "Apache Harmony",
+      "sources": [
+        {
+          "url": "https://raw.githubusercontent.com/apache/harmony/02970cb7227a335edd2c8457ebdde0195a735733/classlib/modules/regex/src/main/java/java/util/regex/LeafSet.java",
+          "sha256": "2777d2ab654d8ebf6d4b8b544eff1bc806d95dc5a40c9ce2f9d7e080359518bc"
+        }
+      ],
+      "kind": "file",
+      "modified": false,
+      "retained_header_sha256": "6860b687cdee19b777f075dfe66a0234d9da6f8a362da8e1d05db124a919d2e1"
+    },
+    {
+      "path": "framework/java/util/regex/Lexer.java",
+      "license": "Apache-2.0",
+      "origin": "Apache Harmony",
+      "sources": [
+        {
+          "url": "https://raw.githubusercontent.com/apache/harmony/02970cb7227a335edd2c8457ebdde0195a735733/classlib/modules/regex/src/main/java/java/util/regex/Lexer.java",
+          "sha256": "ff80db14d7669608264c7d636f09b5cb38cd852bbe1e61cc3c45f3e3cc3d5bc0"
+        }
+      ],
+      "kind": "file",
+      "modified": false,
+      "retained_header_sha256": "6860b687cdee19b777f075dfe66a0234d9da6f8a362da8e1d05db124a919d2e1"
+    },
+    {
+      "path": "framework/java/util/regex/LowHighSurrogateRangeSet.java",
+      "license": "Apache-2.0",
+      "origin": "Apache Harmony",
+      "sources": [
+        {
+          "url": "https://raw.githubusercontent.com/apache/harmony/02970cb7227a335edd2c8457ebdde0195a735733/classlib/modules/regex/src/main/java/java/util/regex/LowHighSurrogateRangeSet.java",
+          "sha256": "6e5f4a36511c335de475c55f510e12d28db3886eca5d2234fcf917a26730658b"
+        }
+      ],
+      "kind": "file",
+      "modified": true,
+      "retained_header_sha256": "6860b687cdee19b777f075dfe66a0234d9da6f8a362da8e1d05db124a919d2e1"
+    },
+    {
+      "path": "framework/java/util/regex/LowSurrogateCharSet.java",
+      "license": "Apache-2.0",
+      "origin": "Apache Harmony",
+      "sources": [
+        {
+          "url": "https://raw.githubusercontent.com/apache/harmony/02970cb7227a335edd2c8457ebdde0195a735733/classlib/modules/regex/src/main/java/java/util/regex/LowSurrogateCharSet.java",
+          "sha256": "f8ec2179897c15de0ce6ff4e9f9bf18c700c0e7fe805ce03843838fcc61a4dcb"
+        }
+      ],
+      "kind": "file",
+      "modified": false,
+      "retained_header_sha256": "6860b687cdee19b777f075dfe66a0234d9da6f8a362da8e1d05db124a919d2e1"
+    },
+    {
+      "path": "framework/java/util/regex/MatchResult.java",
+      "license": "Apache-2.0",
+      "origin": "Apache Harmony",
+      "sources": [
+        {
+          "url": "https://raw.githubusercontent.com/apache/harmony/02970cb7227a335edd2c8457ebdde0195a735733/classlib/modules/regex/src/main/java/java/util/regex/MatchResult.java",
+          "sha256": "477fe9c813ed587b6249c98352d3adb03229e33daf9ed3bfca969e1c2b031338"
+        }
+      ],
+      "kind": "file",
+      "modified": false,
+      "retained_header_sha256": "6860b687cdee19b777f075dfe66a0234d9da6f8a362da8e1d05db124a919d2e1"
+    },
+    {
+      "path": "framework/java/util/regex/MatchResultImpl.java",
+      "license": "Apache-2.0",
+      "origin": "Apache Harmony",
+      "sources": [
+        {
+          "url": "https://raw.githubusercontent.com/apache/harmony/02970cb7227a335edd2c8457ebdde0195a735733/classlib/modules/regex/src/main/java/java/util/regex/MatchResultImpl.java",
+          "sha256": "5fa7d73bc4200a056e33fc259c48e0f19749e426fc386398cd5916bd63118438"
+        }
+      ],
+      "kind": "file",
+      "modified": false,
+      "retained_header_sha256": "6860b687cdee19b777f075dfe66a0234d9da6f8a362da8e1d05db124a919d2e1"
+    },
+    {
+      "path": "framework/java/util/regex/Matcher.java",
+      "license": "Apache-2.0",
+      "origin": "Apache Harmony",
+      "sources": [
+        {
+          "url": "https://raw.githubusercontent.com/apache/harmony/02970cb7227a335edd2c8457ebdde0195a735733/classlib/modules/regex/src/main/java/java/util/regex/Matcher.java",
+          "sha256": "f27fa6f04647b28ea8a170cda4b1b7075fc0eea55dd18c65ef1695393e91e139"
+        }
+      ],
+      "kind": "file",
+      "modified": false,
+      "retained_header_sha256": "6860b687cdee19b777f075dfe66a0234d9da6f8a362da8e1d05db124a919d2e1"
+    },
+    {
+      "path": "framework/java/util/regex/MultiLineEOLSet.java",
+      "license": "Apache-2.0",
+      "origin": "Apache Harmony",
+      "sources": [
+        {
+          "url": "https://raw.githubusercontent.com/apache/harmony/02970cb7227a335edd2c8457ebdde0195a735733/classlib/modules/regex/src/main/java/java/util/regex/MultiLineEOLSet.java",
+          "sha256": "8367bfdc9090e605f97ab6f15cefc438cc1a6021a5dbeae5dd8fd7996f2b1b32"
+        }
+      ],
+      "kind": "file",
+      "modified": false,
+      "retained_header_sha256": "6860b687cdee19b777f075dfe66a0234d9da6f8a362da8e1d05db124a919d2e1"
+    },
+    {
+      "path": "framework/java/util/regex/MultiLineSOLSet.java",
+      "license": "Apache-2.0",
+      "origin": "Apache Harmony",
+      "sources": [
+        {
+          "url": "https://raw.githubusercontent.com/apache/harmony/02970cb7227a335edd2c8457ebdde0195a735733/classlib/modules/regex/src/main/java/java/util/regex/MultiLineSOLSet.java",
+          "sha256": "3d31d8ada648b235eb472151567b4c725a526cf86aff8cbbc303c43bb3c143d8"
+        }
+      ],
+      "kind": "file",
+      "modified": false,
+      "retained_header_sha256": "6860b687cdee19b777f075dfe66a0234d9da6f8a362da8e1d05db124a919d2e1"
+    },
+    {
+      "path": "framework/java/util/regex/NegativeLookAhead.java",
+      "license": "Apache-2.0",
+      "origin": "Apache Harmony",
+      "sources": [
+        {
+          "url": "https://raw.githubusercontent.com/apache/harmony/02970cb7227a335edd2c8457ebdde0195a735733/classlib/modules/regex/src/main/java/java/util/regex/NegativeLookAhead.java",
+          "sha256": "7609e6ab185aacec058fe1dd4ea29dd7013a2e9a80cef4ed154500f26624b275"
+        }
+      ],
+      "kind": "file",
+      "modified": false,
+      "retained_header_sha256": "6860b687cdee19b777f075dfe66a0234d9da6f8a362da8e1d05db124a919d2e1"
+    },
+    {
+      "path": "framework/java/util/regex/NegativeLookBehind.java",
+      "license": "Apache-2.0",
+      "origin": "Apache Harmony",
+      "sources": [
+        {
+          "url": "https://raw.githubusercontent.com/apache/harmony/02970cb7227a335edd2c8457ebdde0195a735733/classlib/modules/regex/src/main/java/java/util/regex/NegativeLookBehind.java",
+          "sha256": "c5403bbf2b410840e9ff5b75ab3f756ea5b4fe6b185f4fb1222485611e321c6f"
+        }
+      ],
+      "kind": "file",
+      "modified": false,
+      "retained_header_sha256": "6860b687cdee19b777f075dfe66a0234d9da6f8a362da8e1d05db124a919d2e1"
+    },
+    {
+      "path": "framework/java/util/regex/NonCapFSet.java",
+      "license": "Apache-2.0",
+      "origin": "Apache Harmony",
+      "sources": [
+        {
+          "url": "https://raw.githubusercontent.com/apache/harmony/02970cb7227a335edd2c8457ebdde0195a735733/classlib/modules/regex/src/main/java/java/util/regex/NonCapFSet.java",
+          "sha256": "56880a6b1907d2e2c5a1b7d2bd5af606c9e11475b225ea9785e60c98dfa1928e"
+        }
+      ],
+      "kind": "file",
+      "modified": false,
+      "retained_header_sha256": "6860b687cdee19b777f075dfe66a0234d9da6f8a362da8e1d05db124a919d2e1"
+    },
+    {
+      "path": "framework/java/util/regex/NonCapJointSet.java",
+      "license": "Apache-2.0",
+      "origin": "Apache Harmony",
+      "sources": [
+        {
+          "url": "https://raw.githubusercontent.com/apache/harmony/02970cb7227a335edd2c8457ebdde0195a735733/classlib/modules/regex/src/main/java/java/util/regex/NonCapJointSet.java",
+          "sha256": "abb7759d40b7cde40e2d86690b306e8fcf99cc89399fd043f2b353899799f3f7"
+        }
+      ],
+      "kind": "file",
+      "modified": false,
+      "retained_header_sha256": "6860b687cdee19b777f075dfe66a0234d9da6f8a362da8e1d05db124a919d2e1"
+    },
+    {
+      "path": "framework/java/util/regex/Pattern.java",
+      "license": "Apache-2.0",
+      "origin": "Apache Harmony",
+      "sources": [
+        {
+          "url": "https://raw.githubusercontent.com/apache/harmony/02970cb7227a335edd2c8457ebdde0195a735733/classlib/modules/regex/src/main/java/java/util/regex/Pattern.java",
+          "sha256": "afc72e3c70682a638e82c6e2c30dd69e92a4e761e95d6c9fe702705ca4275069"
+        }
+      ],
+      "kind": "file",
+      "modified": true,
+      "retained_header_sha256": "6860b687cdee19b777f075dfe66a0234d9da6f8a362da8e1d05db124a919d2e1"
+    },
+    {
+      "path": "framework/java/util/regex/PatternSyntaxException.java",
+      "license": "Apache-2.0",
+      "origin": "Apache Harmony",
+      "sources": [
+        {
+          "url": "https://raw.githubusercontent.com/apache/harmony/02970cb7227a335edd2c8457ebdde0195a735733/classlib/modules/regex/src/main/java/java/util/regex/PatternSyntaxException.java",
+          "sha256": "3d8f18a79ae66547b1bec95f3accdd4ee3c8e76b69a7700858c42f6965a70511"
+        }
+      ],
+      "kind": "file",
+      "modified": false,
+      "retained_header_sha256": "6860b687cdee19b777f075dfe66a0234d9da6f8a362da8e1d05db124a919d2e1"
+    },
+    {
+      "path": "framework/java/util/regex/PosAltGroupQuantifierSet.java",
+      "license": "Apache-2.0",
+      "origin": "Apache Harmony",
+      "sources": [
+        {
+          "url": "https://raw.githubusercontent.com/apache/harmony/02970cb7227a335edd2c8457ebdde0195a735733/classlib/modules/regex/src/main/java/java/util/regex/PosAltGroupQuantifierSet.java",
+          "sha256": "408b30c3ea9d680be97cf74164a131669a286ebf8a949bd5901730e5076cfeea"
+        }
+      ],
+      "kind": "file",
+      "modified": false,
+      "retained_header_sha256": "6860b687cdee19b777f075dfe66a0234d9da6f8a362da8e1d05db124a919d2e1"
+    },
+    {
+      "path": "framework/java/util/regex/PosCompositeGroupQuantifierSet.java",
+      "license": "Apache-2.0",
+      "origin": "Apache Harmony",
+      "sources": [
+        {
+          "url": "https://raw.githubusercontent.com/apache/harmony/02970cb7227a335edd2c8457ebdde0195a735733/classlib/modules/regex/src/main/java/java/util/regex/PosCompositeGroupQuantifierSet.java",
+          "sha256": "646869a922f02083350b37ed4ec787bf2431b9550c7f5aea40d04071d4d0b829"
+        }
+      ],
+      "kind": "file",
+      "modified": false,
+      "retained_header_sha256": "6860b687cdee19b777f075dfe66a0234d9da6f8a362da8e1d05db124a919d2e1"
+    },
+    {
+      "path": "framework/java/util/regex/PosPlusGroupQuantifierSet.java",
+      "license": "Apache-2.0",
+      "origin": "Apache Harmony",
+      "sources": [
+        {
+          "url": "https://raw.githubusercontent.com/apache/harmony/02970cb7227a335edd2c8457ebdde0195a735733/classlib/modules/regex/src/main/java/java/util/regex/PosPlusGroupQuantifierSet.java",
+          "sha256": "642b4c0b8acaafe87a23f71be4df4662393f29e07ed9ca051ecdfc2febaf2f2c"
+        }
+      ],
+      "kind": "file",
+      "modified": false,
+      "retained_header_sha256": "6860b687cdee19b777f075dfe66a0234d9da6f8a362da8e1d05db124a919d2e1"
+    },
+    {
+      "path": "framework/java/util/regex/PositiveLookAhead.java",
+      "license": "Apache-2.0",
+      "origin": "Apache Harmony",
+      "sources": [
+        {
+          "url": "https://raw.githubusercontent.com/apache/harmony/02970cb7227a335edd2c8457ebdde0195a735733/classlib/modules/regex/src/main/java/java/util/regex/PositiveLookAhead.java",
+          "sha256": "6e612fcb87bb7bcafc2cedc0ac06db7d737d9180ad2f631905ed1b22a800ee86"
+        }
+      ],
+      "kind": "file",
+      "modified": false,
+      "retained_header_sha256": "6860b687cdee19b777f075dfe66a0234d9da6f8a362da8e1d05db124a919d2e1"
+    },
+    {
+      "path": "framework/java/util/regex/PositiveLookBehind.java",
+      "license": "Apache-2.0",
+      "origin": "Apache Harmony",
+      "sources": [
+        {
+          "url": "https://raw.githubusercontent.com/apache/harmony/02970cb7227a335edd2c8457ebdde0195a735733/classlib/modules/regex/src/main/java/java/util/regex/PositiveLookBehind.java",
+          "sha256": "7d33c8d1e1695e98425eaf030170cf7d6cc33031bab890a90451a9eaa4bf34fc"
+        }
+      ],
+      "kind": "file",
+      "modified": false,
+      "retained_header_sha256": "6860b687cdee19b777f075dfe66a0234d9da6f8a362da8e1d05db124a919d2e1"
+    },
+    {
+      "path": "framework/java/util/regex/PossessiveAltQuantifierSet.java",
+      "license": "Apache-2.0",
+      "origin": "Apache Harmony",
+      "sources": [
+        {
+          "url": "https://raw.githubusercontent.com/apache/harmony/02970cb7227a335edd2c8457ebdde0195a735733/classlib/modules/regex/src/main/java/java/util/regex/PossessiveAltQuantifierSet.java",
+          "sha256": "bdc319da37b271253a712061469bcf992a98b219857e0f6bf28d4ea61cb03127"
+        }
+      ],
+      "kind": "file",
+      "modified": false,
+      "retained_header_sha256": "6860b687cdee19b777f075dfe66a0234d9da6f8a362da8e1d05db124a919d2e1"
+    },
+    {
+      "path": "framework/java/util/regex/PossessiveCompositeQuantifierSet.java",
+      "license": "Apache-2.0",
+      "origin": "Apache Harmony",
+      "sources": [
+        {
+          "url": "https://raw.githubusercontent.com/apache/harmony/02970cb7227a335edd2c8457ebdde0195a735733/classlib/modules/regex/src/main/java/java/util/regex/PossessiveCompositeQuantifierSet.java",
+          "sha256": "4f6217f3ffe2687d2686c98fff1a1603e3c6e114ddc58883f04a0c52634378c5"
+        }
+      ],
+      "kind": "file",
+      "modified": false,
+      "retained_header_sha256": "6860b687cdee19b777f075dfe66a0234d9da6f8a362da8e1d05db124a919d2e1"
+    },
+    {
+      "path": "framework/java/util/regex/PossessiveGroupQuantifierSet.java",
+      "license": "Apache-2.0",
+      "origin": "Apache Harmony",
+      "sources": [
+        {
+          "url": "https://raw.githubusercontent.com/apache/harmony/02970cb7227a335edd2c8457ebdde0195a735733/classlib/modules/regex/src/main/java/java/util/regex/PossessiveGroupQuantifierSet.java",
+          "sha256": "560e1607ab1ccd74c18c76ab5074e8abf24a2e78bf687ad19fe8c6cca11b7c9f"
+        }
+      ],
+      "kind": "file",
+      "modified": false,
+      "retained_header_sha256": "6860b687cdee19b777f075dfe66a0234d9da6f8a362da8e1d05db124a919d2e1"
+    },
+    {
+      "path": "framework/java/util/regex/PossessiveQuantifierSet.java",
+      "license": "Apache-2.0",
+      "origin": "Apache Harmony",
+      "sources": [
+        {
+          "url": "https://raw.githubusercontent.com/apache/harmony/02970cb7227a335edd2c8457ebdde0195a735733/classlib/modules/regex/src/main/java/java/util/regex/PossessiveQuantifierSet.java",
+          "sha256": "04c94d0bf48f8ad3d4dcc519fb274338ef702fab1a47153f056cdfdcecca2c30"
+        }
+      ],
+      "kind": "file",
+      "modified": false,
+      "retained_header_sha256": "6860b687cdee19b777f075dfe66a0234d9da6f8a362da8e1d05db124a919d2e1"
+    },
+    {
+      "path": "framework/java/util/regex/PreviousMatch.java",
+      "license": "Apache-2.0",
+      "origin": "Apache Harmony",
+      "sources": [
+        {
+          "url": "https://raw.githubusercontent.com/apache/harmony/02970cb7227a335edd2c8457ebdde0195a735733/classlib/modules/regex/src/main/java/java/util/regex/PreviousMatch.java",
+          "sha256": "ade4132c1510e83af9debfde2b7788aa0b1cb3b32db5da691fbe41aad62e3b79"
+        }
+      ],
+      "kind": "file",
+      "modified": false,
+      "retained_header_sha256": "6860b687cdee19b777f075dfe66a0234d9da6f8a362da8e1d05db124a919d2e1"
+    },
+    {
+      "path": "framework/java/util/regex/Quantifier.java",
+      "license": "Apache-2.0",
+      "origin": "Apache Harmony",
+      "sources": [
+        {
+          "url": "https://raw.githubusercontent.com/apache/harmony/02970cb7227a335edd2c8457ebdde0195a735733/classlib/modules/regex/src/main/java/java/util/regex/Quantifier.java",
+          "sha256": "d9f81171d2b34d5a2640f77623440e67a6fc24b9649ebb612dc3b956be86c26f"
+        }
+      ],
+      "kind": "file",
+      "modified": false,
+      "retained_header_sha256": "6860b687cdee19b777f075dfe66a0234d9da6f8a362da8e1d05db124a919d2e1"
+    },
+    {
+      "path": "framework/java/util/regex/QuantifierSet.java",
+      "license": "Apache-2.0",
+      "origin": "Apache Harmony",
+      "sources": [
+        {
+          "url": "https://raw.githubusercontent.com/apache/harmony/02970cb7227a335edd2c8457ebdde0195a735733/classlib/modules/regex/src/main/java/java/util/regex/QuantifierSet.java",
+          "sha256": "0efe8dae94fb641e9bd0c7774944ccd7a09578fd97f48dcd24e6b5d9f870c10e"
+        }
+      ],
+      "kind": "file",
+      "modified": false,
+      "retained_header_sha256": "6860b687cdee19b777f075dfe66a0234d9da6f8a362da8e1d05db124a919d2e1"
+    },
+    {
+      "path": "framework/java/util/regex/RangeSet.java",
+      "license": "Apache-2.0",
+      "origin": "Apache Harmony",
+      "sources": [
+        {
+          "url": "https://raw.githubusercontent.com/apache/harmony/02970cb7227a335edd2c8457ebdde0195a735733/classlib/modules/regex/src/main/java/java/util/regex/RangeSet.java",
+          "sha256": "946f6bb6f1b76f7910669d1c16530cdd6abf2d38eeb02efd217c50e82f429685"
+        }
+      ],
+      "kind": "file",
+      "modified": false,
+      "retained_header_sha256": "6860b687cdee19b777f075dfe66a0234d9da6f8a362da8e1d05db124a919d2e1"
+    },
+    {
+      "path": "framework/java/util/regex/RelAltGroupQuantifierSet.java",
+      "license": "Apache-2.0",
+      "origin": "Apache Harmony",
+      "sources": [
+        {
+          "url": "https://raw.githubusercontent.com/apache/harmony/02970cb7227a335edd2c8457ebdde0195a735733/classlib/modules/regex/src/main/java/java/util/regex/RelAltGroupQuantifierSet.java",
+          "sha256": "8e37c856870a3daf640a93437b18acda1532d62d487c5949eb6195b50f1b5410"
+        }
+      ],
+      "kind": "file",
+      "modified": false,
+      "retained_header_sha256": "6860b687cdee19b777f075dfe66a0234d9da6f8a362da8e1d05db124a919d2e1"
+    },
+    {
+      "path": "framework/java/util/regex/RelCompositeGroupQuantifierSet.java",
+      "license": "Apache-2.0",
+      "origin": "Apache Harmony",
+      "sources": [
+        {
+          "url": "https://raw.githubusercontent.com/apache/harmony/02970cb7227a335edd2c8457ebdde0195a735733/classlib/modules/regex/src/main/java/java/util/regex/RelCompositeGroupQuantifierSet.java",
+          "sha256": "ebaf16b80af938428c01b43add90486428d46cc37fb9dd2fd0c2f3d6979c35c5"
+        }
+      ],
+      "kind": "file",
+      "modified": false,
+      "retained_header_sha256": "6860b687cdee19b777f075dfe66a0234d9da6f8a362da8e1d05db124a919d2e1"
+    },
+    {
+      "path": "framework/java/util/regex/ReluctantAltQuantifierSet.java",
+      "license": "Apache-2.0",
+      "origin": "Apache Harmony",
+      "sources": [
+        {
+          "url": "https://raw.githubusercontent.com/apache/harmony/02970cb7227a335edd2c8457ebdde0195a735733/classlib/modules/regex/src/main/java/java/util/regex/ReluctantAltQuantifierSet.java",
+          "sha256": "850f3026c4a1c7aff0e74a96dff2ad3e55f349b4b1877c6a029b6cd913710976"
+        }
+      ],
+      "kind": "file",
+      "modified": false,
+      "retained_header_sha256": "6860b687cdee19b777f075dfe66a0234d9da6f8a362da8e1d05db124a919d2e1"
+    },
+    {
+      "path": "framework/java/util/regex/ReluctantCompositeQuantifierSet.java",
+      "license": "Apache-2.0",
+      "origin": "Apache Harmony",
+      "sources": [
+        {
+          "url": "https://raw.githubusercontent.com/apache/harmony/02970cb7227a335edd2c8457ebdde0195a735733/classlib/modules/regex/src/main/java/java/util/regex/ReluctantCompositeQuantifierSet.java",
+          "sha256": "fae64b065feb74489b1a8b7c9a1842fd6552a395b8a9cf2ba504a18ce32211b2"
+        }
+      ],
+      "kind": "file",
+      "modified": false,
+      "retained_header_sha256": "6860b687cdee19b777f075dfe66a0234d9da6f8a362da8e1d05db124a919d2e1"
+    },
+    {
+      "path": "framework/java/util/regex/ReluctantGroupQuantifierSet.java",
+      "license": "Apache-2.0",
+      "origin": "Apache Harmony",
+      "sources": [
+        {
+          "url": "https://raw.githubusercontent.com/apache/harmony/02970cb7227a335edd2c8457ebdde0195a735733/classlib/modules/regex/src/main/java/java/util/regex/ReluctantGroupQuantifierSet.java",
+          "sha256": "ce24e0f431cf5d7ee2101b39d25f81f34920ea67090273477bf1a5a1a72475f6"
+        }
+      ],
+      "kind": "file",
+      "modified": false,
+      "retained_header_sha256": "6860b687cdee19b777f075dfe66a0234d9da6f8a362da8e1d05db124a919d2e1"
+    },
+    {
+      "path": "framework/java/util/regex/ReluctantQuantifierSet.java",
+      "license": "Apache-2.0",
+      "origin": "Apache Harmony",
+      "sources": [
+        {
+          "url": "https://raw.githubusercontent.com/apache/harmony/02970cb7227a335edd2c8457ebdde0195a735733/classlib/modules/regex/src/main/java/java/util/regex/ReluctantQuantifierSet.java",
+          "sha256": "7cc6ced5d4375df090ce8117aa79426077fff6acdbd9d4916ae18aa8cafec659"
+        }
+      ],
+      "kind": "file",
+      "modified": false,
+      "retained_header_sha256": "6860b687cdee19b777f075dfe66a0234d9da6f8a362da8e1d05db124a919d2e1"
+    },
+    {
+      "path": "framework/java/util/regex/SOLSet.java",
+      "license": "Apache-2.0",
+      "origin": "Apache Harmony",
+      "sources": [
+        {
+          "url": "https://raw.githubusercontent.com/apache/harmony/02970cb7227a335edd2c8457ebdde0195a735733/classlib/modules/regex/src/main/java/java/util/regex/SOLSet.java",
+          "sha256": "c5196e5339c42023690bd9b1e9334a66636f2747bbc18c1c1ebe79937de3152e"
+        }
+      ],
+      "kind": "file",
+      "modified": false,
+      "retained_header_sha256": "6860b687cdee19b777f075dfe66a0234d9da6f8a362da8e1d05db124a919d2e1"
+    },
+    {
+      "path": "framework/java/util/regex/SequenceSet.java",
+      "license": "Apache-2.0",
+      "origin": "Apache Harmony",
+      "sources": [
+        {
+          "url": "https://raw.githubusercontent.com/apache/harmony/02970cb7227a335edd2c8457ebdde0195a735733/classlib/modules/regex/src/main/java/java/util/regex/SequenceSet.java",
+          "sha256": "c9f558744203d4564f336b49cef4b4e7a751271d0d55dfcc3468d9ca8049cab7"
+        }
+      ],
+      "kind": "file",
+      "modified": false,
+      "retained_header_sha256": "6860b687cdee19b777f075dfe66a0234d9da6f8a362da8e1d05db124a919d2e1"
+    },
+    {
+      "path": "framework/java/util/regex/SingleDecompositions.java",
+      "license": "Apache-2.0",
+      "origin": "Apache Harmony",
+      "sources": [
+        {
+          "url": "https://raw.githubusercontent.com/apache/harmony/02970cb7227a335edd2c8457ebdde0195a735733/classlib/modules/regex/src/main/java/java/util/regex/SingleDecompositions.java",
+          "sha256": "2172856035c6b830fccee13ee87d7987179c88af98b2255e83b6479e8b68d0fe"
+        }
+      ],
+      "kind": "file",
+      "modified": false,
+      "retained_header_sha256": "6860b687cdee19b777f075dfe66a0234d9da6f8a362da8e1d05db124a919d2e1"
+    },
+    {
+      "path": "framework/java/util/regex/SingleSet.java",
+      "license": "Apache-2.0",
+      "origin": "Apache Harmony",
+      "sources": [
+        {
+          "url": "https://raw.githubusercontent.com/apache/harmony/02970cb7227a335edd2c8457ebdde0195a735733/classlib/modules/regex/src/main/java/java/util/regex/SingleSet.java",
+          "sha256": "f7a0556b55e08af329f2049924ee2a000e46709bac01c4f735e2e337f14d1877"
+        }
+      ],
+      "kind": "file",
+      "modified": false,
+      "retained_header_sha256": "6860b687cdee19b777f075dfe66a0234d9da6f8a362da8e1d05db124a919d2e1"
+    },
+    {
+      "path": "framework/java/util/regex/SpecialToken.java",
+      "license": "Apache-2.0",
+      "origin": "Apache Harmony",
+      "sources": [
+        {
+          "url": "https://raw.githubusercontent.com/apache/harmony/02970cb7227a335edd2c8457ebdde0195a735733/classlib/modules/regex/src/main/java/java/util/regex/SpecialToken.java",
+          "sha256": "10aeb110be112f030ff8b0a19819368c6040b3fd4338b1e3e3e72d2d66368242"
+        }
+      ],
+      "kind": "file",
+      "modified": false,
+      "retained_header_sha256": "6860b687cdee19b777f075dfe66a0234d9da6f8a362da8e1d05db124a919d2e1"
+    },
+    {
+      "path": "framework/java/util/regex/SupplCharSet.java",
+      "license": "Apache-2.0",
+      "origin": "Apache Harmony",
+      "sources": [
+        {
+          "url": "https://raw.githubusercontent.com/apache/harmony/02970cb7227a335edd2c8457ebdde0195a735733/classlib/modules/regex/src/main/java/java/util/regex/SupplCharSet.java",
+          "sha256": "6b6263c6d24b4a191da3557315e7678bb43de625da6cf39f45d03f507b9c8afd"
+        }
+      ],
+      "kind": "file",
+      "modified": false,
+      "retained_header_sha256": "6860b687cdee19b777f075dfe66a0234d9da6f8a362da8e1d05db124a919d2e1"
+    },
+    {
+      "path": "framework/java/util/regex/SupplRangeSet.java",
+      "license": "Apache-2.0",
+      "origin": "Apache Harmony",
+      "sources": [
+        {
+          "url": "https://raw.githubusercontent.com/apache/harmony/02970cb7227a335edd2c8457ebdde0195a735733/classlib/modules/regex/src/main/java/java/util/regex/SupplRangeSet.java",
+          "sha256": "79f726287f21371ee7835957f55af8cda6cab1152d883eaab2906e07b7054c63"
+        }
+      ],
+      "kind": "file",
+      "modified": true,
+      "retained_header_sha256": "6860b687cdee19b777f075dfe66a0234d9da6f8a362da8e1d05db124a919d2e1"
+    },
+    {
+      "path": "framework/java/util/regex/UCIBackReferenceSet.java",
+      "license": "Apache-2.0",
+      "origin": "Apache Harmony",
+      "sources": [
+        {
+          "url": "https://raw.githubusercontent.com/apache/harmony/02970cb7227a335edd2c8457ebdde0195a735733/classlib/modules/regex/src/main/java/java/util/regex/UCIBackReferenceSet.java",
+          "sha256": "289d5a33cfb6af1a04de2860d16f54ce40a1b0c45c9532e7cb12a7b08f050e8e"
+        }
+      ],
+      "kind": "file",
+      "modified": false,
+      "retained_header_sha256": "6860b687cdee19b777f075dfe66a0234d9da6f8a362da8e1d05db124a919d2e1"
+    },
+    {
+      "path": "framework/java/util/regex/UCICharSet.java",
+      "license": "Apache-2.0",
+      "origin": "Apache Harmony",
+      "sources": [
+        {
+          "url": "https://raw.githubusercontent.com/apache/harmony/02970cb7227a335edd2c8457ebdde0195a735733/classlib/modules/regex/src/main/java/java/util/regex/UCICharSet.java",
+          "sha256": "dc53ad27a78efbc4c617597763b1cd42fd36bc1d5d516b4cd2a23a9789e02f08"
+        }
+      ],
+      "kind": "file",
+      "modified": false,
+      "retained_header_sha256": "6860b687cdee19b777f075dfe66a0234d9da6f8a362da8e1d05db124a919d2e1"
+    },
+    {
+      "path": "framework/java/util/regex/UCIDecomposedCharSet.java",
+      "license": "Apache-2.0",
+      "origin": "Apache Harmony",
+      "sources": [
+        {
+          "url": "https://raw.githubusercontent.com/apache/harmony/02970cb7227a335edd2c8457ebdde0195a735733/classlib/modules/regex/src/main/java/java/util/regex/UCIDecomposedCharSet.java",
+          "sha256": "10337e50fd333b413ab2c43ebf35211aa78c799e2f47329ae8c1a3551d9149d5"
+        }
+      ],
+      "kind": "file",
+      "modified": false,
+      "retained_header_sha256": "6860b687cdee19b777f075dfe66a0234d9da6f8a362da8e1d05db124a919d2e1"
+    },
+    {
+      "path": "framework/java/util/regex/UCIRangeSet.java",
+      "license": "Apache-2.0",
+      "origin": "Apache Harmony",
+      "sources": [
+        {
+          "url": "https://raw.githubusercontent.com/apache/harmony/02970cb7227a335edd2c8457ebdde0195a735733/classlib/modules/regex/src/main/java/java/util/regex/UCIRangeSet.java",
+          "sha256": "cd3a9c4ccc057456fc74b752a18d67d0ae4b82a12bc0c5e9a45b6a4bdde69497"
+        }
+      ],
+      "kind": "file",
+      "modified": false,
+      "retained_header_sha256": "6860b687cdee19b777f075dfe66a0234d9da6f8a362da8e1d05db124a919d2e1"
+    },
+    {
+      "path": "framework/java/util/regex/UCISequenceSet.java",
+      "license": "Apache-2.0",
+      "origin": "Apache Harmony",
+      "sources": [
+        {
+          "url": "https://raw.githubusercontent.com/apache/harmony/02970cb7227a335edd2c8457ebdde0195a735733/classlib/modules/regex/src/main/java/java/util/regex/UCISequenceSet.java",
+          "sha256": "e635f50c76fed2747f09c61ee51862b1348b57371f2994dea8d088b4322b4a27"
+        }
+      ],
+      "kind": "file",
+      "modified": false,
+      "retained_header_sha256": "6860b687cdee19b777f075dfe66a0234d9da6f8a362da8e1d05db124a919d2e1"
+    },
+    {
+      "path": "framework/java/util/regex/UCISupplCharSet.java",
+      "license": "Apache-2.0",
+      "origin": "Apache Harmony",
+      "sources": [
+        {
+          "url": "https://raw.githubusercontent.com/apache/harmony/02970cb7227a335edd2c8457ebdde0195a735733/classlib/modules/regex/src/main/java/java/util/regex/UCISupplCharSet.java",
+          "sha256": "a0284ec8e07528b39bd47ef6f7afe64fab69e213a47754c406706a1823cf0f80"
+        }
+      ],
+      "kind": "file",
+      "modified": false,
+      "retained_header_sha256": "6860b687cdee19b777f075dfe66a0234d9da6f8a362da8e1d05db124a919d2e1"
+    },
+    {
+      "path": "framework/java/util/regex/UCISupplRangeSet.java",
+      "license": "Apache-2.0",
+      "origin": "Apache Harmony",
+      "sources": [
+        {
+          "url": "https://raw.githubusercontent.com/apache/harmony/02970cb7227a335edd2c8457ebdde0195a735733/classlib/modules/regex/src/main/java/java/util/regex/UCISupplRangeSet.java",
+          "sha256": "eb12adaf041f781e1783515c72dcddfd10ca5677792b3e1fe62fa0308d831d8f"
+        }
+      ],
+      "kind": "file",
+      "modified": false,
+      "retained_header_sha256": "6860b687cdee19b777f075dfe66a0234d9da6f8a362da8e1d05db124a919d2e1"
+    },
+    {
+      "path": "framework/java/util/regex/UEOLSet.java",
+      "license": "Apache-2.0",
+      "origin": "Apache Harmony",
+      "sources": [
+        {
+          "url": "https://raw.githubusercontent.com/apache/harmony/02970cb7227a335edd2c8457ebdde0195a735733/classlib/modules/regex/src/main/java/java/util/regex/UEOLSet.java",
+          "sha256": "734aed0779e42e39024adac58213396c9619947d410704a5d73e89fa883c25ce"
+        }
+      ],
+      "kind": "file",
+      "modified": false,
+      "retained_header_sha256": "6860b687cdee19b777f075dfe66a0234d9da6f8a362da8e1d05db124a919d2e1"
+    },
+    {
+      "path": "framework/java/util/regex/UMultiLineEOLSet.java",
+      "license": "Apache-2.0",
+      "origin": "Apache Harmony",
+      "sources": [
+        {
+          "url": "https://raw.githubusercontent.com/apache/harmony/02970cb7227a335edd2c8457ebdde0195a735733/classlib/modules/regex/src/main/java/java/util/regex/UMultiLineEOLSet.java",
+          "sha256": "7e443f3ec9c303512f24933eb9f222b3493db21c367dad8e09b819aa29a46bf8"
+        }
+      ],
+      "kind": "file",
+      "modified": false,
+      "retained_header_sha256": "6860b687cdee19b777f075dfe66a0234d9da6f8a362da8e1d05db124a919d2e1"
+    },
+    {
+      "path": "framework/java/util/regex/UnicodeCategory.java",
+      "license": "Apache-2.0",
+      "origin": "Apache Harmony",
+      "sources": [
+        {
+          "url": "https://raw.githubusercontent.com/apache/harmony/02970cb7227a335edd2c8457ebdde0195a735733/classlib/modules/regex/src/main/java/java/util/regex/UnicodeCategory.java",
+          "sha256": "fb8327de9ebf7f38731b244b0cd71c78f19806e889ff0855b886d18ab63d0aaf"
+        }
+      ],
+      "kind": "file",
+      "modified": false,
+      "retained_header_sha256": "6860b687cdee19b777f075dfe66a0234d9da6f8a362da8e1d05db124a919d2e1"
+    },
+    {
+      "path": "framework/java/util/regex/UnicodeCategoryScope.java",
+      "license": "Apache-2.0",
+      "origin": "Apache Harmony",
+      "sources": [
+        {
+          "url": "https://raw.githubusercontent.com/apache/harmony/02970cb7227a335edd2c8457ebdde0195a735733/classlib/modules/regex/src/main/java/java/util/regex/UnicodeCategoryScope.java",
+          "sha256": "630a7443aa6b4bb03cd96097d3f4ad40926149bdb113638c9eb569847b524ca9"
+        }
+      ],
+      "kind": "file",
+      "modified": false,
+      "retained_header_sha256": "6860b687cdee19b777f075dfe66a0234d9da6f8a362da8e1d05db124a919d2e1"
+    },
+    {
+      "path": "framework/java/util/regex/UnifiedQuantifierSet.java",
+      "license": "Apache-2.0",
+      "origin": "Apache Harmony",
+      "sources": [
+        {
+          "url": "https://raw.githubusercontent.com/apache/harmony/02970cb7227a335edd2c8457ebdde0195a735733/classlib/modules/regex/src/main/java/java/util/regex/UnifiedQuantifierSet.java",
+          "sha256": "e7ceb602811051ae5f6cc08de1cf9fcf4692b6bec116c9f9021f3ada3d5d54a8"
+        }
+      ],
+      "kind": "file",
+      "modified": false,
+      "retained_header_sha256": "6860b687cdee19b777f075dfe66a0234d9da6f8a362da8e1d05db124a919d2e1"
+    },
+    {
+      "path": "framework/java/util/regex/WordBoundary.java",
+      "license": "Apache-2.0",
+      "origin": "Apache Harmony",
+      "sources": [
+        {
+          "url": "https://raw.githubusercontent.com/apache/harmony/02970cb7227a335edd2c8457ebdde0195a735733/classlib/modules/regex/src/main/java/java/util/regex/WordBoundary.java",
+          "sha256": "97a2d5070c19ea6259c2b7903a054ca26e999700a3ddf71a0cfd3c93f4506431"
+        }
+      ],
+      "kind": "file",
+      "modified": false,
+      "retained_header_sha256": "6860b687cdee19b777f075dfe66a0234d9da6f8a362da8e1d05db124a919d2e1"
+    },
+    {
+      "path": "framework/javax/microedition/khronos/egl/EGL.java",
+      "license": "Apache-2.0",
+      "origin": "AOSP frameworks/base",
+      "sources": [
+        {
+          "url": "https://android.googlesource.com/platform/frameworks/base/+/37a24f52e6be75e7f7db461e3bee465152318c99/opengl/java/javax/microedition/khronos/egl/EGL.java?format=TEXT",
+          "sha256": "10f40a2630c178ec3cf666dd024aa4b443971cac29ac1dd641968a690c1dd7ce"
+        }
+      ],
+      "kind": "file",
+      "modified": false,
+      "retained_header_sha256": "df2436a6f58c1a53985d26b2293d48e74ab788ca813cc8b2adb76e8f85a96677"
+    },
+    {
+      "path": "framework/javax/microedition/khronos/egl/EGL10.java",
+      "license": "Apache-2.0",
+      "origin": "AOSP frameworks/base",
+      "sources": [
+        {
+          "url": "https://android.googlesource.com/platform/frameworks/base/+/37a24f52e6be75e7f7db461e3bee465152318c99/opengl/java/javax/microedition/khronos/egl/EGL10.java?format=TEXT",
+          "sha256": "45f9c055a9e2cf93a436a4745ff20ba8b5b7a934cf12986ef9912e51a315b346"
+        }
+      ],
+      "kind": "file",
+      "modified": true,
+      "retained_header_sha256": "df2436a6f58c1a53985d26b2293d48e74ab788ca813cc8b2adb76e8f85a96677"
+    },
+    {
+      "path": "framework/javax/microedition/khronos/egl/EGL11.java",
+      "license": "Apache-2.0",
+      "origin": "AOSP frameworks/base",
+      "sources": [
+        {
+          "url": "https://android.googlesource.com/platform/frameworks/base/+/37a24f52e6be75e7f7db461e3bee465152318c99/opengl/java/javax/microedition/khronos/egl/EGL11.java?format=TEXT",
+          "sha256": "e5f9ddc2b603a48dba9858443fad0c4e24777d21559943202f207eb22e6b2a78"
+        }
+      ],
+      "kind": "file",
+      "modified": false,
+      "retained_header_sha256": "df2436a6f58c1a53985d26b2293d48e74ab788ca813cc8b2adb76e8f85a96677"
+    },
+    {
+      "path": "framework/javax/microedition/khronos/egl/EGLConfig.java",
+      "license": "Apache-2.0",
+      "origin": "AOSP frameworks/base",
+      "sources": [
+        {
+          "url": "https://android.googlesource.com/platform/frameworks/base/+/37a24f52e6be75e7f7db461e3bee465152318c99/opengl/java/javax/microedition/khronos/egl/EGLConfig.java?format=TEXT",
+          "sha256": "f029fd976b8c3dc96d8338814b0f831cceeace22d2cbc09cb2f5ebb2cc39985b"
+        }
+      ],
+      "kind": "file",
+      "modified": false,
+      "retained_header_sha256": "df2436a6f58c1a53985d26b2293d48e74ab788ca813cc8b2adb76e8f85a96677"
+    },
+    {
+      "path": "framework/javax/microedition/khronos/egl/EGLContext.java",
+      "license": "Apache-2.0",
+      "origin": "AOSP frameworks/base",
+      "sources": [
+        {
+          "url": "https://android.googlesource.com/platform/frameworks/base/+/37a24f52e6be75e7f7db461e3bee465152318c99/opengl/java/javax/microedition/khronos/egl/EGLContext.java?format=TEXT",
+          "sha256": "1944df3df4fb257375de7d2f25f677c05d5dbab1d13281d1f56da45f4f9d2328"
+        }
+      ],
+      "kind": "file",
+      "modified": true,
+      "retained_header_sha256": "df2436a6f58c1a53985d26b2293d48e74ab788ca813cc8b2adb76e8f85a96677"
+    },
+    {
+      "path": "framework/javax/microedition/khronos/egl/EGLDisplay.java",
+      "license": "Apache-2.0",
+      "origin": "AOSP frameworks/base",
+      "sources": [
+        {
+          "url": "https://android.googlesource.com/platform/frameworks/base/+/37a24f52e6be75e7f7db461e3bee465152318c99/opengl/java/javax/microedition/khronos/egl/EGLDisplay.java?format=TEXT",
+          "sha256": "b04982614fe9df3a8071e4328ceb54371062ab2b014d9bbb24f8b5719e64001a"
+        }
+      ],
+      "kind": "file",
+      "modified": false,
+      "retained_header_sha256": "df2436a6f58c1a53985d26b2293d48e74ab788ca813cc8b2adb76e8f85a96677"
+    },
+    {
+      "path": "framework/javax/microedition/khronos/egl/EGLSurface.java",
+      "license": "Apache-2.0",
+      "origin": "AOSP frameworks/base",
+      "sources": [
+        {
+          "url": "https://android.googlesource.com/platform/frameworks/base/+/37a24f52e6be75e7f7db461e3bee465152318c99/opengl/java/javax/microedition/khronos/egl/EGLSurface.java?format=TEXT",
+          "sha256": "fb4cbb518956c0acd8c32279aa29d992419a86079143f036313eea6772b74675"
+        }
+      ],
+      "kind": "file",
+      "modified": false,
+      "retained_header_sha256": "df2436a6f58c1a53985d26b2293d48e74ab788ca813cc8b2adb76e8f85a96677"
+    },
+    {
+      "path": "framework/javax/microedition/khronos/opengles/GL.java",
+      "license": "Apache-2.0",
+      "origin": "AOSP frameworks/base",
+      "sources": [
+        {
+          "url": "https://android.googlesource.com/platform/frameworks/base/+/37a24f52e6be75e7f7db461e3bee465152318c99/opengl/java/javax/microedition/khronos/opengles/GL.java?format=TEXT",
+          "sha256": "400bd0f6c9f441dc27a49165b028ca9aba4575e0f7b30f7d9bd1d2e28430781e"
+        }
+      ],
+      "kind": "file",
+      "modified": false,
+      "retained_header_sha256": "2bf7e0e46bfc15dbd8c992215c5010740e6609f7742ba1abc6c16d9375c58e08"
+    },
+    {
+      "path": "framework/javax/microedition/khronos/opengles/GL10.java",
+      "license": "Apache-2.0",
+      "origin": "AOSP frameworks/base",
+      "sources": [
+        {
+          "url": "https://android.googlesource.com/platform/frameworks/base/+/37a24f52e6be75e7f7db461e3bee465152318c99/opengl/java/javax/microedition/khronos/opengles/GL10.java?format=TEXT",
+          "sha256": "676f01e69386b138b2b3d397c11952c7cc73271cd42a29a9ed29304fa7889bb6"
+        }
+      ],
+      "kind": "file",
+      "modified": false,
+      "retained_header_sha256": "cc880684ab3251c294c22fa3f6a12c7f885ae0b4cbd44c81946214f243ac7958"
+    },
+    {
+      "path": "framework/javax/microedition/khronos/opengles/GL10Ext.java",
+      "license": "Apache-2.0",
+      "origin": "AOSP frameworks/base",
+      "sources": [
+        {
+          "url": "https://android.googlesource.com/platform/frameworks/base/+/37a24f52e6be75e7f7db461e3bee465152318c99/opengl/java/javax/microedition/khronos/opengles/GL10Ext.java?format=TEXT",
+          "sha256": "eb103edcab50fdd6fb7fa1027d583547d9a9acb112258d0d0efef92be09216cf"
+        }
+      ],
+      "kind": "file",
+      "modified": false,
+      "retained_header_sha256": "f2218bc3782a8b1a74bb87ed8da7f136eb1b4dbdc76ab477590072a685fdd159"
+    },
+    {
+      "path": "framework/javax/microedition/khronos/opengles/GL11.java",
+      "license": "Apache-2.0",
+      "origin": "AOSP frameworks/base",
+      "sources": [
+        {
+          "url": "https://android.googlesource.com/platform/frameworks/base/+/37a24f52e6be75e7f7db461e3bee465152318c99/opengl/java/javax/microedition/khronos/opengles/GL11.java?format=TEXT",
+          "sha256": "d89e78cdcfdbfaed2563153576274e25d75437cfe71564a7b7de987a3b325577"
+        }
+      ],
+      "kind": "file",
+      "modified": false,
+      "retained_header_sha256": "4da2d468555f827cdded482579599b5ee3e4d51de28f3a542879ee86dc7a97e4"
+    },
+    {
+      "path": "framework/javax/microedition/khronos/opengles/GL11Ext.java",
+      "license": "Apache-2.0",
+      "origin": "AOSP frameworks/base",
+      "sources": [
+        {
+          "url": "https://android.googlesource.com/platform/frameworks/base/+/37a24f52e6be75e7f7db461e3bee465152318c99/opengl/java/javax/microedition/khronos/opengles/GL11Ext.java?format=TEXT",
+          "sha256": "045b01e9adb0c86b916ed5c97097bd0c2e72c662f1f7d92d537d25ea9f96f5d0"
+        }
+      ],
+      "kind": "file",
+      "modified": false,
+      "retained_header_sha256": "64375e53a334b77da80d5afaa30433973a9ad00367e027e6ab2271d7cb765707"
+    },
+    {
+      "path": "framework/javax/microedition/khronos/opengles/GL11ExtensionPack.java",
+      "license": "Apache-2.0",
+      "origin": "AOSP frameworks/base",
+      "sources": [
+        {
+          "url": "https://android.googlesource.com/platform/frameworks/base/+/37a24f52e6be75e7f7db461e3bee465152318c99/opengl/java/javax/microedition/khronos/opengles/GL11ExtensionPack.java?format=TEXT",
+          "sha256": "f3772af4e3fedd618739d038bde5e94f68898862e8fe8b20f618c691024a6ed9"
+        }
+      ],
+      "kind": "file",
+      "modified": false,
+      "retained_header_sha256": "2c38f26c44a7c4ae4cc60dc3419c06bd92ebadb62a968bdff5ed70662b92dd4b"
+    },
+    {
+      "path": "framework/libcore/io/Memory.java",
+      "license": "Apache-2.0",
+      "origin": "AOSP libcore",
+      "sources": [
+        {
+          "url": "https://android.googlesource.com/platform/libcore/+/refs/tags/android-4.4_r1/luni/src/main/java/libcore/io/Memory.java?format=TEXT",
+          "sha256": "11dd55d5c39cea5676e0837e679b33a3eeb8863026d1cdb574ee7cf292fb8316"
+        }
+      ],
+      "kind": "file",
+      "modified": true,
+      "retained_header_sha256": "6860b687cdee19b777f075dfe66a0234d9da6f8a362da8e1d05db124a919d2e1"
+    },
+    {
+      "path": "framework/libcore/math/MathUtils.java",
+      "license": "Apache-2.0",
+      "origin": "AOSP libcore",
+      "sources": [
+        {
+          "url": "https://android.googlesource.com/platform/libcore/+/refs/tags/android-10.0.0_r47/luni/src/main/java/libcore/math/MathUtils.java?format=TEXT",
+          "sha256": "c336a6de4c52770eafa97e7f310e2cb81d7997a74fc9609dd14aae7ab7644a6a"
+        }
+      ],
+      "kind": "file",
+      "modified": false,
+      "retained_header_sha256": "41845febcd9458cc67174fa6c5de8d6070fdab00f336f834d22135c0e7e29ecd"
+    },
+    {
+      "path": "framework/libcore/util/EmptyArray.java",
+      "license": "Apache-2.0",
+      "origin": "AOSP libcore",
+      "sources": [
+        {
+          "url": "https://android.googlesource.com/platform/libcore/+/refs/tags/android-10.0.0_r47/luni/src/main/java/libcore/util/EmptyArray.java?format=TEXT",
+          "sha256": "2fa11e890fe818a3611fe62fb7b734759292472d9b7f145a03cf7f3cd2a73dd1"
+        }
+      ],
+      "kind": "file",
+      "modified": true,
+      "retained_header_sha256": "41845febcd9458cc67174fa6c5de8d6070fdab00f336f834d22135c0e7e29ecd"
+    },
+    {
+      "path": "framework/org/apache/harmony/regex/internal/nls/Messages.java",
+      "license": "Apache-2.0",
+      "origin": "Apache Harmony",
+      "sources": [
+        {
+          "url": "https://raw.githubusercontent.com/apache/harmony/02970cb7227a335edd2c8457ebdde0195a735733/classlib/modules/regex/src/main/java/org/apache/harmony/regex/internal/nls/Messages.java",
+          "sha256": "7aeb7492e9d0bbe2bd729d9042f39a03668a12f50580404af8da712fa5ee60c7"
+        }
+      ],
+      "kind": "file",
+      "modified": true,
+      "retained_header_sha256": "6860b687cdee19b777f075dfe66a0234d9da6f8a362da8e1d05db124a919d2e1"
+    },
+    {
+      "path": "framework/org/json/JSON.java",
+      "license": "Apache-2.0",
+      "origin": "AOSP libcore",
+      "sources": [
+        {
+          "url": "https://android.googlesource.com/platform/libcore/+/refs/tags/android-10.0.0_r47/json/src/main/java/org/json/JSON.java?format=TEXT",
+          "sha256": "a2cc5e4bf64bfe3edd73c6a14409f3200640454051d9947ee79f16a2396a19b1"
+        }
+      ],
+      "kind": "file",
+      "modified": true,
+      "retained_header_sha256": "41845febcd9458cc67174fa6c5de8d6070fdab00f336f834d22135c0e7e29ecd"
+    },
+    {
+      "path": "framework/org/json/JSONArray.java",
+      "license": "Apache-2.0",
+      "origin": "AOSP libcore",
+      "sources": [
+        {
+          "url": "https://android.googlesource.com/platform/libcore/+/refs/tags/android-10.0.0_r47/json/src/main/java/org/json/JSONArray.java?format=TEXT",
+          "sha256": "9935dd4ceb79db5317da2b6aae2b9e876b59207289f95597496a4874d9882f4a"
+        }
+      ],
+      "kind": "file",
+      "modified": true,
+      "retained_header_sha256": "41845febcd9458cc67174fa6c5de8d6070fdab00f336f834d22135c0e7e29ecd"
+    },
+    {
+      "path": "framework/org/json/JSONException.java",
+      "license": "Apache-2.0",
+      "origin": "AOSP libcore",
+      "sources": [
+        {
+          "url": "https://android.googlesource.com/platform/libcore/+/refs/tags/android-10.0.0_r47/json/src/main/java/org/json/JSONException.java?format=TEXT",
+          "sha256": "26e10aae9c209dabbc8f15b4156fe9fdc87f5d9d2cb2d2f078b475a61ba0df7d"
+        }
+      ],
+      "kind": "file",
+      "modified": true,
+      "retained_header_sha256": "41845febcd9458cc67174fa6c5de8d6070fdab00f336f834d22135c0e7e29ecd"
+    },
+    {
+      "path": "framework/org/json/JSONObject.java",
+      "license": "Apache-2.0",
+      "origin": "AOSP libcore",
+      "sources": [
+        {
+          "url": "https://android.googlesource.com/platform/libcore/+/refs/tags/android-10.0.0_r47/json/src/main/java/org/json/JSONObject.java?format=TEXT",
+          "sha256": "d24084371a20f98b95418ba14712982484343cea2bd5d9795a12b84ea4fbb402"
+        }
+      ],
+      "kind": "file",
+      "modified": true,
+      "retained_header_sha256": "41845febcd9458cc67174fa6c5de8d6070fdab00f336f834d22135c0e7e29ecd"
+    },
+    {
+      "path": "framework/org/json/JSONStringer.java",
+      "license": "Apache-2.0",
+      "origin": "AOSP libcore",
+      "sources": [
+        {
+          "url": "https://android.googlesource.com/platform/libcore/+/refs/tags/android-10.0.0_r47/json/src/main/java/org/json/JSONStringer.java?format=TEXT",
+          "sha256": "112e27c55c533750f0bb4f7d6ab6b5fb3f5752a7f0701c6255a813bcb583a879"
+        }
+      ],
+      "kind": "file",
+      "modified": true,
+      "retained_header_sha256": "41845febcd9458cc67174fa6c5de8d6070fdab00f336f834d22135c0e7e29ecd"
+    },
+    {
+      "path": "framework/org/json/JSONTokener.java",
+      "license": "Apache-2.0",
+      "origin": "AOSP libcore",
+      "sources": [
+        {
+          "url": "https://android.googlesource.com/platform/libcore/+/refs/tags/android-10.0.0_r47/json/src/main/java/org/json/JSONTokener.java?format=TEXT",
+          "sha256": "1906c854123535634f77c97a95b2774fdae0b8c5e6a1e5d536ca27674b83271c"
+        }
+      ],
+      "kind": "file",
+      "modified": true,
+      "retained_header_sha256": "41845febcd9458cc67174fa6c5de8d6070fdab00f336f834d22135c0e7e29ecd"
+    },
+    {
+      "path": "include/jni.h",
+      "license": "GPL-2.0-only WITH Classpath-exception-2.0",
+      "origin": "OpenJDK",
+      "sources": [
+        {
+          "url": "https://raw.githubusercontent.com/openjdk/jdk/78bf06f425a99c26dbbc39b81aecf0912a50190b/src/java.base/share/native/include/jni.h",
+          "sha256": "42330664d1cccf2e4aa7b46e38674a1598f57a9822923aabdeb45649cb25842b"
+        }
+      ],
+      "kind": "file",
+      "modified": true,
+      "retained_header_sha256": "d4af311530118a5118b6e7fd7fbef00de53cf11b3de7d411e33b94e7e26ee6c7"
+    },
+    {
+      "path": "include/jni_md.h",
+      "license": "GPL-2.0-only WITH Classpath-exception-2.0",
+      "origin": "OpenJDK",
+      "sources": [
+        {
+          "url": "https://raw.githubusercontent.com/openjdk/jdk/78bf06f425a99c26dbbc39b81aecf0912a50190b/src/java.base/unix/native/include/jni_md.h",
+          "sha256": "8232a5a68d36060aaa426fbfdb4537983ecfdfc5fe07a43230005ddd1a4b986a"
+        }
+      ],
+      "kind": "file",
+      "modified": false,
+      "retained_header_sha256": "0b0a4a181c6eefa83984039d1cc1b74289e17a4150dc618e639da26a9daa3ea1"
+    }
+  ],
+  "notice_documents": [
+    {
+      "path": "framework/licenses/harmony-NOTICE",
+      "source": "https://raw.githubusercontent.com/apache/harmony/02970cb7227a335edd2c8457ebdde0195a735733/NOTICE"
+    },
+    {
+      "path": "framework/licenses/aosp-libcore-NOTICE",
+      "source": "https://android.googlesource.com/platform/libcore/+/refs/tags/android-4.4_r1/NOTICE?format=TEXT"
+    }
+  ]
+}

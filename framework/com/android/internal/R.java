@@ -15,6 +15,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+// Modified: adapted for runtime compatibility.
+
 package com.android.internal;
 
 /** The framework's styleable index tables (public attributes only). */

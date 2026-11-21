@@ -37,4 +37,6 @@ licenses = root / 'ios-app/KuDroidShell/Resources/licenses/framework'
 licenses.mkdir(parents=True, exist_ok=True)
 for name in ('LICENSE', 'LICENSE-APACHE-2.0', 'LICENSE-GPLv2-CPE', 'NOTICE'):
     shutil.copyfile(root / name, licenses / name)
+for name in ('harmony-NOTICE', 'aosp-libcore-NOTICE', 'provenance.json'):
+    shutil.copyfile(root / 'framework/licenses' / name, licenses / name)
 print(f'Generated {out} ({len(data)} bytes)')

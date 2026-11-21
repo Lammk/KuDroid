@@ -14,18 +14,22 @@ ROOT = Path(__file__).resolve().parents[1]
 
 def package(output):
     paths = set()
-    for directory in ('framework', 'scripts'):
+    for directory in ('framework', 'scripts', 'src', 'include', 'cmake', 'ios-app'):
         for path in (ROOT / directory).rglob('*'):
             relative = path.relative_to(ROOT)
-            if any(part in ('build', '__pycache__') for part in relative.parts):
+            if any(part in ('build', '__pycache__', 'target', '.build', 'libs', 'xtool') for part in relative.parts):
                 continue
-            if path.is_file() and (path.suffix in ('.java', '.py', '.sh', '.json', '.patch')
-                                   or directory == 'framework' and
-                                   (path.name.endswith('LICENSE') or path.suffix == '.md'
-                                    or path.name == 'UNICODE_LICENSE.txt')):
+            if relative.as_posix() == 'include/kudroid/framework_dex_bytes.h':
+                continue
+            if path.is_file() and (path.suffix in ('.java', '.py', '.sh', '.json', '.patch', '.cpp', '.h', '.inc',
+                                                   '.mm', '.swift', '.c', '.S', '.cmake', '.toml', '.lock', '.rs', '.plist', '.yml')
+                                   or
+                                   (path.name.endswith(('LICENSE', 'NOTICE')) or path.suffix == '.md'
+                                    or path.name == 'UNICODE_LICENSE.txt') or
+                                   path.parent == ROOT / 'ios-app/KuDroidShell/Resources/licenses/native'):
                 paths.add(path)
     for name in ('LICENSE', 'LICENSE-APACHE-2.0', 'LICENSE-GPLv2-CPE', 'NOTICE',
-                 'docs/licensing.md', 'include/jni.h', 'include/jni_md.h'):
+                 'docs/licensing.md', 'include/jni.h', 'include/jni_md.h', 'CMakeLists.txt', 'README.md', 'icon.png'):
         paths.add(ROOT / name)
     dex = ROOT / 'framework/build/framework.dex'
     if not dex.is_file() or dex.read_bytes()[:4] != b'dex\n':

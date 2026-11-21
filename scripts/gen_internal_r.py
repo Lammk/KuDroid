@@ -88,6 +88,7 @@ def main():
     w(" * See the License for the specific language governing permissions and")
     w(" * limitations under the License.")
     w(" */")
+    w("// Modified: adapted for runtime compatibility.")
     w("package com.android.internal;")
     w("")
     w("/** The framework's styleable index tables (public attributes only). */")

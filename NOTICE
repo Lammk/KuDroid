@@ -18,7 +18,8 @@ Apache-2.0 resource data described in section 2.
 2. Android Open Source Project (AOSP) - Apache License 2.0
 ===============================================================================
 Portions of the framework/ directory are derived from the Android Open Source Project
-(specifically Android 10.0.0 / API 29 frameworks/base and libcore).
+(Android 10.0.0 / API 29 frameworks/base and libcore, plus older Apache-licensed
+libcore implementations from Android 4.4).
 Licensed under the Apache License, Version 2.0 (see LICENSE-APACHE-2.0).
 
 Copyright (C) 2006-2020 The Android Open Source Project
@@ -55,7 +56,12 @@ Relevant packages and source files include:
 Portions of the framework/ directory are derived from the Apache Harmony Project.
 Licensed under the Apache License, Version 2.0 (see LICENSE-APACHE-2.0).
 
-Copyright 2005, 2011 The Apache Software Foundation
+Copyright 2006, 2010 The Apache Software Foundation
+
+Complete upstream attributions, including contributor notices, are retained in
+framework/licenses/harmony-NOTICE and framework/licenses/aosp-libcore-NOTICE.
+These upstream documents also describe components outside the imported subset;
+retaining their notices does not claim that those components are bundled.
 
 Relevant packages and source files include:
 - java.math (BigDecimal, BigInteger, BitLevel, Conversion, Division, Logical,
@@ -144,6 +150,10 @@ as required by GPLv2 section 3. A generic repository link or moving the DEX to
 a separate file does not by itself satisfy these requirements. See
 docs/licensing.md for the release procedure and component boundaries.
 
+framework/licenses/provenance.json records the audited imported source files,
+their upstream reference URLs/revisions and retained license-header hashes.
+Binary and source distributions retain that inventory and its notice documents.
+
 ===============================================================================
 7. Android Robot Artwork - Creative Commons Attribution 3.0
 ===============================================================================
@@ -156,3 +166,14 @@ License: https://creativecommons.org/licenses/by/3.0/
 
 The project icon adapts the robot artwork with XNU letterforms and shading.
 Google retains trademark rights to the Android robot and its derivatives.
+
+===============================================================================
+8. Native Graphics and Rust Standard Library
+===============================================================================
+ANGLE retains the BSD-style license and copyright of The ANGLE Project Authors.
+MoltenVK uses Apache-2.0. The Rust standard library is used under its MIT option,
+retaining the copyright of The Rust Project Contributors.
+
+Their license texts and source/version references are included in
+ios-app/KuDroidShell/Resources/licenses/native/. Existing codec, runtime engine,
+font and JIT dependency notices remain in their respective packaged resources.

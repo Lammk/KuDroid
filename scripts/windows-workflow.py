@@ -307,10 +307,14 @@ def ios(args, root, source):
     command(["python3", root / "scripts/verify-system-fonts.py", ipa], 120)
     source_archive = app / "xtool/KuDroid-framework-source.zip"
     command(["python3", root / "scripts/package-framework-source.py", source_archive], 120)
+    command(["python3", root / "scripts/verify-framework-licenses.py", "--ipa", ipa,
+             "--source-archive", source_archive], 120)
     destination = source / "ios-app/KuDroidShell/xtool/KuDroidShell.ipa"
     destination.parent.mkdir(parents=True, exist_ok=True)
     shutil.copy2(ipa, destination)
     shutil.copy2(source_archive, destination.parent / source_archive.name)
+    for relative in ("framework/build/framework.dex", "include/kudroid/framework_dex_bytes.h"):
+        shutil.copy2(root / relative, source / relative)
     print(f"IPA copied to Windows checkout: {destination}")
 
 

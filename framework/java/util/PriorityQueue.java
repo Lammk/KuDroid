@@ -22,6 +22,8 @@
  * or visit www.oracle.com if you need additional information or have any
  * questions.
  */
+// Modified on 2026-11-22: adapted for runtime compatibility.
+
 
 package java.util;
 

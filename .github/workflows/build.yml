@@ -276,6 +276,7 @@ jobs:
       - name: Set up Rust for device pairing
         uses: dtolnay/rust-toolchain@stable
         with:
+          toolchain: '1.99.0'
           targets: aarch64-apple-ios
 
       - name: Build and embed framework.dex
@@ -349,6 +350,9 @@ jobs:
           cp -R KuDroidShell.app Payload/
           zip -r KuDroidShell.ipa Payload
           rm -rf Payload
+
+      - name: Verify binary licenses and matching framework source
+        run: python3 scripts/run-command.py --timeout 120 python3 scripts/verify-framework-licenses.py --ipa KuDroidShell.ipa --source-archive KuDroid-framework-source.zip
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4

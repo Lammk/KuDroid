@@ -360,6 +360,8 @@ if(CMAKE_SYSTEM_NAME STREQUAL "iOS")
         "${CMAKE_CURRENT_SOURCE_DIR}/ios-app/KuDroidShell/Resources/runtime/*")
     file(GLOB_RECURSE KUDROID_RUNTIME_ADAPTER_ASSETS CONFIGURE_DEPENDS
         "${CMAKE_CURRENT_SOURCE_DIR}/ios-app/KuDroidShell/Resources/runtime-adapters/*")
+    file(GLOB KUDROID_NATIVE_LICENSE_FILES CONFIGURE_DEPENDS
+        "${CMAKE_CURRENT_SOURCE_DIR}/ios-app/KuDroidShell/Resources/licenses/native/*")
     add_executable(KuDroidShell MACOSX_BUNDLE
         ios-app/KuDroidShell/KuDroidApp.swift
         ios-app/KuDroidShell/ContentView.swift
@@ -394,6 +396,10 @@ if(CMAKE_SYSTEM_NAME STREQUAL "iOS")
         ios-app/KuDroidShell/Resources/licenses/framework/LICENSE-APACHE-2.0
         ios-app/KuDroidShell/Resources/licenses/framework/LICENSE-GPLv2-CPE
         ios-app/KuDroidShell/Resources/licenses/framework/NOTICE
+        ios-app/KuDroidShell/Resources/licenses/framework/harmony-NOTICE
+        ios-app/KuDroidShell/Resources/licenses/framework/aosp-libcore-NOTICE
+        ios-app/KuDroidShell/Resources/licenses/framework/provenance.json
+        ${KUDROID_NATIVE_LICENSE_FILES}
         ${KUDROID_FLUTTER_RUNTIME_ASSETS}
         ${KUDROID_RUNTIME_ADAPTER_ASSETS}
         ios-app/KuDroidShell/Resources/system/etc/fonts.xml
@@ -408,11 +414,16 @@ if(CMAKE_SYSTEM_NAME STREQUAL "iOS")
 
     set_source_files_properties(icon.png ios-app/KuDroidShell/THIRD_PARTY_NOTICES.txt
         PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
+    set_source_files_properties(${KUDROID_NATIVE_LICENSE_FILES}
+        PROPERTIES MACOSX_PACKAGE_LOCATION Resources/licenses/native HEADER_FILE_ONLY TRUE)
     set_source_files_properties(
         ios-app/KuDroidShell/Resources/licenses/framework/LICENSE
         ios-app/KuDroidShell/Resources/licenses/framework/LICENSE-APACHE-2.0
         ios-app/KuDroidShell/Resources/licenses/framework/LICENSE-GPLv2-CPE
         ios-app/KuDroidShell/Resources/licenses/framework/NOTICE
+        ios-app/KuDroidShell/Resources/licenses/framework/harmony-NOTICE
+        ios-app/KuDroidShell/Resources/licenses/framework/aosp-libcore-NOTICE
+        ios-app/KuDroidShell/Resources/licenses/framework/provenance.json
         PROPERTIES MACOSX_PACKAGE_LOCATION Resources/licenses/framework HEADER_FILE_ONLY TRUE)
     foreach(asset IN LISTS KUDROID_FLUTTER_RUNTIME_ASSETS KUDROID_RUNTIME_ADAPTER_ASSETS)
         file(RELATIVE_PATH relative_asset

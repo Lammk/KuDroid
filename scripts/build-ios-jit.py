@@ -11,6 +11,7 @@ import struct
 import subprocess
 import sys
 import tempfile
+import tomllib
 import urllib.request
 import zipfile
 
@@ -25,6 +26,13 @@ def run(args, seconds=240, **kwargs):
 
 def download(url):
     return urllib.request.urlopen(url, timeout=60).read()
+
+
+def cargo_command(crate):
+    binary = Path.home() / ".cargo/bin/cargo"
+    binary = str(binary) if binary.is_file() else "cargo"
+    toolchain = tomllib.loads((crate / "rust-toolchain.toml").read_text(encoding="utf-8"))
+    return [binary, "+" + toolchain["toolchain"]["channel"]]
 
 
 def framework_metadata(framework):
@@ -105,9 +113,9 @@ def prepare_framework():
 
 def notices(crate, environment):
     metadata = json.loads(subprocess.check_output(
-        [str(Path.home() / ".cargo/bin/cargo") if (Path.home() / ".cargo/bin/cargo").exists() else "cargo",
+        [*cargo_command(crate),
          "metadata", "--locked", "--filter-platform", "aarch64-apple-ios", "--format-version", "1", "--manifest-path", str(crate / "Cargo.toml")],
-        env=environment, timeout=120))
+        env=environment, cwd=crate, timeout=120))
     parts = [f"StikJIT {VERSION}\nSource: https://github.com/StikDebug/StikJIT/tree/{VERSION}\n"
              "The framework is repackaged without its upstream scripts. The helper uses an independently written MIT script.\n",
              download(f"https://raw.githubusercontent.com/StikDebug/StikJIT/{VERSION}/LICENSE").decode()]
@@ -135,8 +143,7 @@ def notices(crate, environment):
 def build(sdk):
     framework = prepare_framework()
     crate = ROOT / "src/ios-pairing"
-    cargo = Path.home() / ".cargo/bin/cargo"
-    cargo = str(cargo) if cargo.is_file() else "cargo"
+    cargo = cargo_command(crate)
     environment = os.environ.copy()
     environment["SDKROOT"] = str(sdk)
     environment["IPHONEOS_DEPLOYMENT_TARGET"] = "15.0"
@@ -144,9 +151,9 @@ def build(sdk):
     environment["AR_aarch64_apple_ios"] = "llvm-ar"
     environment["CFLAGS_aarch64_apple_ios"] = f"--target=arm64-apple-ios15.0 -isysroot {sdk}"
     if not (crate / "Cargo.lock").exists():
-        run([cargo, "generate-lockfile", "--manifest-path", crate / "Cargo.toml"], 180, env=environment)
-    run([cargo, "build", "--release", "--locked", "-j1", "--target", "aarch64-apple-ios",
-         "--manifest-path", crate / "Cargo.toml"], 1200, env=environment)
+        run([*cargo, "generate-lockfile", "--manifest-path", crate / "Cargo.toml"], 180, env=environment, cwd=crate)
+    run([*cargo, "build", "--release", "--locked", "-j1", "--target", "aarch64-apple-ios",
+         "--manifest-path", crate / "Cargo.toml"], 1200, env=environment, cwd=crate)
     libraries = ROOT / "ios-app/KuDroidShell/libs"
     libraries.mkdir(exist_ok=True)
     target = Path(environment.get("CARGO_TARGET_DIR", crate / "target"))
