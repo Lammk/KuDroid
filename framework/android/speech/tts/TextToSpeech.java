@@ -27,6 +27,8 @@ public class TextToSpeech {
 
     public int stop() { return ERROR; }
 
+    public boolean isSpeaking() { return false; }
+
     public interface OnInitListener {
         void onInit(int status);
     }

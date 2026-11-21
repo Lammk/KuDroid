@@ -8,7 +8,11 @@ import java.util.Map;
 public interface AssetPackManager {
     AssetPackLocation getPackLocation(String packName);
     Map<String, AssetPackLocation> getPackLocations();
+    @kudroid.internal.ReturnBridge(target = com.google.android.gms.tasks.Task.class,
+        adapter = com.google.android.gms.tasks.LegacyTaskAdapter.class, method = "wrap")
     Task<AssetPackStates> getPackStates(List<String> packNames);
+    @kudroid.internal.ReturnBridge(target = com.google.android.gms.tasks.Task.class,
+        adapter = com.google.android.gms.tasks.LegacyTaskAdapter.class, method = "wrap")
     Task<AssetPackStates> fetch(List<String> packNames);
     Task<Void> cancel(List<String> packNames);
     void clearListeners();

@@ -35,6 +35,7 @@ bool Invoke_java_lang_reflect_Method(Interpreter* interp, const char* name,
         interp->ThrowException("Ljava/lang/NullPointerException;", "method handle null");
         return true;
     }
+    DexClassLinker::LoaderScope loader_scope(linker, m->declaring_class->loader_id);
 
     if (std::strcmp(name, "getModifiers") == 0) {
         *result = DexValue::Int(static_cast<int32_t>(m->access_flags));
@@ -140,6 +141,7 @@ bool Invoke_java_lang_reflect_Constructor(Interpreter* interp, const char* name,
         interp->ThrowException("Ljava/lang/NullPointerException;", "constructor handle null");
         return true;
     }
+    DexClassLinker::LoaderScope loader_scope(linker, ctor->declaring_class->loader_id);
 
     if (std::strcmp(name, "getModifiers") == 0) {
         *result = DexValue::Int(static_cast<int32_t>(ctor->access_flags));
@@ -204,6 +206,7 @@ bool Invoke_java_lang_reflect_Field(Interpreter* interp, const char* name,
         interp->ThrowException("Ljava/lang/NullPointerException;", "field handle null");
         return true;
     }
+    DexClassLinker::LoaderScope loader_scope(linker, f->declaring_class->loader_id);
 
     if (std::strcmp(name, "getModifiers") == 0) {
         *result = DexValue::Int(static_cast<int32_t>(f->access_flags));

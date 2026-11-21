@@ -13,6 +13,7 @@ final class IOSDiagnostics: NSObject, MXMetricManagerSubscriber {
     private let signposter = OSSignposter(subsystem: "com.kudroid.shell", category: "lifecycle")
     private var heartbeat: DispatchSourceTimer?
     private var sequence: UInt64 = 0
+    private let persistenceLock = NSLock()
 
     func start() {
         MXMetricManager.shared.add(self)
@@ -23,7 +24,7 @@ final class IOSDiagnostics: NSObject, MXMetricManagerSubscriber {
     func didReceive(_ payloads: [MXDiagnosticPayload]) {
         for payload in payloads {
             let text = "metric-kit diagnostic received: \(String(describing: payload))"
-            persist(text)
+            persist(text, host: true)
             logger.error("\(text)")
         }
     }
@@ -31,24 +32,31 @@ final class IOSDiagnostics: NSObject, MXMetricManagerSubscriber {
     func didReceive(_ payloads: [MXMetricPayload]) {
         for payload in payloads {
             let text = "metric-kit metrics received: \(String(describing: payload))"
-            persist(text)
+            persist(text, host: true)
             logger.info("\(text)")
         }
     }
 
-    private func diagnosticsURL() -> URL {
+    private func diagnosticsURL(host: Bool) -> URL {
         let documents = FileManager.default.urls(for: .documentDirectory,
                                                   in: .userDomainMask)[0]
-        let base = StandaloneConfiguration.isStandalone ? StandaloneStorage.logs
-            : documents.appendingPathComponent("logs", isDirectory: true)
+        let nativePath = host ? kudroid_host_log_dir() : kudroid_current_log_dir()
+        let base: URL
+        if let nativePath, nativePath.pointee != 0 {
+            base = URL(fileURLWithPath: String(cString: nativePath), isDirectory: true)
+        } else {
+            base = documents.appendingPathComponent("logs/_host", isDirectory: true)
+        }
         try? FileManager.default.createDirectory(at: base,
                                                  withIntermediateDirectories: true)
         return base.appendingPathComponent("ios_diagnostics.log")
     }
 
-    private func persist(_ text: String) {
+    private func persist(_ text: String, host: Bool = false) {
+        persistenceLock.lock()
+        defer { persistenceLock.unlock() }
         let line = "\(ISO8601DateFormatter().string(from: Date())) \(text)\n"
-        let url = diagnosticsURL()
+        let url = diagnosticsURL(host: host)
         if let data = line.data(using: .utf8) {
             if FileManager.default.fileExists(atPath: url.path),
                let handle = try? FileHandle(forWritingTo: url) {

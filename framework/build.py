@@ -75,6 +75,7 @@ def main():
     argfile.write_text("\n".join(lines) + "\n", encoding=locale.getpreferredencoding(False))
     run([javac, "@" + str(argfile)], args.timeout)
     run([sys.executable, ROOT / 'scripts/fetch-legacy-http.py', '--classes', classes], 60)
+    run([sys.executable, ROOT / 'scripts/framework-return-bridges.py', '--classes', classes], 120)
     jar = build / "framework-classes.jar"
     with zipfile.ZipFile(jar, "w", zipfile.ZIP_STORED) as archive:
         for path in sorted(classes.rglob("*.class")):

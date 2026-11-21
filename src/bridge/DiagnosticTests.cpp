@@ -562,9 +562,10 @@ void uninstallDbg(const std::string& msg) {
     std::snprintf(ts, sizeof(ts), "%02d:%02d:%02d.%03ld",
                   tmv.tm_hour, tmv.tm_min, tmv.tm_sec, now.tv_nsec / 1000000);
     g_uninstallDbg += std::string("[") + ts + "] " + msg + "\n";
-    if (g_logDir[0]) {
+    const char* logDirectory = kudroid_current_log_dir();
+    if (*logDirectory) {
         const std::string path =
-            std::string(g_logDir) + "/kudroid_uninstall_debug.txt";
+            std::string(logDirectory) + "/kudroid_uninstall_debug.txt";
         if (FILE* f = fopen(path.c_str(), "w")) {
             fwrite(g_uninstallDbg.data(), 1, g_uninstallDbg.size(), f);
             fclose(f);
@@ -1015,7 +1016,8 @@ extern "C" const char* kudroid_load_apk(const char* apkPath) {
     // Documents, not the log directory: an extracted APK is app data. These read
     // g_logDir back when the two were the same variable, which after the split would
     // have buried a whole extracted APK tree inside logs/.
-    const char* docsRoot = g_docsDir[0] != '\0' ? g_docsDir : g_logDir;
+    const char* documents = bridgeDocumentsDirectory();
+    const char* docsRoot = *documents ? documents : kudroid_current_log_dir();
     std::string targetDir = std::string(docsRoot) + "/extracted_apk";
 
     log += "[kudroid_apk] Initializing VFS...\n";

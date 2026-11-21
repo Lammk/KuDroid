@@ -26,6 +26,8 @@ public final class ActivityThread {
     public static final int DARK_MODE_CHANGED = 111;
     private static final int BACK = 112;
     private static final int KEY_EVENT = 113;
+    private static final int LOW_MEMORY = 114;
+    private static boolean sLowMemoryQueued;
     private static boolean sNetworkChangeQueued;
     private static boolean sCameraEventsQueued;
     private static int sPendingDarkMode = -1;
@@ -168,6 +170,10 @@ public final class ActivityThread {
                     sNetworkChangeQueued = false;
                     android.net.ConnectivityManager.dispatchNetworkChange();
                     break;
+                case LOW_MEMORY:
+                    sLowMemoryQueued = false;
+                    handleLowMemory();
+                    break;
                 case CAMERA_EVENTS:
                     sCameraEventsQueued = false;
                     android.hardware.Camera.dispatchPending();
@@ -221,6 +227,30 @@ public final class ActivityThread {
         if (thread == null || thread.mH == null || sNetworkChangeQueued) return;
         sNetworkChangeQueued = true;
         thread.mH.sendEmptyMessage(NETWORK_CHANGED);
+    }
+
+    public static void postLowMemory() {
+        ActivityThread thread = sCurrentActivityThread;
+        if (thread == null || thread.mH == null || sLowMemoryQueued) return;
+        sLowMemoryQueued = true;
+        if (!thread.mH.sendEmptyMessage(LOW_MEMORY)) sLowMemoryQueued = false;
+    }
+
+    private void handleLowMemory() {
+        java.util.ArrayList<android.content.ComponentCallbacks> callbacks =
+                new java.util.ArrayList<android.content.ComponentCallbacks>();
+        if (mApplication != null) callbacks.add(mApplication);
+        for (Application application : SharedApplications.snapshot()) callbacks.add(application);
+        if (mInitialActivity != null) callbacks.add(mInitialActivity);
+        callbacks.addAll(mBackStack);
+        for (ServiceRecord record : mServiceRecords.values()) callbacks.add(record.service);
+        for (android.content.ContentProvider provider :
+                android.content.LocalContentProviders.snapshot()) callbacks.add(provider);
+        android.util.Log.i("ActivityThread", "Dispatching low-memory callbacks: " + callbacks.size());
+        for (android.content.ComponentCallbacks callback : callbacks) {
+            if (callback instanceof Activity && ((Activity) callback).isDestroyed()) continue;
+            callback.onLowMemory();
+        }
     }
 
     /** Queue camera frames, photos and errors the host delivered; Looper thread only. */
@@ -634,10 +664,7 @@ public final class ActivityThread {
         }
     }
 
-    /**
-     * Run pre-Activity startup: factory, then Application, then onCreate().
-     * Failures are logged without stopping the launch.
-     */
+    /** Attach the application and install providers before its onCreate callback. */
     private void bootstrapApplication(String factoryName, String appClassName) {
         if (factoryName != null && !factoryName.isEmpty()) {
             try {
@@ -691,6 +718,7 @@ public final class ActivityThread {
         } catch (Throwable t) {
             android.util.Log.e("ActivityThread", "Application.attach failed: " + t.toString());
         }
+        ProviderBootstrap.install(mApplication, mComponentFactory);
         try {
             mApplication.onCreate();
             android.util.Log.i("ActivityThread", "Application.onCreate() done: " + appName);
@@ -1387,12 +1415,20 @@ public final class ActivityThread {
             return record;
         }
         Service service;
+        Application ownerApplication = mApplication;
+        android.content.Context ownerContext = new ApplicationContext();
         try {
-            if (mComponentFactory != null) {
-                service = mComponentFactory.instantiateService(
-                        ClassLoader.getSystemClassLoader(), className, intent);
+            AppComponentFactory factory = mComponentFactory;
+            if (!android.content.pm.SystemPackageManager.getRegisteredPackageName().equals(component.getPackageName())) {
+                ownerApplication = SharedApplications.get(component.getPackageName());
+                ownerContext = ownerApplication;
+                factory = SharedApplications.factory(component.getPackageName());
+            }
+            if (factory != null) {
+                service = factory.instantiateService(
+                        ownerContext.getClassLoader(), className, intent);
             } else {
-                Object instance = Class.forName(className).newInstance();
+                Object instance = Class.forName(className, true, ownerContext.getClassLoader()).newInstance();
                 service = instance instanceof Service ? (Service) instance : null;
             }
         } catch (Throwable t) {
@@ -1407,7 +1443,7 @@ public final class ActivityThread {
         }
         record = new ServiceRecord(className, service);
         record.component = component;
-        service.attach(new ApplicationContext(), this, className, mApplication);
+        service.attach(ownerContext, this, className, ownerApplication);
         synchronized (mServiceRecords) {
             mServiceRecords.put(className, record);
         }

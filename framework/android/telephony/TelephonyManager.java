@@ -22,6 +22,7 @@ public class TelephonyManager {
     public String getImei() { return "000000000000000"; }
     public String getSimOperator() { return "45204"; }
     public String getSimOperatorName() { return "Viettel"; }
+    public String getNetworkOperatorName() { return ""; }
     public String getSimCountryIso() { return "vn"; }
     public int getSimState() { return SIM_STATE_READY; }
     public int getPhoneType() { return PHONE_TYPE_GSM; }

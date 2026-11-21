@@ -5,10 +5,11 @@ import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 
-/** Draws a Bitmap at the top-left of its bounds. */
+/** Draws a bitmap within its bounds using the selected gravity. */
 public class BitmapDrawable extends Drawable {
     private Bitmap mBitmap;
     private final Paint mPaint = new Paint();
+    private final android.graphics.Rect mDestination = new android.graphics.Rect();
     private int mGravity = 0x77;
     private android.content.res.ColorStateList mTint;
     private android.graphics.PorterDuff.Mode mTintMode = android.graphics.PorterDuff.Mode.SRC_IN;
@@ -59,7 +60,12 @@ public class BitmapDrawable extends Drawable {
     }
 
     public int getGravity() { return mGravity; }
-    public void setGravity(int gravity) { mGravity = gravity; }
+    public void setGravity(int gravity) {
+        if (mGravity != gravity) {
+            mGravity = gravity;
+            invalidateSelf();
+        }
+    }
     public void setAntiAlias(boolean aa) { mPaint.setAntiAlias(aa); }
     public void setTargetDensity(int density) {}
     public void setTileModeXY(android.graphics.Shader.TileMode xmode, android.graphics.Shader.TileMode ymode) {}
@@ -68,10 +74,16 @@ public class BitmapDrawable extends Drawable {
     public void draw(Canvas canvas) {
         if (canvas == null || mBitmap == null || mBitmap.isRecycled()) return;
         final android.graphics.Rect b = getBounds();
+        if (b.isEmpty()) return;
+        android.view.Gravity.apply(mGravity, getIntrinsicWidth(), getIntrinsicHeight(),
+                b, mDestination, getLayoutDirection());
         android.graphics.ColorFilter filter = mPaint.getColorFilter();
         if (filter == null) mPaint.setColorFilter(mTintFilter);
-        canvas.drawBitmap(mBitmap, b.left, b.top, mPaint);
-        mPaint.setColorFilter(filter);
+        try {
+            canvas.drawBitmap(mBitmap, null, mDestination, mPaint);
+        } finally {
+            mPaint.setColorFilter(filter);
+        }
     }
 
     @Override

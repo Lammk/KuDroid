@@ -3,10 +3,28 @@ package android.os;
 public class Binder implements IBinder {
     private IInterface mOwner;
     private String mDescriptor;
+    private static final ThreadLocal<Long> CALLING_IDENTITY = new ThreadLocal<Long>() {
+        protected Long initialValue() { return Long.valueOf(processIdentity()); }
+    };
 
     public Binder() {}
 
-    public static int getCallingUid() { return Process.myUid(); }
+    private static long processIdentity() {
+        return ((long) Process.myPid() << 32) | (Process.myUid() & 0xffffffffL);
+    }
+
+    public static int getCallingUid() { return (int) CALLING_IDENTITY.get().longValue(); }
+    public static int getCallingPid() { return (int) (CALLING_IDENTITY.get().longValue() >>> 32); }
+
+    public static long clearCallingIdentity() {
+        long previous = CALLING_IDENTITY.get().longValue();
+        CALLING_IDENTITY.set(Long.valueOf(processIdentity()));
+        return previous;
+    }
+
+    public static void restoreCallingIdentity(long token) {
+        CALLING_IDENTITY.set(Long.valueOf(token));
+    }
 
     public void attachInterface(IInterface owner, String descriptor) {
         mOwner = owner;

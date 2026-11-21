@@ -12,6 +12,7 @@ public abstract class PackageManager {
     public static final int GET_SIGNATURES = 64;
     public static final int GET_SIGNING_CERTIFICATES = 0x08000000;
     public static final int MATCH_DEFAULT_ONLY = 65536;
+    public static final int MATCH_DISABLED_COMPONENTS = 0x00000200;
 
     /**
      * Include &lt;meta-data&gt; in the returned info.
@@ -96,6 +97,21 @@ public abstract class PackageManager {
 
     public abstract ProviderInfo resolveContentProvider(String authority, int flags);
 
+    public ProviderInfo getProviderInfo(ComponentName component, int flags) throws NameNotFoundException {
+        throw new NameNotFoundException(component == null ? "null component" : component.toString());
+    }
+
+    public android.content.res.XmlResourceParser getXml(String packageName, int resourceId, ApplicationInfo info) {
+        try {
+            return (info == null ? getResourcesForApplication(packageName)
+                    : getResourcesForApplication(info)).getXml(resourceId);
+        } catch (NameNotFoundException exception) {
+            return null;
+        } catch (android.content.res.Resources.NotFoundException exception) {
+            return null;
+        }
+    }
+
     public CharSequence getApplicationLabel(ApplicationInfo info) { return info.loadLabel(this); }
 
     public abstract android.content.res.Resources getResourcesForApplication(ApplicationInfo info)
@@ -129,6 +145,12 @@ public abstract class PackageManager {
     public abstract boolean hasSystemFeature(String name, int version);
     public abstract ResolveInfo resolveActivity(Intent intent, int flags);
     public abstract List<ResolveInfo> queryIntentActivities(Intent intent, int flags);
+
+    // The package database has no registered manifest receivers.
+    public List<ResolveInfo> queryBroadcastReceivers(Intent intent, int flags) {
+        if (intent == null) throw new NullPointerException("intent == null");
+        return java.util.Collections.emptyList();
+    }
 
     // No service intent filters are registered in the package database.
     public List<ResolveInfo> queryIntentServices(Intent intent, int flags) {

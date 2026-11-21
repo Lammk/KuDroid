@@ -37,6 +37,24 @@ struct ErrorScope {
 };
 #endif
 
+#if defined(__APPLE__)
+template<class Context>
+bool HashBytes(const uint8_t* input, size_t length, uint8_t* output,
+               int (*initialize)(Context*), int (*update)(Context*, const void*, CC_LONG),
+               int (*finalize)(unsigned char*, Context*)) {
+    Context context;
+    bool valid = initialize(&context) == 1;
+    while (valid && length) {
+        const size_t chunk = std::min(length, static_cast<size_t>(std::numeric_limits<CC_LONG>::max()));
+        valid = update(&context, input, static_cast<CC_LONG>(chunk)) == 1;
+        input += chunk; length -= chunk;
+    }
+    valid = valid && finalize(output, &context) == 1;
+    Wipe(reinterpret_cast<uint8_t*>(&context), sizeof(context));
+    return valid;
+}
+#endif
+
 bool Sha1(const uint8_t* input, size_t size, uint8_t* output) {
 #if defined(__APPLE__)
     CC_SHA1_CTX context;
@@ -63,6 +81,48 @@ bool Sha1(const uint8_t* input, size_t size, uint8_t* output) {
 bool SymmetricCryptoAvailable() {
 #if defined(__APPLE__) || defined(KUDROID_HAS_OPENSSL)
     return true;
+#else
+    return false;
+#endif
+}
+
+bool CryptoDigest(const char* algorithm, const uint8_t* input, size_t length,
+                  std::vector<uint8_t>* output) {
+    if (!algorithm || !output || (length && !input)) return false;
+#if defined(__APPLE__)
+    if (!std::strcmp(algorithm, "MD5")) {
+        output->resize(CC_MD5_DIGEST_LENGTH);
+        return HashBytes(input, length, output->data(), CC_MD5_Init, CC_MD5_Update, CC_MD5_Final);
+    }
+    if (!std::strcmp(algorithm, "SHA1")) {
+        output->resize(CC_SHA1_DIGEST_LENGTH);
+        return HashBytes(input, length, output->data(), CC_SHA1_Init, CC_SHA1_Update, CC_SHA1_Final);
+    }
+    if (!std::strcmp(algorithm, "SHA224")) {
+        output->resize(CC_SHA224_DIGEST_LENGTH);
+        return HashBytes(input, length, output->data(), CC_SHA224_Init, CC_SHA224_Update, CC_SHA224_Final);
+    }
+    if (!std::strcmp(algorithm, "SHA256")) {
+        output->resize(CC_SHA256_DIGEST_LENGTH);
+        return HashBytes(input, length, output->data(), CC_SHA256_Init, CC_SHA256_Update, CC_SHA256_Final);
+    }
+    if (!std::strcmp(algorithm, "SHA384")) {
+        output->resize(CC_SHA384_DIGEST_LENGTH);
+        return HashBytes(input, length, output->data(), CC_SHA384_Init, CC_SHA384_Update, CC_SHA384_Final);
+    }
+    if (!std::strcmp(algorithm, "SHA512")) {
+        output->resize(CC_SHA512_DIGEST_LENGTH);
+        return HashBytes(input, length, output->data(), CC_SHA512_Init, CC_SHA512_Update, CC_SHA512_Final);
+    }
+    return false;
+#elif defined(KUDROID_HAS_OPENSSL)
+    ErrorScope errors;
+    const EVP_MD* digest = EVP_get_digestbyname(algorithm);
+    const int size = digest ? EVP_MD_size(digest) : 0;
+    if (size <= 0) return false;
+    output->resize(static_cast<size_t>(size));
+    unsigned int written = 0;
+    return EVP_Digest(input, length, output->data(), &written, digest, nullptr) == 1 && written == output->size();
 #else
     return false;
 #endif

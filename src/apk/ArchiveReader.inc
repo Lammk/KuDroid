@@ -304,7 +304,7 @@ static void collectAdaptiveIconRefs(const std::vector<std::uint8_t>& data,
     std::vector<std::string> pool;
     bool havePool = false;
     while (cur + 8 <= data.size()) {
-        const std::uint32_t type = read32(data, cur);
+        const std::uint16_t type = read16(data, cur);
         const std::uint32_t size = read32(data, cur + 4);
         if (size < 8 || cur + size > data.size()) break;
         if (type == 0x0001) {
@@ -368,15 +368,15 @@ static IconPick pickIcon(const std::vector<ZipEntryInfo>& entries,
     IconPick pick;
     for (const auto& entry : entries) {
         if (!isBitmapName(entry.name)) continue;
-        const int rank = iconPriority(entry.name);
-        if (rank < 0) continue;
         const bool referenced =
             std::find(preferred.begin(), preferred.end(), entry.name) != preferred.end();
+        const int rank = iconPriority(entry.name);
+        if (rank < 0 && !referenced) continue;
         const std::string lower = toLower(entry.name);
         const bool recognizable = lower.find("launcher") != std::string::npos ||
                 lower.find("icon") != std::string::npos ||
                 lower.find("logo") != std::string::npos;
-        int score = rank;
+        int score = std::max(0, rank);
         if (referenced) score += 100000;
         else if (recognizable) score += 10000;
         if (score > pick.score) pick = {&entry, score};

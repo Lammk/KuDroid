@@ -57,6 +57,21 @@ struct ServiceEntry {
     std::vector<MetaDataEntry> metaData;
 };
 
+struct ProviderEntry {
+    std::string name;
+    std::string authorities;
+    std::string processName;
+    std::string readPermission;
+    std::string writePermission;
+    int initOrder = 0;
+    bool enabled = true;
+    bool exported = false;
+    bool exportedSpecified = false;
+    bool grantUriPermissions = false;
+    bool directBootAware = false;
+    std::vector<MetaDataEntry> metaData;
+};
+
 // Parsing results AndroidManifest.xml (binary AXML).
 struct ManifestInfo {
     std::string packageName;
@@ -70,6 +85,11 @@ struct ManifestInfo {
     bool applicationEnabled = true;
     std::string applicationPermission;
     std::vector<ServiceEntry> services;
+    std::string applicationProcess;
+    int minSdkVersion = 1;
+    int targetSdkVersion = 0;
+    std::vector<std::string> requestedPermissions;
+    std::vector<ProviderEntry> providers;
 
     // android:appComponentFactory on <application>. Android instantiates this
     // class before any component and routes every Application/Activity/Service/

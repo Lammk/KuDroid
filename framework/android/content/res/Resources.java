@@ -37,14 +37,14 @@ public class Resources {
     private volatile int mConfigurationRevision;
     private final Theme mTheme = new Theme(this);
 
-    private static native int nativeGetIdentifier(String name, String type, String packageName);
-    private static native String nativeGetResourceName(int id);
-    private static native byte[] nativeReadResource(String path);
+    private static native int nativeGetIdentifier(String name, String type, String packageName, String directory);
+    private static native String nativeGetResourceName(int id, String directory);
+    private static native byte[] nativeReadResource(String path, String directory);
 
-    private static native int[] nativeGetStyle(int id, String locale, Configuration config, int sdk);
-    private static native String nativeGetPoolString(int index);
+    private static native int[] nativeGetStyle(int id, String locale, Configuration config, int sdk, String directory);
+    private static native String nativeGetPoolString(int index, String directory);
     private static native boolean nativeGetValue(int id, String locale, TypedValue output,
-                                                  boolean resolve, Configuration config, int sdk);
+                                                  boolean resolve, Configuration config, int sdk, String directory);
     private static native int nativeGetDarkMode();
 
     private String localeName() {
@@ -53,7 +53,7 @@ public class Resources {
 
     boolean loadValue(int id, TypedValue output, boolean resolve) {
         return nativeGetValue(id, localeName(), output, resolve, mConfiguration,
-                android.os.Build.VERSION.SDK_INT);
+                android.os.Build.VERSION.SDK_INT, mAssets.getResourceDirectory());
     }
 
     public Resources() {
@@ -150,7 +150,7 @@ public class Resources {
             return 0x01040000;
         }
         return nativeGetIdentifier(name, defType != null ? defType : "",
-                defPackage != null ? defPackage : "");
+                defPackage != null ? defPackage : "", mAssets.getResourceDirectory());
     }
     public int getColor(int id) {
         ColorStateList list = getColorStateList(id, null);
@@ -227,7 +227,7 @@ public class Resources {
     }
     public InputStream openRawResource(int id) { return new ByteArrayInputStream(new byte[0]); }
     public byte[] readResource(String path) {
-        return nativeReadResource(path);
+        return nativeReadResource(path, mAssets.getResourceDirectory());
     }
 
     public InputStream openRawResource(int id, TypedValue value) {
@@ -237,7 +237,7 @@ public class Resources {
                 getValue(id, value, true);
             }
             if (value.string != null) {
-                byte[] data = nativeReadResource(value.string.toString());
+                byte[] data = nativeReadResource(value.string.toString(), mAssets.getResourceDirectory());
                 if (data != null && data.length > 0) {
                     return new ByteArrayInputStream(data);
                 }
@@ -256,7 +256,7 @@ public class Resources {
             throw new NotFoundException("Invalid drawable resource 0x" + Integer.toHexString(id));
         String path = value.string.toString();
         if (!path.endsWith(".xml")) {
-            byte[] data = nativeReadResource(path);
+            byte[] data = nativeReadResource(path, mAssets.getResourceDirectory());
             if (data != null && data.length > 0) {
                 android.graphics.Bitmap bm = android.graphics.BitmapFactory.decodeByteArray(data, 0, data.length);
                 if (bm != null) {
@@ -278,7 +278,7 @@ public class Resources {
 
     // "package:type/entry", from the application table or the framework table.
     public String getResourceName(int resid) throws NotFoundException {
-        String name = nativeGetResourceName(resid);
+        String name = nativeGetResourceName(resid, mAssets.getResourceDirectory());
         if (name == null) {
             throw new NotFoundException("Unable to find resource ID #0x" + Integer.toHexString(resid));
         }
@@ -317,7 +317,7 @@ public class Resources {
         TypedValue value = new TypedValue(); getValue(id, value, true);
         if (value.type != TypedValue.TYPE_STRING || value.string == null)
             throw new NotFoundException("Not an XML resource 0x" + Integer.toHexString(id));
-        byte[] data = nativeReadResource(value.string.toString());
+        byte[] data = nativeReadResource(value.string.toString(), mAssets.getResourceDirectory());
         if (data == null) throw new NotFoundException("Missing XML " + value.string);
         try { return new CompiledXmlResourceParser(data); }
         catch (org.xmlpull.v1.XmlPullParserException e) {
@@ -374,7 +374,7 @@ public class Resources {
             StyleData cached = mStyleCache.get(id);
             if (cached != null) return cached;
         }
-        int[] data = nativeGetStyle(id, localeName(), mConfiguration, android.os.Build.VERSION.SDK_INT);
+        int[] data = nativeGetStyle(id, localeName(), mConfiguration, android.os.Build.VERSION.SDK_INT, mAssets.getResourceDirectory());
         if (data == null) return null;
         StyleData built = new StyleData(data);
         synchronized (mStyleCache) { mStyleCache.put(id, built); }
@@ -391,7 +391,7 @@ public class Resources {
         out.resourceId = 0;
         out.string = null;
         out.assetCookie = 1;
-        if (out.type == TypedValue.TYPE_STRING) out.string = nativeGetPoolString(out.data);
+        if (out.type == TypedValue.TYPE_STRING) out.string = nativeGetPoolString(out.data, mAssets.getResourceDirectory());
         return true;
     }
 

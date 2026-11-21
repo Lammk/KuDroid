@@ -46,6 +46,16 @@ try {
     Start-Service iphlpsvc
     & netsh.exe interface portproxy add v4tov4 listenaddress=$gateway listenport=27015 connectaddress=127.0.0.1 connectport=27015
     if ($LASTEXITCODE) { throw 'Could not configure the USB service relay.' }
+    $relayListener = Get-NetTCPConnection -LocalAddress $gateway -LocalPort 27015 -State Listen -ErrorAction SilentlyContinue
+    if (-not $relayListener) {
+        Restart-Service iphlpsvc -ErrorAction Stop
+        $listenerDeadline = [DateTime]::UtcNow.AddSeconds(10)
+        do {
+            Start-Sleep -Milliseconds 200
+            $relayListener = Get-NetTCPConnection -LocalAddress $gateway -LocalPort 27015 -State Listen -ErrorAction SilentlyContinue
+        } while (-not $relayListener -and [DateTime]::UtcNow -lt $listenerDeadline)
+    }
+    if (-not $relayListener) { throw 'The configured USB relay did not start listening.' }
     $ruleName = 'Kudroid-Wsl-Usbmux'
     $existing = Get-NetFirewallRule -Name $ruleName -ErrorAction SilentlyContinue
     if ($existing) {

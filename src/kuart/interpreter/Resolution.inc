@@ -51,13 +51,15 @@ std::string DescribeFrame(const Interpreter::StackSlot& slot) {
 }  // namespace
 
 Interpreter::ThreadState Interpreter::CaptureThreadState() {
-    return ThreadState{depth_, call_stack_.size(), VmLockDepth()};
+    return ThreadState{depth_, call_stack_.size(), VmLockDepth(),
+        DexClassLinker::ActiveLinker(), DexClassLinker::ActiveLoader()};
 }
 
 void Interpreter::RestoreThreadState(const ThreadState& state) {
     if (call_stack_.size() > state.frames) call_stack_.resize(state.frames);
     if (depth_ > state.depth) depth_ = state.depth;
     VmLockUnwindTo(state.vm_lock_depth);
+    DexClassLinker::RestoreLoader(state.loader_linker, state.loader_id);
 }
 
 std::string Interpreter::BuildStackTrace() const {
@@ -132,6 +134,8 @@ void Interpreter::ThrowException(const char* descriptor, const std::string& mess
 
 DexClass* Interpreter::ResolveClass(const DexMethod* context, uint32_t type_idx) {
     if (context == nullptr || context->dex_file == nullptr || linker_ == nullptr) return nullptr;
+    DexClassLinker::LoaderScope loader_scope(linker_, context->declaring_class
+        ? context->declaring_class->loader_id : linker_->CurrentLoader());
     // Raw dex indices: validate before use (release libdex skips DCHECKs, and
     // the uint16 truncation below would alias a large index onto an unrelated
     // type). Malformed dex resolves to null, which every caller already handles.
@@ -157,6 +161,8 @@ DexClass* Interpreter::ResolveClass(const DexMethod* context, uint32_t type_idx)
 DexField* Interpreter::ResolveField(const DexMethod* context, uint32_t field_idx,
                                     bool is_static) {
     if (context == nullptr || context->dex_file == nullptr) return nullptr;
+    DexClassLinker::LoaderScope loader_scope(linker_, context->declaring_class
+        ? context->declaring_class->loader_id : linker_->CurrentLoader());
     const art::DexFile& dex_file = *context->dex_file;
     if (field_idx >= dex_file.NumFieldIds()) return nullptr;
     // Keep resolved fields scoped to their DEX, executing class and runtime.
@@ -348,6 +354,8 @@ bool Interpreter::CheckInstanceField(DexObject* obj, DexField* field, uint32_t w
 DexMethod* Interpreter::ResolveMethod(const DexMethod* context, uint32_t method_idx,
                                       bool is_static, bool exact_owner) {
     if (context == nullptr || context->dex_file == nullptr) return nullptr;
+    DexClassLinker::LoaderScope loader_scope(linker_, context->declaring_class
+        ? context->declaring_class->loader_id : linker_->CurrentLoader());
     const art::DexFile& dex_file = *context->dex_file;
     if (method_idx >= dex_file.NumMethodIds()) return nullptr;
     auto trace = [&](DexMethod* method, const char* source, const DexClass* owner = nullptr) {

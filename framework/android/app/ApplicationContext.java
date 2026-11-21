@@ -207,6 +207,6 @@ public class ApplicationContext extends Context {
             packageName.equals(mPackageName) || "android".equals(packageName)) {
             return this;
         }
-        throw new PackageManager.NameNotFoundException(packageName);
+        return new android.content.PackageContext(packageName, flags);
     }
 }

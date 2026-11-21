@@ -390,6 +390,9 @@ bool Invoke_android_provider_Settings(Interpreter* interp, const char* name,
 bool Invoke_android_content_res_AssetManager(Interpreter* interp, const char* name,
                                              const DexValue* args, size_t num_args,
                                              DexValue* result) {
+    const kudroid::ScopedAssetDirectory assets(num_args > 1 &&
+        (std::strcmp(name, "nativeResolveAsset") == 0 ||
+         std::strcmp(name, "nativeResolvePackageResource") == 0) ? GetStringUtf8(args[1]) : "");
     if (std::strcmp(name, "nativeGetAssetsDir") == 0) {
         const std::string dir = kudroid::kudroid_get_assets_dir_cpp();
         result->l = (interp != nullptr && interp->linker() != nullptr)
@@ -482,6 +485,15 @@ kudroid::ResourceStyleConfig ReadResourceConfig(const std::string& locale, DexOb
 bool Invoke_android_content_res_Resources(Interpreter* interp, const char* name,
                                           const DexValue* args, size_t num_args,
                                           DexValue* result) {
+    size_t originalArgs = 0;
+    if (std::strcmp(name, "nativeReadResource") == 0 ||
+        std::strcmp(name, "nativeGetPoolString") == 0 ||
+        std::strcmp(name, "nativeGetResourceName") == 0) originalArgs = 1;
+    else if (std::strcmp(name, "nativeGetIdentifier") == 0) originalArgs = 3;
+    else if (std::strcmp(name, "nativeGetStyle") == 0) originalArgs = 4;
+    else if (std::strcmp(name, "nativeGetValue") == 0) originalArgs = 6;
+    const kudroid::ScopedAssetDirectory assets(originalArgs && num_args > originalArgs
+        ? GetStringUtf8(args[originalArgs]) : "");
     if (std::strcmp(name, "nativeGetDarkMode") == 0) {
         *result = DexValue::Int(kudroid_get_dark_mode());
         return true;
@@ -649,11 +661,13 @@ bool Invoke_android_os_MessageQueue(Interpreter* /*interp*/, const char* name,
         // Only the main queue owns touch; worker loopers must not steal it.
         if (num_args >= 1 && kudroid_looper_is_main(args[0].j)) {
             kuart_dark_mode_drain_pending();
+            kuart_memory_warning_drain_pending();
             kuart_surface_drain_pending();
             kuart_camera_drain_pending();
             kuart_network_drain_pending();
             kuart_media_drain_pending();
             kuart_host_events_drain();
+            kuart_webview_drain_pending();
             kuart_touch_drain_pending();
         }
         return true;

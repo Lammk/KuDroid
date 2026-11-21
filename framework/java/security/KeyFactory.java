@@ -11,6 +11,7 @@ public class KeyFactory {
 
     public static KeyFactory getInstance(String algorithm) throws NoSuchAlgorithmException {
         if (algorithm == null) throw new NullPointerException();
+        if ("EC".equalsIgnoreCase(algorithm) && KuCrypto.ecAvailable()) return new KeyFactory("EC");
         if (!"RSA".equalsIgnoreCase(algorithm) || !KuCrypto.rsaAvailable())
             throw new NoSuchAlgorithmException(algorithm);
         return new KeyFactory(algorithm);
@@ -22,9 +23,16 @@ public class KeyFactory {
         if (!(spec instanceof X509EncodedKeySpec))
             throw new InvalidKeySpecException("Expected an X.509 public key specification");
         byte[] encoded = ((X509EncodedKeySpec) spec).getEncoded();
+        if ("EC".equals(algorithm)) return EcKeys.publicKey(encoded);
         if (!KuCrypto.validateRsaSpki(encoded))
             throw new InvalidKeySpecException("Invalid RSA X.509 public key");
         return new RsaPublicKey(encoded);
+    }
+
+    public final PrivateKey generatePrivate(KeySpec spec) throws InvalidKeySpecException {
+        if (!"EC".equals(algorithm) || !(spec instanceof java.security.spec.PKCS8EncodedKeySpec))
+            throw new InvalidKeySpecException("Expected an EC PKCS#8 private key");
+        return EcKeys.privateKey(((java.security.spec.PKCS8EncodedKeySpec) spec).getEncoded());
     }
 
     private static final class RsaPublicKey implements PublicKey {

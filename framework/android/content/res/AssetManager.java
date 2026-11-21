@@ -10,8 +10,20 @@ import android.os.ParcelFileDescriptor;
 
 public final class AssetManager implements AutoCloseable {
     private static String sAssetsDir;
+    private String mAssetsDir;
 
     public AssetManager() {}
+
+    public String getResourceDirectory() { return mAssetsDir != null ? mAssetsDir : ""; }
+
+    public int addAssetPath(String path) {
+        if (path == null || path.isEmpty()) return 0;
+        File file = new File(path);
+        if (file.isFile()) mAssetsDir = file.getParent() + "/assets";
+        else if (file.isDirectory()) mAssetsDir = path;
+        else return 0;
+        return 1;
+    }
 
     private static synchronized String assetsDir() {
         if (sAssetsDir == null) {
@@ -26,24 +38,24 @@ public final class AssetManager implements AutoCloseable {
     // Shim extension: [String path, Long start, Long length] for an asset that is only
     // inside base.apk — the native side answers with the backing file it extracted or
     // mapped, or null when the asset does not exist.
-    private static native Object[] nativeResolveAsset(String fileName);
+    private static native Object[] nativeResolveAsset(String fileName, String directory);
 
     // Shim extension: loose-assets root backing jar:file:// URLs.
     public static String getAssetsDir() {
         return assetsDir();
     }
 
-    private static File assetFile(String fileName) {
+    private File assetFile(String fileName) {
         String name = fileName;
         while (name.startsWith("/")) name = name.substring(1);
-        return new File(assetsDir() + "/" + name);
+        return new File((mAssetsDir != null ? mAssetsDir : assetsDir()) + "/" + name);
     }
 
     public InputStream open(String fileName) throws IOException {
         return open(fileName, 0);
     }
     public InputStream open(String fileName, int accessMode) throws IOException {
-        return openAssetStream(fileName);
+        return openConfiguredAssetStream(fileName);
     }
 
     /**
@@ -54,9 +66,13 @@ public final class AssetManager implements AutoCloseable {
      * and the game boots contentless: black screen, silent audio, trackless video.
      */
     public static InputStream openAssetStream(String fileName) throws IOException {
+        return new AssetManager().openConfiguredAssetStream(fileName);
+    }
+
+    private InputStream openConfiguredAssetStream(String fileName) throws IOException {
         File f = assetFile(fileName);
         if (f.isFile()) return new FileInputStream(f);
-        Object[] resolved = nativeResolveAsset(fileName);
+        Object[] resolved = nativeResolveAsset(fileName, getResourceDirectory());
         if (resolved != null && resolved.length == 3 &&
                 resolved[0] instanceof String && resolved[1] instanceof Long &&
                 resolved[2] instanceof Long) {
@@ -131,7 +147,7 @@ public final class AssetManager implements AutoCloseable {
         }
         // Inside base.apk: the native resolver extracted (deflated) or maps (stored)
         // the entry; open the file it names at the offset it reports.
-        Object[] resolved = nativeResolveAsset(fileName);
+        Object[] resolved = nativeResolveAsset(fileName, getResourceDirectory());
         if (resolved != null && resolved.length == 3 &&
                 resolved[0] instanceof String && resolved[1] instanceof Long &&
                 resolved[2] instanceof Long) {
@@ -147,7 +163,7 @@ public final class AssetManager implements AutoCloseable {
         throw new FileNotFoundException(fileName);
     }
     public String[] list(String path) throws IOException {
-        String[] names = new File(assetsDir() + "/" + path).list();
+        String[] names = new File((mAssetsDir != null ? mAssetsDir : assetsDir()) + "/" + path).list();
         return names != null ? names : new String[0];
     }
     public String[] getLocales() {

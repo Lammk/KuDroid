@@ -5,6 +5,7 @@
 #include "kudroid/abi/Sendfile.h"
 #include "kudroid/abi/TimerDeadline.h"
 #include "kudroid/abi/SocketAbi.h"
+#include "kudroid/abi/EntropyPoll.h"
 #include "kudroid/abi/GuestVarargs.h"
 #include "kudroid/abi/BlockingWaitRegistry.h"
 #include "kudroid/abi/GuestSignals.h"
@@ -12,6 +13,7 @@
 #include "kudroid/elf_loader.hpp"
 #include "kudroid/DeviceProfile.h"
 #include "kudroid/ExecMemory.h"
+#include "kudroid/platform/AppMemoryBudget.h"
 #include "kudroid/ElfAliasStore.h"
 #include "kudroid/Log.h"
 #include "kudroid/platform/BundledFramework.h"
@@ -200,7 +202,7 @@ static_assert(offsetof(android_epoll_event, data) == 8, "android_epoll_event dat
 #include <dlfcn.h>
 #include <thread>
 
-extern const char* g_kudroid_log_dir_ptr;
+extern "C" const char* kudroid_current_log_dir(void);
 
 #include "syscall/Logging.inc"
 #include "syscall/Pthread.inc"

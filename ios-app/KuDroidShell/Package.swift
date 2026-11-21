@@ -16,11 +16,14 @@ let package = Package(
             name: "KuDroidShell",
             targets: ["KuDroidShell"]
         ),
+        .library(name: "KuDroidJITHelper", targets: ["KuDroidJITHelper"]),
     ],
     targets: [
         .target(
             name: "KuDroidShell",
             dependencies: [
+                "JITSupport",
+                "JITProtocol",
                 "MoltenVK",
                 "libEGL",
                 "libGLESv2",
@@ -30,6 +33,7 @@ let package = Package(
                 "KuDroidApp.swift",
                 "ContentView.swift",
                 "AppsView.swift",
+                "AppIcons.swift",
                 "PermissionsView.swift",
                 "HostLifecycle.swift",
                 "RuntimeTools.swift",
@@ -38,8 +42,10 @@ let package = Package(
                 "AppActions.swift",
                 "DocumentImport.swift",
                 "ReverseHistory.swift",
-                "RemoteDebugClient.swift",
                 "IOSDiagnostics.swift",
+                "EcCryptoBridge.swift",
+                "WebViewBridge.swift",
+                "BrowserData.swift",
                 "CameraBridge.swift",
                 "MediaPlayerBridge.swift",
                 "SensorBridge.swift",
@@ -48,8 +54,21 @@ let package = Package(
                 "GuestTouchState.swift",
                 "ImmediateScrollTouches.swift",
                 "ShellSettings.swift",
+                "AppMemorySettings.swift",
+                "MemoryBudgetPolicy.swift",
+                "MicroG.swift",
+                "SharedPackageRemoval.swift",
+                "JITSetup.swift",
+                "JITStartup.swift",
+                "JITTutorial.swift",
+                "PairingNotifications.swift",
+                "JITBundleConfiguration.swift",
+                "JITReadiness.swift",
+                "JITStatusModel.swift",
+                "JITLaunchButton.swift",
+                "DocumentPicker.swift",
             ],
-            resources: [.copy("THIRD_PARTY_NOTICES.txt"), .copy("Resources/licenses")],
+            resources: [.copy("THIRD_PARTY_NOTICES.txt"), .copy("Resources/licenses"), .copy("Resources/microg")],
             swiftSettings: [
                 .unsafeFlags([
                     "-import-objc-header", "\(packageDir)/kudroid_bridge.h",
@@ -58,6 +77,7 @@ let package = Package(
             ],
             linkerSettings: [
                 .linkedLibrary("kudroid_core_combined"),
+                .linkedLibrary("kudroid_pairing"),
                 .linkedLibrary("z"),
                 .linkedLibrary("resolv"),
                 .linkedLibrary("sqlite3"),
@@ -77,6 +97,29 @@ let package = Package(
                 .unsafeFlags(["-L", "\(packageDir)/libs", "-Xlinker", "-export_dynamic"])
             ]
         ),
+        .target(
+            name: "JITSupport",
+            path: "JITSupport",
+            publicHeadersPath: "include",
+            cSettings: [.unsafeFlags(["-fobjc-arc"])],
+            cxxSettings: [.unsafeFlags(["-fobjc-arc", "-I", "\(packageDir)/../../include"])],
+            linkerSettings: [.linkedFramework("Security")]
+        ),
+        .target(name: "JITNotifications", path: "JITNotifications", publicHeadersPath: "include"),
+        .target(name: "JITProtocol", dependencies: ["JITNotifications"], path: "JITProtocol"),
+        .target(
+            name: "KuDroidJITHelper",
+            dependencies: ["JITProtocol", "StikJIT"],
+            path: "JITHelper",
+            exclude: ["Info.plist"],
+            sources: ["JITService.swift"],
+            resources: [.copy("jit-bootstrap.js")],
+            swiftSettings: [.unsafeFlags(["-application-extension"])],
+            linkerSettings: [.linkedLibrary("swiftCore"),
+                             .unsafeFlags(["-Xlinker", "-ObjC",
+                                           "-Xlinker", "-rpath", "-Xlinker", "@executable_path/../../Frameworks"])]
+        ),
+        .binaryTarget(name: "StikJIT", path: "../../third_party/StikJIT/StikJIT.xcframework"),
         .binaryTarget(
             name: "MoltenVK",
             path: "../../third_party/MoltenVK/MoltenVK/dynamic/MoltenVK.xcframework"
@@ -90,5 +133,6 @@ let package = Package(
             path: "\(angleFrameworkDir)/libGLESv2.xcframework"
         ),
     ],
-    swiftLanguageModes: [.v5]
+    swiftLanguageModes: [.v5],
+    cxxLanguageStandard: .cxx17
 )

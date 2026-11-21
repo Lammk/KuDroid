@@ -1,6 +1,9 @@
 #include "kudroid/kuart/DexJniEnv.h"
 
 #include <chrono>
+#include <atomic>
+#include <array>
+#include <cerrno>
 
 #include "kudroid/Log.h"
 #include "kudroid/BionicShim.h"
@@ -696,6 +699,61 @@ DexValue DexJniEnv::CallNative(DexMethod* method, const DexValue* args, size_t n
     return result;
 }
 
+// Report callback completion without logging reference or token data.
+static void trace_java_callback_result(DexMethod* method, const DexValue& value, Interpreter* interpreter,
+                                       bool priorException) {
+    const char* shorty = DexJniEnv::MethodShorty(method);
+    const char* owner = method->declaring_class ? method->declaring_class->descriptor : nullptr;
+    if (!owner || !shorty || !shorty[0]) return;
+    const bool lookup = method->name && (std::strcmp(method->name, "getPackageName") == 0 ||
+                                        std::strcmp(method->name, "getApplicationContext") == 0 ||
+                                        std::strcmp(method->name, "forName") == 0);
+    if (!lookup && (std::strncmp(owner, "Landroid/", 9) == 0 || std::strncmp(owner, "Ljava/", 6) == 0
+            || std::strncmp(owner, "Ljavax/", 7) == 0 || std::strncmp(owner, "Llibcore/", 9) == 0)) return;
+    struct RestoreErrno {
+        int value;
+        ~RestoreErrno() { errno = value; }
+    } savedErrno{errno};
+    static std::atomic<unsigned> samples{0};
+    if (!log::verbose_enabled() || samples.load(std::memory_order_relaxed) >= 1024) return;
+    const unsigned exception = interpreter && interpreter->HasPendingException() ? 1u : 0u;
+    struct CallbackSample {
+        std::atomic<const DexMethod*> method{nullptr};
+        std::atomic<unsigned> calls{0};
+        std::atomic<uint64_t> summary{0};
+    };
+    static std::array<CallbackSample, 512> callbacks;
+    const uint64_t summary = (static_cast<uint64_t>(static_cast<unsigned char>(shorty[0])) << 56)
+        | (static_cast<uint64_t>(priorException) << 33) | (static_cast<uint64_t>(exception) << 32)
+        | (shorty[0] == 'I' || shorty[0] == 'Z' ? static_cast<uint32_t>(value.i)
+           : shorty[0] == 'L' && value.l ? 1u : 0u);
+    CallbackSample* sample = nullptr;
+    const auto slot = (reinterpret_cast<uintptr_t>(method) >> 4) % callbacks.size();
+    for (size_t i = 0; i < callbacks.size(); ++i) {
+        auto& candidate = callbacks[(slot + i) % callbacks.size()];
+        const DexMethod* expected = nullptr;
+        if (candidate.method.compare_exchange_strong(expected, method, std::memory_order_relaxed)
+                || expected == method) { sample = &candidate; break; }
+    }
+    if (!sample) return;
+    const unsigned calls = sample->calls.fetch_add(1, std::memory_order_relaxed);
+    const uint64_t previous = sample->summary.exchange(summary, std::memory_order_relaxed);
+    if (calls >= 8 && previous == summary) return;
+    if (samples.fetch_add(1, std::memory_order_relaxed) < 1024) {
+        if (shorty[0] == 'I' || shorty[0] == 'Z') {
+            std::fprintf(stderr, "[KuART][JNI-CALLBACK] %s.%s%s -> %d exception=%u prior_exception=%u\n", owner,
+                         method->name ? method->name : "?", method->signature ? method->signature : "?",
+                         value.i, exception, priorException ? 1u : 0u);
+        } else {
+            const char* completion = shorty[0] == 'V' ? "void" :
+                shorty[0] == 'L' ? (value.l ? "reference" : "null") : "primitive";
+            std::fprintf(stderr, "[KuART][JNI-CALLBACK] %s.%s%s -> %s exception=%u prior_exception=%u\n", owner,
+                         method->name ? method->name : "?", method->signature ? method->signature : "?",
+                         completion, exception, priorException ? 1u : 0u);
+        }
+    }
+}
+
 DexValue DexJniEnv::CallJavaA(DexObject* receiver, DexMethod* method, const jvalue* args,
                               bool virtual_dispatch) {
     DexValue result;
@@ -707,6 +765,7 @@ DexValue DexJniEnv::CallJavaA(DexObject* receiver, DexMethod* method, const jval
                      reinterpret_cast<const void*>(receiver));
         return result;
     }
+    const bool priorException = interpreter_->HasPendingException();
     if (t_jnibridge_trace && log::jni_enabled()) {
         std::string recv = "(null)";
         if (receiver != nullptr && linker_ != nullptr) {
@@ -745,6 +804,23 @@ DexValue DexJniEnv::CallJavaA(DexObject* receiver, DexMethod* method, const jval
         if (DexClassObject* as_object = linker_->GetClassObject(
                 const_cast<DexClass*>(reinterpret_cast<const DexClass*>(receiver)))) {
             receiver = as_object;
+        }
+    }
+
+    if (log::verbose_enabled() && method->name &&
+        (std::strcmp(method->name, "getPackageName") == 0 ||
+         std::strcmp(method->name, "getApplicationContext") == 0 || std::strcmp(method->name, "forName") == 0)) {
+        static std::atomic<unsigned> lookups{0};
+        if (lookups.fetch_add(1, std::memory_order_relaxed) < 64) {
+            const int savedErrno = errno;
+            DexClass* receiverType = receiver && linker_ ? linker_->ClassOfObject(receiver) : nullptr;
+            std::fprintf(stderr, "[KuART][JNI-LOOKUP] %s.%s%s receiver_null=%d receiver_class=%d receiver_type=%s static=%d prior_exception=%d\n",
+                method->declaring_class && method->declaring_class->descriptor
+                    ? method->declaring_class->descriptor : "?", method->name,
+                method->signature ? method->signature : "?", receiver == nullptr ? 1 : 0,
+                was_jclass ? 1 : 0, receiverType && receiverType->descriptor ? receiverType->descriptor : "?",
+                method->IsStatic() ? 1 : 0, priorException ? 1 : 0);
+            errno = savedErrno;
         }
     }
 
@@ -893,9 +969,12 @@ DexValue DexJniEnv::CallJavaA(DexObject* receiver, DexMethod* method, const jval
             }
             return result;
         }
-        return CallNative(method, vals.data(), vals.size());
+        result = CallNative(method, vals.data(), vals.size());
+    } else {
+        result = interpreter_->Execute(method, vals.data(), vals.size());
     }
-    return interpreter_->Execute(method, vals.data(), vals.size());
+    trace_java_callback_result(method, result, interpreter_, priorException);
+    return result;
 }
 
 DexValue DexJniEnv::CallJavaV(DexObject* receiver, DexMethod* method, va_list args,

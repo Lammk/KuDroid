@@ -2,6 +2,7 @@ import SwiftUI
 import UIKit
 import UniformTypeIdentifiers
 import Combine
+import JITSupport
 
 enum APKFileTypes {
     static let extensions: Set<String> = ["apk", "apkm", "xapk", "apks"]
@@ -13,7 +14,7 @@ enum APKFileTypes {
 
 enum JITActivation {
     static func openStikDebug(completion: @escaping (Bool) -> Void) {
-        guard let identifier = Bundle.main.bundleIdentifier else { completion(false); return }
+        guard let identifier = KDProcessBundleIdentifier() ?? Bundle.main.bundleIdentifier else { completion(false); return }
         var url = URLComponents()
         url.scheme = "stikdebug"
         url.host = "enable-jit"
@@ -27,7 +28,7 @@ enum JITActivation {
     }
 
     static func openTrollStore(completion: @escaping (Bool) -> Void) {
-        guard let identifier = Bundle.main.bundleIdentifier else { completion(false); return }
+        guard let identifier = KDProcessBundleIdentifier() ?? Bundle.main.bundleIdentifier else { completion(false); return }
         var url = URLComponents()
         url.scheme = "apple-magnifier"
         url.host = "enable-jit"
@@ -82,7 +83,10 @@ enum StandaloneStorage {
         FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
             .appendingPathComponent("Kudroid", isDirectory: true)
     }
-    static var logs: URL { support.appendingPathComponent("Logs", isDirectory: true) }
+    static var logs: URL {
+        FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
+            .appendingPathComponent("logs", isDirectory: true)
+    }
 
     private static func exists(_ url: URL) -> Bool {
         FileManager.default.fileExists(atPath: url.path) ||
@@ -144,7 +148,6 @@ enum StandaloneStorage {
             }
         }
         try archive(documents.appendingPathComponent("android_root"), under: backup)
-        try archive(documents.appendingPathComponent("logs"), under: backup)
         if exists(staging) {
             guard try isDirectory(staging) else { throw ExportFailure("Invalid data migration directory") }
             try archive(staging.appendingPathComponent("logs"), under: backup)
@@ -203,7 +206,7 @@ final class APKExportModel: ObservableObject {
                 if let previous = previous { try? fm.removeItem(at: previous) }
                 try fm.createDirectory(at: work, withIntermediateDirectories: true)
                 let source = work.appendingPathComponent("source." + url.pathExtension)
-                try fm.copyItem(at: url, to: source)
+                try ProviderDocument.copy(url, to: source)
                 let guest = work.appendingPathComponent("GuestApp", isDirectory: true)
                 try nativeExport { kudroid_export_extract(source.path, guest.path, $0) }
                 let data = try Data(contentsOf: guest.appendingPathComponent("app_info.json"))
@@ -333,7 +336,7 @@ final class APKExportModel: ObservableObject {
             throw ExportFailure("This installation does not contain an executable app launcher. Export from a standalone installation of Kudroid.")
         }
         try fm.copyItem(at: Bundle.main.bundleURL, to: target)
-        for entry in ["_CodeSignature", "embedded.mobileprovision", "GuestApp", "StandaloneGuest.plist", "StandaloneLauncher.bin"] {
+        for entry in ["_CodeSignature", "embedded.mobileprovision", "GuestApp", "SharedAndroidPackages", "StandaloneGuest.plist", "StandaloneLauncher.bin"] {
             let path = target.appendingPathComponent(entry)
             if fm.fileExists(atPath: path.path) { try fm.removeItem(at: path) }
         }
@@ -354,6 +357,16 @@ final class APKExportModel: ObservableObject {
         }
         progress("Adding Android app files…")
         try fm.copyItem(at: candidate.guest, to: target.appendingPathComponent("GuestApp"))
+        let useMicroG = MicroGSettings.enabled(for: candidate.package) && MicroGSettings.installed()
+        if useMicroG {
+            let root = try MicroGSettings.root()
+            let shared = target.appendingPathComponent("SharedAndroidPackages")
+            try fm.createDirectory(at: shared, withIntermediateDirectories: true)
+            for artifact in try SharedPackageCatalog.load().packages {
+                try fm.copyItem(at: root.appendingPathComponent("data/app/" + artifact.package),
+                                to: shared.appendingPathComponent(artifact.package))
+            }
+        }
         let config = StandaloneConfiguration(format: 1, package: candidate.package, displayName: title,
             storageName: safeName(title), installation: UUID().uuidString)
         try PropertyListEncoder().encode(config).write(to: target.appendingPathComponent("StandaloneGuest.plist"), options: .atomic)
@@ -372,9 +385,14 @@ final class APKExportModel: ObservableObject {
         let version = candidate.version.range(of: #"\d+(?:\.\d+){0,2}"#, options: .regularExpression).map { String(candidate.version[$0]) } ?? "1.0"
         plist["CFBundleShortVersionString"] = version
         plist["MinimumOSVersion"] = "15.0"
+        let memoryBudget = AppMemorySettings.configuration(for: candidate.package)
+        plist["KuDroidMemoryBudgetEnabled"] = memoryBudget.enabled
+        plist["KuDroidMemoryBudgetPercent"] = memoryBudget.percent
+        plist["KuDroidMicroGEnabled"] = useMicroG
         plist["UIFileSharingEnabled"] = true
         plist["LSSupportsOpeningDocumentsInPlace"] = true
         plist["LSApplicationQueriesSchemes"] = ["stikdebug", "apple-magnifier"]
+        JITBundleConfiguration.configure(&plist, identifier: identifier)
         if let icon = candidate.icon {
             let format = UIGraphicsImageRendererFormat()
             format.scale = 1
@@ -395,6 +413,7 @@ final class APKExportModel: ObservableObject {
             plist["CFBundleIconFiles"] = ["GuestIcon120", "GuestIcon180", "GuestIcon152", "GuestIcon167"]
         }
         try PropertyListSerialization.data(fromPropertyList: plist, format: .xml, options: 0).write(to: infoURL, options: .atomic)
+        try JITBundleConfiguration.rewriteHelper(in: target, identifier: identifier)
         let outputDir = ReverseHistoryModel.directory.appendingPathComponent(UUID().uuidString)
         try fm.createDirectory(at: outputDir, withIntermediateDirectories: true)
         let output = outputDir.appendingPathComponent(safeName(title) + ".ipa")
@@ -460,7 +479,7 @@ struct ReverseView: View {
                 model.prepareInstalled(id, displayName: installedName)
             }
         }
-        .fileImporter(isPresented: $picker, allowedContentTypes: APKFileTypes.supported) { result in
+        .apkPicker(isPresented: $picker) { result in
             switch result { case .success(let url): model.prepare(url); case .failure(let error): model.error = error.localizedDescription }
         }
         .sheet(isPresented: $share) {
@@ -484,6 +503,8 @@ final class StandaloneBootModel: ObservableObject {
     @Published private(set) var showingJITCheck = true
     @Published var message = ""
     @Published var prompt = false
+    @Published var showingJITSetup = false
+    @Published var showingMemoryBudget = false
     @Published var error: String?
     private var started = false
     private var checking = false
@@ -492,8 +513,7 @@ final class StandaloneBootModel: ObservableObject {
 
     var modernJIT: Bool { ProcessInfo.processInfo.operatingSystemVersion.majorVersion >= 26 }
     var redirectMessage: String {
-        modernJIT ? "Redirecting to stikdebug to enable JIT? (Assign universal.js script too!,hold the app then press assign script)"
-                  : "Redirecting to stikdebug to enable JIT?"
+        "Open StikDebug to enable JIT?"
     }
 
     func start() {
@@ -528,6 +548,10 @@ final class StandaloneBootModel: ObservableObject {
                     }
                     try config.installation.write(to: marker, atomically: true, encoding: .utf8)
                 }
+                let shared = Bundle.main.bundleURL.appendingPathComponent("SharedAndroidPackages")
+                if fm.fileExists(atPath: shared.path) {
+                    try Self.copyMissingFiles(from: shared, to: root.appendingPathComponent("data/app"))
+                }
                 DispatchQueue.main.async { self.configuration = config; self.checkJIT(showBlackScreen: true) }
             } catch {
                 DispatchQueue.main.async {
@@ -556,35 +580,54 @@ final class StandaloneBootModel: ObservableObject {
     }
 
     func checkJIT(showBlackScreen: Bool = false) {
-        guard configuration != nil, !ready else { return }
+        guard configuration != nil, !ready, !showingMemoryBudget else { return }
         if showBlackScreen { showingJITCheck = true }
         guard !checking else { return }
         checking = true
-        let modern = modernJIT
-        worker.async {
-            let debugged = kudroid_debugger_attached() != 0
-            let entitled = !modern && kudroid_has_jit_entitlement() != 0
-            let enabled = modern ? kudroid_is_jit_enabled() != 0
-                : debugged || (entitled && kudroid_is_jit_enabled() != 0)
-            DispatchQueue.main.async {
-                self.checking = false
-                if enabled { self.prompt = false; self.error = nil; self.ready = true; return }
+        JITStatusModel.shared.refresh { status in
+            self.checking = false
+            if #available(iOS 26.0, *), JITSetupModel.shared.launchBlocked {
                 self.showingJITCheck = false
-                self.message = modern ? "Assign universal.js script on stikdebug to continue" : "JIT is required to start this app."
-                if !self.prompted { self.prompted = true; self.prompt = true }
+                self.message = JITSetupModel.shared.message
+                self.error = JITSetupModel.shared.error
+                return
             }
+            if status.ready { self.prompt = false; self.error = nil; self.ready = true; return }
+            self.showingJITCheck = false
+            if status.debuggerConnected {
+                self.message = "Waiting for the attached debugger to prepare JIT."
+                return
+            }
+            if UserDefaults.standard.string(forKey: "jitMethod") == JITMethod.wait.rawValue {
+                self.message = "Attach an external debugger, then tap Check JIT."
+                return
+            }
+            self.message = "JIT is required to start this app."
+            if !self.prompted { self.prompted = true; self.prompt = true }
         }
     }
 
-    func openTrollStore() {
-        JITActivation.openTrollStore { opened in
-            if !opened { self.error = "Could not open TrollStore." }
-        }
+    func useExternalDebugger() {
+        UserDefaults.standard.set(JITMethod.wait.rawValue, forKey: "jitMethod")
+        if #available(iOS 26.0, *) { JITSetupModel.shared.method = .wait }
+        prompt = false
+        message = "Attach an external debugger, then tap Check JIT."
+        checkJIT()
+    }
+
+    func useStikDebug() {
+        UserDefaults.standard.set(JITMethod.stikDebug.rawValue, forKey: "jitMethod")
+        if #available(iOS 26.0, *) { JITSetupModel.shared.method = .stikDebug }
+        openDebugger()
     }
 
     func openDebugger() {
-        JITActivation.openStikDebug { opened in
-            if !opened { self.error = "Could not open StikDebug. Install it and try again." }
+        if #available(iOS 26.0, *) { JITSetupModel.shared.activate(); return }
+        JITStatusModel.shared.refresh { status in
+            if status.ready || status.debuggerConnected { self.checkJIT(); return }
+            JITActivation.openStikDebug { opened in
+                if !opened { self.error = "Could not open StikDebug. Install it and try again." }
+            }
         }
     }
 }
@@ -605,8 +648,10 @@ struct StandaloneGuestView: View {
                     Text(model.message).multilineTextAlignment(.center)
                     if let error = model.error { Text(error).foregroundColor(.red) }
                     if model.configuration != nil {
-                        Button("Open StikDebug") { model.openDebugger() }
-                        if !model.modernJIT { Button("TrollStore JIT") { model.openTrollStore() } }
+                        Button("Open StikDebug") { model.useStikDebug() }
+                        Button("External attach") { model.useExternalDebugger() }
+                        if #available(iOS 26.0, *) { Button("JIT setup") { model.showingJITSetup = true } }
+                        Button("Memory budget") { model.showingMemoryBudget = true }
                         Button("Check JIT") { model.checkJIT(showBlackScreen: true) }
                     }
                 }.padding()
@@ -617,13 +662,23 @@ struct StandaloneGuestView: View {
             }
         }
         .statusBar(hidden: true)
+        .sheet(isPresented: $model.showingJITSetup) {
+            if #available(iOS 26.0, *) { JITSetupView() }
+        }
+        .sheet(isPresented: $model.showingMemoryBudget, onDismiss: { model.checkJIT() }) {
+            if let config = model.configuration {
+                MemoryBudgetEditor(title: config.displayName, configuration: AppMemorySettings.configuration(for: config.package), backTitle: "Back") {
+                    AppMemorySettings.save(appID: config.package, enabled: $0, percent: $1)
+                }
+            }
+        }
         .onAppear { model.start() }
         .onReceive(timer) { _ in if scenePhase == .active { model.checkJIT() } }
         .onChange(of: scenePhase) { phase in if phase == .active { model.checkJIT(showBlackScreen: true) } }
         .alert(model.redirectMessage, isPresented: $model.prompt) {
-            Button("Yes") { model.openDebugger() }
-            if !model.modernJIT { Button("TrollStore JIT") { model.openTrollStore() } }
-            Button("No", role: .cancel) { exit(0) }
+            Button("Yes") { model.useStikDebug() }
+            Button("External attach") { model.useExternalDebugger() }
+            Button("No", role: .cancel) { model.prompt = false }
         } message: { Text(model.message) }
     }
 }

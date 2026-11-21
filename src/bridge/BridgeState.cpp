@@ -11,6 +11,7 @@
 
 #include <atomic>
 #include <chrono>
+#include <cerrno>
 #include <cstdint>
 #include <cstdio>
 #include <cstring>
@@ -32,83 +33,30 @@
 
 extern "C" int kudroid_android_log_message(int priority, const char* tag, const char* message);
 
-// The host selects independent data and diagnostic roots.
-// Standalone diagnostics live outside the user-visible Documents directory.
-char g_docsDir[1024] = {0};
-char g_logDir[1024] = {0};
-const char* g_kudroid_log_dir_ptr = g_logDir;
-
-namespace {
-// The breadcrumb journal's descriptor, cached for the process. -2 = not opened
-// yet, -1 = cannot be opened. Shared with kudroid_breadcrumb_invalidate_fd, which
-// has to retire it after the logs are cleared.
-std::atomic<int> g_breadcrumbFd{-2};
-}  // namespace
-
 extern "C" void kudroid_persistent_breadcrumb(const char* line) {
-    if (!line || !g_logDir[0]) return;
-    std::atomic<int>& s_fd = g_breadcrumbFd;
-    int fd = s_fd.load(std::memory_order_relaxed);
-    if (fd == -2) {
-        char path[sizeof(g_logDir) + 32];
-        const int n = snprintf(path, sizeof(path), "%s/native_breadcrumbs.log", g_logDir);
-        if (n > 0 && static_cast<std::size_t>(n) < sizeof(path)) {
-            int opened = ::open(path, O_WRONLY | O_CREAT | O_APPEND | O_CLOEXEC, 0644);
-            int expected = -2;
-            if (s_fd.compare_exchange_strong(expected, opened, std::memory_order_acq_rel)) {
-                fd = opened;
-            } else {
-                if (opened >= 0) ::close(opened);
-                fd = s_fd.load(std::memory_order_acquire);
-            }
-        } else {
-            s_fd.store(-1, std::memory_order_relaxed);
-            fd = -1;
-        }
-    }
-    // No reporting here: this function is reached from the fatal signal
-    // handler, and anything it called that takes a lock or touches stdio could
-    // deadlock inside the very report meant to explain the fault. Whether the
-    // journal is writable is checked once in kudroid_set_log_dir instead, which
-    // runs in normal context.
+    const char* logDirectory = kudroid_current_log_dir();
+    if (!line || !*logDirectory) return;
+    const int savedErrno = errno;
     struct timespec now;
     ::clock_gettime(CLOCK_MONOTONIC, &now);
     char record[2304];
     const int record_len = snprintf(record, sizeof(record), "t_ns=%lld %s\n",
                                     static_cast<long long>(now.tv_sec) * 1000000000LL +
                                         now.tv_nsec, line);
-    if (record_len <= 0) return;
+    if (record_len <= 0) { errno = savedErrno; return; }
     const size_t len = static_cast<size_t>(record_len) < sizeof(record)
                            ? static_cast<size_t>(record_len) : sizeof(record) - 1;
-    if (fd >= 0) {
-        (void)::write(fd, record, len);
-        return;
+    char path[1200];
+    const int n = snprintf(path, sizeof(path), "%s/native_breadcrumbs.log", logDirectory);
+    if (n > 0 && static_cast<size_t>(n) < sizeof(path)) {
+        // Each write owns its descriptor, including writes interrupted by signals.
+        const int fd = ::open(path, O_WRONLY | O_CREAT | O_APPEND | O_CLOEXEC | O_NOFOLLOW, 0644);
+        if (fd >= 0) {
+            (void)::write(fd, record, len);
+            (void)::close(fd);
+        }
     }
-    char path[sizeof(g_logDir) + 32];
-    const int n = snprintf(path, sizeof(path), "%s/native_breadcrumbs.log", g_logDir);
-    if (n <= 0 || static_cast<size_t>(n) >= sizeof(path)) return;
-    const int fallback_fd = ::open(path, O_WRONLY | O_CREAT | O_APPEND, 0644);
-    if (fallback_fd < 0) return;
-    (void)::write(fallback_fd, record, len);
-    (void)::close(fallback_fd);
-}
-
-// Drop the cached descriptor so the next breadcrumb reopens the file. The writer
-// caches one descriptor for the process; clearing the logs unlinks the file
-// under it, and every later breadcrumb then went to the unlinked inode, so the
-// journal stayed empty on disk for the rest of the session while the watchdog
-// kept reporting "thread dump written to native_breadcrumbs.log".
-void kudroid_breadcrumb_invalidate_fd() {
-    // A lock-free writer may still hold the descriptor it loaded just before this
-    // swap. Closing it now lets the next open() reuse the number, so that stale write
-    // would land in an unrelated file. Retire it instead and close the one retired by
-    // the previous call, long past any in-flight write.
-    static std::atomic<int> s_retiredFd{-1};
-    const int oldFd = g_breadcrumbFd.exchange(-2, std::memory_order_acq_rel);
-    if (oldFd >= 0) {
-        const int previous = s_retiredFd.exchange(oldFd, std::memory_order_acq_rel);
-        if (previous >= 0) ::close(previous);
-    }
+    errno = savedErrno;
 }
 // Previously 16KB was too small: ELF loading and verbose lines filled the
 // buffer, pushing crucial pre-crash context (e.g. EGL initialization) out.
@@ -361,8 +309,9 @@ void mirrorCrash(const std::string& log) {
 }
 
 void writeLogFile(const char* name, const std::string& content) {
-    if (!g_logDir[0]) return;
-    std::string path = std::string(g_logDir) + "/" + name;
+    const char* logDirectory = kudroid_current_log_dir();
+    if (!*logDirectory) return;
+    std::string path = std::string(logDirectory) + "/" + name;
     FILE* f = fopen(path.c_str(), "w");
     if (f) {
         fwrite(content.data(), 1, content.size(), f);
@@ -370,16 +319,7 @@ void writeLogFile(const char* name, const std::string& content) {
     }
 }
 
-// Log a line that already carries a "[kudroid_core] " prefix for stderr.
-//
-// logAndroidMessage prepends the TAG, so passing a line that spells the same origin
-// out again produced "[KuDroidCore] [kudroid_core] ..." in kudroid_android_logs.txt
-// and the KDB stream. The prefix is worth keeping on stderr, which has no tag column,
-// so it is stripped here rather than removed from the call sites.
-//
-// One tag for the whole file: it used to be "KuDroidCore" from the loader and
-// "kudroid_core" from the JNI_OnLoad path, so filtering the log by origin missed half
-// the lines.
+// Strip a repeated origin prefix before writing tagged log lines.
 void logCoreLine(int priority, const std::string& line) {
     static constexpr char kPrefix[] = "[kudroid_core] ";
     static constexpr size_t kPrefixLen = sizeof(kPrefix) - 1;
@@ -423,7 +363,7 @@ void appendTestHeader(std::string& log, const char* test, const char* path) {
 // the installed build version.
 extern "C" const char* kudroid_build_stamp(void) {
     static const char kStamp[] =
-        "kudroid_core vT1.6 "
+        "kudroid_core vP1.0 "
 #ifdef KUDROID_BUILD_TIME
         KUDROID_BUILD_TIME
 #else
@@ -442,8 +382,9 @@ extern "C" const char* kudroid_build_stamp(void) {
 // providing exact crash location context instead of raw unmapped addresses.
 
 void appendCrashLogFile(const std::string& content) {
-    if (!g_logDir[0]) return;
-    const std::string path = std::string(g_logDir) + "/kudroid_crash.log";
+    const char* logDirectory = kudroid_current_log_dir();
+    if (!*logDirectory) return;
+    const std::string path = std::string(logDirectory) + "/kudroid_crash.log";
     FILE* fp = fopen(path.c_str(), "a");
     if (fp == nullptr) return;
     fwrite(content.data(), 1, content.size(), fp);

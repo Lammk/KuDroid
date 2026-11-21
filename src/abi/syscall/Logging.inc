@@ -20,6 +20,37 @@ extern "C" void bionic_free(void* ptr) {
     std::free(ptr);
 }
 
+extern "C" void* bionic_memset(void* destination, int value, size_t size) {
+#if defined(__APPLE__)
+    const int savedErrno = errno;
+    static std::atomic<unsigned> fills{0};
+    const bool largeZero = size >= (1u << 20) &&
+        static_cast<unsigned char>(value) == 0 && !guest_async_handler_active();
+    const bool report = largeZero && fills.fetch_add(1, std::memory_order_relaxed) < 128;
+    task_vm_info_data_t before{};
+    mach_msg_type_number_t count = TASK_VM_INFO_COUNT;
+    if (report) task_info(mach_task_self(), TASK_VM_INFO,
+                         reinterpret_cast<task_info_t>(&before), &count);
+#endif
+    void* result = std::memset(destination, value, size);
+#if defined(__APPLE__)
+    if (report) {
+        task_vm_info_data_t after{};
+        count = TASK_VM_INFO_COUNT;
+        task_info(mach_task_self(), TASK_VM_INFO,
+                  reinterpret_cast<task_info_t>(&after), &count);
+        std::fprintf(stderr,
+                     "[KuDroidMemoryFill] zero addr=%p size=%zu caller=%p before=%llu after=%llu compressed=%llu\n",
+                     destination, size, __builtin_return_address(0),
+                     static_cast<unsigned long long>(before.phys_footprint),
+                     static_cast<unsigned long long>(after.phys_footprint),
+                     static_cast<unsigned long long>(after.compressed));
+        errno = savedErrno;
+    }
+#endif
+    return result;
+}
+
 void appendUnsigned(std::string& output, uint64_t value, unsigned base) {
     char buffer[32];
     const char* digits = "0123456789abcdef";
@@ -111,11 +142,6 @@ static bool lock_log_bounded(std::mutex& mtx) {
     return false;
 }
 
-#if defined(__APPLE__)
-extern "C" __attribute__((weak)) void kudroid_remote_log_broadcast(int level, const char* tag, const char* message) {
-    (void)level; (void)tag; (void)message;
-}
-#endif
 
 int logAndroidMessage(int priority, const char* tag, const std::string& message);
 static void emit_android_log_line(int priority, const char* tag, const std::string& message);
@@ -292,12 +318,6 @@ static void emit_android_log_line(int priority, const char* tag, const std::stri
         }
     }
     
-    // Broadcast via KDB WebSocket if connected
-#if defined(__APPLE__)
-    if (kudroid_remote_log_broadcast) {
-        kudroid_remote_log_broadcast(priority, tag ? tag : "KuDroid", message.c_str());
-    }
-#endif
 
     // Also append to a file in Documents for the user to easily read.
 
@@ -306,19 +326,20 @@ static void emit_android_log_line(int priority, const char* tag, const std::stri
 
 
 
-    if (::g_kudroid_log_dir_ptr && ::g_kudroid_log_dir_ptr[0] != '\0') {
+    const char* logDirectory = ::kudroid_current_log_dir();
+    if (*logDirectory) {
         if (g_androidLogFd < 0 ||
-            std::strcmp(g_androidLogFdDir, ::g_kudroid_log_dir_ptr) != 0) {
+            std::strcmp(g_androidLogFdDir, logDirectory) != 0) {
             if (g_androidLogFd >= 0) {
                 ::close(g_androidLogFd);
                 g_androidLogFd = -1;
             }
             char log_path[1024];
             snprintf(log_path, sizeof(log_path), "%s/kudroid_android_logs.txt",
-                     ::g_kudroid_log_dir_ptr);
+                     logDirectory);
             g_androidLogFd = ::open(log_path, O_WRONLY | O_CREAT | O_APPEND, 0644);
             snprintf(g_androidLogFdDir, sizeof(g_androidLogFdDir), "%s",
-                     ::g_kudroid_log_dir_ptr);
+                     logDirectory);
         }
         if (g_androidLogFd >= 0) {
             char line_buf[4096];

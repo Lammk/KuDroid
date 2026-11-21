@@ -114,6 +114,7 @@ public:
 
     const art::DexFile* dex_file = nullptr;
     const art::dex::ClassDef* class_def = nullptr;
+    uint32_t loader_id = 0;
 
     std::vector<DexField> static_fields;
     std::vector<DexField> instance_fields;

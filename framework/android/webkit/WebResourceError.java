@@ -1,6 +1,7 @@
 package android.webkit;
 
-/** Stub automatically generated for android.webkit.WebResourceError */
 public class WebResourceError {
     public WebResourceError() {}
+    public int getErrorCode() { return 0; }
+    public CharSequence getDescription() { return ""; }
 }

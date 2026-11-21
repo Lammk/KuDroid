@@ -21,6 +21,8 @@
  * or visit www.oracle.com if you need additional information or have any
  * questions.
  */
+// Modified on 2026-10-30: adapted for runtime compatibility.
+
 
 /*
  * This file is available under and governed by the GNU General Public

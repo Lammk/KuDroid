@@ -50,6 +50,7 @@ public class Window {
     private WindowInsets mRootInsets;
     private boolean mApplyInsets = true;
     private boolean mHostSurfaceContent;
+    private int mAppliedSystemUiVisibility;
 
     public WindowInsets getRootWindowInsets() { return mRootInsets; }
     void requestApplyInsets() { mApplyInsets = true; scheduleTraversal(); }
@@ -73,7 +74,7 @@ public class Window {
                 setPadding(0, 0, 0, 0);
                 return insets;
             }
-            int visibility = getSystemUiVisibility();
+            int visibility = mWindow != null ? mWindow.mAppliedSystemUiVisibility : getSystemUiVisibility();
             int top = (visibility & SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN) == 0 ? insets.getSystemWindowInsetTop() : 0;
             int left = 0, right = 0, bottom = 0;
             if ((visibility & SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION) == 0) {
@@ -291,6 +292,18 @@ public class Window {
         return false;
     }
 
+    private static int collectSystemUiVisibility(View view) {
+        if (view == null || view.getVisibility() != View.VISIBLE) return 0;
+        int visibility = view.getSystemUiVisibility();
+        if (view instanceof ViewGroup) {
+            ViewGroup group = (ViewGroup) view;
+            for (int i = 0; i < group.getChildCount(); i++) {
+                visibility |= collectSystemUiVisibility(group.getChildAt(i));
+            }
+        }
+        return visibility;
+    }
+
     /** Measure and lay out the full decor hierarchy at the actual surface size. */
     public boolean measureAndLayout() {
         if (!hasSurface()) return false;
@@ -315,16 +328,30 @@ public class Window {
         }
         // The first traversal attaches the hierarchy to the window before measuring it.
         decor.dispatchAttachedToWindow();
+        int systemUiVisibility = collectSystemUiVisibility(decor);
+        if (mAppliedSystemUiVisibility != systemUiVisibility) {
+            mAppliedSystemUiVisibility = systemUiVisibility;
+            mApplyInsets = true;
+        }
         nativeGetSafeAreaInsets(mSafeAreaEdges);
-        if (mRootInsets == null || mRootInsets.getSystemWindowInsetLeft() != mSafeAreaEdges[0]
-                || mRootInsets.getSystemWindowInsetTop() != mSafeAreaEdges[1]
-                || mRootInsets.getSystemWindowInsetRight() != mSafeAreaEdges[2]
-                || mRootInsets.getSystemWindowInsetBottom() != mSafeAreaEdges[3]) {
+        if (mApplyInsets || mRootInsets == null || mRootInsets.getStableInsetLeft() != mSafeAreaEdges[0]
+                || mRootInsets.getStableInsetTop() != mSafeAreaEdges[1]
+                || mRootInsets.getStableInsetRight() != mSafeAreaEdges[2]
+                || mRootInsets.getStableInsetBottom() != mSafeAreaEdges[3]) {
             android.graphics.Insets edges = android.graphics.Insets.of(mSafeAreaEdges[0], mSafeAreaEdges[1],
                     mSafeAreaEdges[2], mSafeAreaEdges[3]);
+            boolean statusVisible = (mFlags & WindowManager.LayoutParams.FLAG_FULLSCREEN) == 0
+                    && (systemUiVisibility & View.SYSTEM_UI_FLAG_FULLSCREEN) == 0;
+            boolean navigationVisible = (systemUiVisibility & View.SYSTEM_UI_FLAG_HIDE_NAVIGATION) == 0;
             mRootInsets = new WindowInsets.Builder().setSystemWindowInsets(edges).setStableInsets(edges)
+                    .setInsets(WindowInsets.Type.statusBars(), statusVisible
+                            ? android.graphics.Insets.of(0, edges.top, 0, 0) : android.graphics.Insets.NONE)
+                    .setInsets(WindowInsets.Type.navigationBars(), navigationVisible
+                            ? android.graphics.Insets.of(edges.left, 0, edges.right, edges.bottom) : android.graphics.Insets.NONE)
                     .setSystemGestureInsets(edges).setMandatorySystemGestureInsets(edges)
-                    .setVisible(WindowInsets.Type.systemBars(), true).build();
+                    .setVisible(WindowInsets.Type.systemBars(), true)
+                    .setVisible(WindowInsets.Type.statusBars(), statusVisible)
+                    .setVisible(WindowInsets.Type.navigationBars(), navigationVisible).build();
             mApplyInsets = true;
         }
         if (mApplyInsets) {

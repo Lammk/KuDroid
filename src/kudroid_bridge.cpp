@@ -113,44 +113,9 @@ extern "C" void kudroid_ios_diagnostic_memory(const char* phase) {
 }
 
 extern "C" void kudroid_set_log_paths(const char* dir, const char* logDirectory) {
-    if (!dir || !*dir || !logDirectory || !*logDirectory) return;
-    // Setup is once per process and directory. The host re-runs it every time its
-    // root view appears, and by then guest threads are reading the paths it would
-    // rewrite and the files it would reopen.
-    static std::mutex s_setupMutex;
-    std::lock_guard<std::mutex> setupLock(s_setupMutex);
-    if (std::strcmp(g_docsDir, dir) == 0 && std::strcmp(g_logDir, logDirectory) == 0) return;
-    // Recorded before installCrashHandlers below: the fatal-path park needs
-    // the main thread to wake it with SIGUSR2 when a worker dies reported.
+    if (!bridgeConfigureLogPaths(dir, logDirectory)) return;
     crashNoteMainThread();
-
-    // Keep data and diagnostic locations independently configurable.
-    strncpy(g_docsDir, dir, sizeof(g_docsDir) - 1);
-    g_docsDir[sizeof(g_docsDir) - 1] = '\0';
-
-    // A path that does not fit is not "Documents/logs" — it is a chopped path that may
-    // name nothing, and every log file then fails to open. Keep the whole Documents
-    // directory in that case, the same fallback used when the subdirectory cannot be
-    // created below.
-    const int logDirLen = snprintf(g_logDir, sizeof(g_logDir), "%s", logDirectory);
-    if (logDirLen < 0 || static_cast<size_t>(logDirLen) >= sizeof(g_logDir)) {
-        strncpy(g_logDir, g_docsDir, sizeof(g_logDir) - 1);
-        g_logDir[sizeof(g_logDir) - 1] = '\0';
-    }
-
-    // Must exist before anything opens a file in it. The crash handler in particular
-    // cannot create directories — it is restricted to async-signal-safe calls — so a
-    // missing logs/ would silently lose every crash report.
-    std::error_code mkdirError;
-    std::filesystem::create_directories(g_logDir, mkdirError);
-    if (mkdirError) {
-        // Fall back to Documents rather than losing logs entirely. A cluttered
-        // directory beats no diagnostics.
-        fprintf(stderr, "[kudroid_core] cannot create %s (%s); logging to Documents\n",
-                g_logDir, mkdirError.message().c_str());
-        strncpy(g_logDir, g_docsDir, sizeof(g_logDir) - 1);
-        g_logDir[sizeof(g_logDir) - 1] = '\0';
-    }
+    const char* currentDirectory = kudroid_current_log_dir();
 
     installCrashHandlers();
     // Answer the platform-register question once, before any guest code runs:
@@ -163,7 +128,7 @@ extern "C" void kudroid_set_log_paths(const char* dir, const char* logDirectory)
     writeLogFile("kudroid_version.txt", std::string(stamp) + "\n");
 
     // Store missing-class diagnostics beside the other logs.
-    std::string classesLogPath = (std::filesystem::path(g_logDir) / "classes.log").string();
+    std::string classesLogPath = (std::filesystem::path(currentDirectory) / "classes.log").string();
     kuart_set_missing_class_log_path(classesLogPath.c_str());
 
     // The breadcrumb journal is the only place silently-recovered faults
@@ -174,7 +139,7 @@ extern "C" void kudroid_set_log_paths(const char* dir, const char* logDirectory)
     // write -- the breadcrumb writer itself is called from the signal handler
     // and so cannot do this reporting itself.
     {
-        const std::string probe = std::string(g_logDir) + "/native_breadcrumbs.log";
+        const std::string probe = std::string(currentDirectory) + "/native_breadcrumbs.log";
         const int fd = ::open(probe.c_str(), O_WRONLY | O_CREAT | O_APPEND, 0644);
         if (fd < 0) {
             fprintf(stderr, "[kudroid_core] breadcrumb journal not writable: %s (%s)\n",
@@ -204,32 +169,9 @@ extern "C" int kudroid_log_get_jni(void) {
 extern "C" void kudroid_android_log_force_reopen(void);
 
 extern "C" void kudroid_clear_all_logs(void) {
-    if (!g_logDir[0]) return;
-    std::error_code ec;
-
-    // 1. Wipe all files in logs directory
-    if (std::filesystem::exists(g_logDir, ec)) {
-        for (const auto& entry : std::filesystem::directory_iterator(g_logDir, ec)) {
-            if (entry.is_regular_file(ec)) {
-                std::filesystem::remove(entry.path(), ec);
-            }
-        }
-    }
-
-    // 2. Wipe any legacy logs in Documents directory
-    if (g_docsDir[0]) {
-        static const char* kLegacyLogs[] = {
-            "kudroid_android_logs.txt", "stderr.log", "kudroid_crash.log",
-            "native_breadcrumbs.log", "classes.log", "kudroid_version.txt",
-            "kudroid_uninstall_debug.txt", "kudroid_run_apk.txt", "kudroid_exec.txt",
-            "kudroid_load.txt", "kudroid_selftest.txt", "kudroid_vfs_selftest.txt",
-            "kudroid_vfs_extended_test.txt"
-        };
-        for (const char* name : kLegacyLogs) {
-            const std::filesystem::path p = std::filesystem::path(g_docsDir) / name;
-            std::filesystem::remove(p, ec);
-        }
-    }
+    const char* logDirectory = kudroid_current_log_dir();
+    if (!*logDirectory) return;
+    bridgeClearCurrentLogFiles();
 
     // 3. Clear in-memory crash log buffer
     {
@@ -240,7 +182,7 @@ extern "C" void kudroid_clear_all_logs(void) {
 
     // 4. Create fresh, clean kudroid_android_logs.txt (truncate/write)
     char aPath[1200];
-    snprintf(aPath, sizeof(aPath), "%s/kudroid_android_logs.txt", g_logDir);
+    snprintf(aPath, sizeof(aPath), "%s/kudroid_android_logs.txt", logDirectory);
     FILE* afp = fopen(aPath, "w");
     if (afp) {
         fprintf(afp, "[kudroid_core] process-start Build: %s\n", kudroid_build_stamp());
@@ -252,15 +194,10 @@ extern "C" void kudroid_clear_all_logs(void) {
     // + recreate above swapped the file's inode under it, so every later log
     // line kept appending to the unlinked old file. Force the reopen.
     kudroid_android_log_force_reopen();
-    // Same thing for the breadcrumb journal: the remove above unlinked its file
-    // under the cached descriptor, so every later breadcrumb went to the unlinked
-    // inode and the file on disk stayed empty for the rest of the session.
-    kudroid_breadcrumb_invalidate_fd();
-
 #if defined(__APPLE__)
     // 5. Truncate/create fresh stderr.log
     char errPath[1200];
-    snprintf(errPath, sizeof(errPath), "%s/stderr.log", g_logDir);
+    snprintf(errPath, sizeof(errPath), "%s/stderr.log", logDirectory);
     int errFd = open(errPath, O_WRONLY | O_CREAT | O_TRUNC, 0644);
     if (errFd >= 0) {
         dup2(errFd, STDERR_FILENO);
@@ -268,7 +205,7 @@ extern "C" void kudroid_clear_all_logs(void) {
         close(errFd);
         ::chmod(errPath, 0644);
         fprintf(stderr, "[kudroid_core] process-start Build: %s\n", kudroid_build_stamp());
-        fprintf(stderr, "[kudroid_core] log directory: %s\n", g_logDir);
+        fprintf(stderr, "[kudroid_core] log directory: %s\n", logDirectory);
         kudroid_boot_mark("start");
     }
 #endif
@@ -278,7 +215,7 @@ extern "C" void kudroid_clear_all_logs(void) {
     writeLogFile("kudroid_version.txt", std::string(stamp) + "\n");
 
     // Reset the DEX runtime's missing classes log path.
-    std::string classesLogPath = (std::filesystem::path(g_logDir) / "classes.log").string();
+    std::string classesLogPath = (std::filesystem::path(logDirectory) / "classes.log").string();
     kuart_set_missing_class_log_path(classesLogPath.c_str());
 }
 
@@ -295,18 +232,16 @@ static void configure_documents_dir(const char* dir, bool flatRoot) {
         kudroid::VFSPathRemapper::getInstance(false).setDocumentsDirectory(dir, flatRoot);
         kudroid::PermissionManager::getInstance().init(dir);
 
-        if (g_docsDir[0] == '\0') {
-            strncpy(g_docsDir, dir, sizeof(g_docsDir) - 1);
-            g_docsDir[sizeof(g_docsDir) - 1] = '\0';
-        }
+        bridgeRememberDocumentsDirectory(dir);
+        const char* logDirectory = kudroid_current_log_dir();
 
         // classes.log is a diagnostic, so it follows the log directory rather than
         // Documents. This used to point it back at Documents and undo whatever
         // kudroid_set_log_dir had chosen — the two functions disagreed and the last
         // one called won.
-        if (g_logDir[0] != '\0') {
+        if (logDirectory[0] != '\0') {
             const std::string classesLogPath =
-                (std::filesystem::path(g_logDir) / "classes.log").string();
+                (std::filesystem::path(logDirectory) / "classes.log").string();
             kuart_set_missing_class_log_path(classesLogPath.c_str());
         }
     }

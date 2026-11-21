@@ -343,10 +343,12 @@ public final class Collections {
         public String toString() { synchronized (mutex) { return map.toString(); } }
     }
 
-    public static <T> void addAll(Collection<T> c, T... items) {
+    public static <T> boolean addAll(Collection<? super T> c, T... items) {
+        boolean changed = false;
         for (int i = 0; i < items.length; i++) {
-            c.add(items[i]);
+            changed |= c.add(items[i]);
         }
+        return changed;
     }
 
     public static <T> void fill(List<T> list, T value) {

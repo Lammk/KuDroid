@@ -5,6 +5,7 @@
 #include "kudroid/platform/AssetShim.h"
 #include "kudroid/platform/CpuInfo.h"
 #include "kudroid/platform/MemoryInfo.h"
+#include "kudroid/platform/AppMemoryBudget.h"
 #include "kudroid/platform/ProcessMaps.h"
 
 #include <cerrno>

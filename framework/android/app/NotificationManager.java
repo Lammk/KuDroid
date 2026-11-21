@@ -13,6 +13,7 @@ public class NotificationManager {
     public static final int IMPORTANCE_MAX = 5;
 
     public NotificationManager() {}
+    public boolean areNotificationsEnabled() { return false; }
     public void notify(int id, Notification notification) {}
     public void notify(String tag, int id, Notification notification) {}
     public void cancel(int id) {}

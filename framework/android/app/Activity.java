@@ -591,6 +591,10 @@ public class Activity extends ContextThemeWrapper implements android.view.Window
         return name;
     }
 
+    public android.content.SharedPreferences getPreferences(int mode) {
+        return getSharedPreferences(getLocalClassName(), mode);
+    }
+
     private CharSequence mTitle = "";
 
     public CharSequence getTitle() {

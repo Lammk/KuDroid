@@ -1,15 +1,10 @@
 #include "kudroid/platform/Es31Compat.h"
 
 #include <cstddef>
-#include <mutex>
-#include <set>
 #include <string_view>
 
 namespace kudroid {
 namespace {
-
-constexpr unsigned kGlVersion = 0x1F02;
-constexpr unsigned kGlslVersion = 0x8B8C;
 
 bool is_ident(char c) {
     return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9') || c == '_';
@@ -49,13 +44,6 @@ size_t version_token_end(std::string_view source, size_t* begin) {
     return std::string_view::npos;
 }
 
-const char* intern(std::string value) {
-    static std::mutex mutex;
-    static std::set<std::string> strings;
-    std::lock_guard<std::mutex> lock(mutex);
-    return strings.insert(std::move(value)).first->c_str();
-}
-
 }  // namespace
 
 const char* gles31_unsupported_feature(std::string_view source) {
@@ -91,20 +79,9 @@ ShaderDowngrade gles31_downgrade_shader(std::string& source) {
 }
 
 const char* gles31_advertise_version(const char* value, unsigned name) {
-    if (!value || (name != kGlVersion && name != kGlslVersion)) return value;
-    std::string text(value);
-    if (name == kGlVersion) {
-        constexpr std::string_view from = "OpenGL ES 3.0";
-        if (text.compare(0, from.size(), from) != 0) return value;
-        if (text.size() > from.size() && is_ident(text[from.size()])) return value;
-        text[from.size() - 1] = '1';
-    } else {
-        constexpr std::string_view from = "OpenGL ES GLSL ES 3.00";
-        if (text.compare(0, from.size(), from) != 0) return value;
-        if (text.size() > from.size() && is_ident(text[from.size()])) return value;
-        text[from.size() - 2] = '1';
-    }
-    return intern(std::move(text));
+    // Shader translation does not add backend features.
+    (void)name;
+    return value;
 }
 
 bool gles31_package_listed(std::string_view listText, std::string_view pkg) {

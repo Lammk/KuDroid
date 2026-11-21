@@ -109,6 +109,8 @@ public class ConnectivityManager {
 
     public Network getActiveNetwork() { return network(nativeState()); }
 
+    public ProxyInfo getDefaultProxy() { return null; }
+
     public Network[] getAllNetworks() {
         final Network network = network(nativeState());
         return network != null ? new Network[] { network } : new Network[0];

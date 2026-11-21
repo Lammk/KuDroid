@@ -106,7 +106,7 @@ std::string BuildMemInfo(const SystemMemory& mem) {
     out += "MemTotal:       " + std::to_string(total_kb) + " kB\n";
     out += "MemFree:        " + std::to_string(free_kb) + " kB\n";
     out += "MemAvailable:   " + std::to_string(available_kb) + " kB\n";
-    out += "Buffers:           24576 kB\n";
+    out += app_memory_budget_active() ? "Buffers:               0 kB\n" : "Buffers:           24576 kB\n";
     out += "Cached:         " + std::to_string(cached_kb) + " kB\n";
     out += "SwapCached:            0 kB\n";
     // iOS has no swap a guest can use. Reporting a swap total would tell an engine it can
@@ -123,7 +123,7 @@ std::string BuildMemInfo(const SystemMemory& mem) {
 bool VFSPathRemapper::init_pseudo_files() {
     const std::string root = androidRoot_;
     const CpuTopology& cpu = query_cpu_topology();
-    const SystemMemory mem = query_system_memory();
+    const SystemMemory mem = query_android_memory();
 
     // Whether the content describes the DEVICE, and must therefore be rewritten rather
     // than preserved.

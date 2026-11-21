@@ -182,6 +182,8 @@ public:
         // it at depth 0 through a RAII guard, which siglongjmp skips just like the
         // others; leaving it held would deadlock every other Java thread.
         int vm_lock_depth = 0;
+        DexClassLinker* loader_linker = nullptr;
+        uint32_t loader_id = 1;
     };
     static ThreadState CaptureThreadState();
 

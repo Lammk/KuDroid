@@ -110,6 +110,11 @@ public final class Configuration implements Parcelable, Comparable<Configuration
     public int smallestScreenWidthDp;
     public int densityDpi;
 
+    public boolean isLayoutSizeAtLeast(int size) {
+        int layoutSize = screenLayout & SCREENLAYOUT_SIZE_MASK;
+        return layoutSize != SCREENLAYOUT_SIZE_UNDEFINED && layoutSize >= size;
+    }
+
     public int updateFrom(Configuration delta) {
         Configuration before = new Configuration(this);
         if (delta.fontScale > 0) fontScale = delta.fontScale;

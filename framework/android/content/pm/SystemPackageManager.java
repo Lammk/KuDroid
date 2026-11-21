@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 /** Resolve package metadata declared by the manifest. */
@@ -45,12 +46,14 @@ public class SystemPackageManager extends PackageManager {
 
     /** The running package, so a query naming it can be answered. */
     private static String sPackageName = "";
+    private static String sProcessName = "";
     private static boolean sApplicationEnabled = true;
 
     /** Every activity the manifest declared, in launch order. */
     private static final List<String> sActivities = new ArrayList<String>();
 
     private static final Map<String, ServiceInfo> sServices = new HashMap<String, ServiceInfo>();
+    private static final Map<String, ProviderInfo> sProviders = new LinkedHashMap<String, ProviderInfo>();
     private static final Map<String, List<ServiceFilter>> sServiceFilters =
             new HashMap<String, List<ServiceFilter>>();
     private static final Map<String, Integer> sComponentStates = new HashMap<String, Integer>();
@@ -254,9 +257,13 @@ public class SystemPackageManager extends PackageManager {
     public static synchronized void registerPackage(String packageName, String[] activities,
             boolean enabled) {
         if (packageName != null) sPackageName = packageName;
+        sProcessName = sPackageName;
         sApplicationEnabled = enabled;
         sActivities.clear();
         sServices.clear();
+        for (ProviderInfo provider : sProviders.values()) sComponentMetaData.remove(provider.name);
+        sProviders.clear();
+        android.content.LocalContentProviders.clear();
         sServiceFilters.clear();
         sComponentStates.clear();
         sApplicationTheme = 0;
@@ -307,7 +314,96 @@ public class SystemPackageManager extends PackageManager {
     }
 
     @Override
-    public ProviderInfo resolveContentProvider(String authority, int flags) { return null; }
+    public ProviderInfo resolveContentProvider(String authority, int flags) {
+        if (authority == null) return null;
+        synchronized (SystemPackageManager.class) {
+            for (ProviderInfo provider : sProviders.values()) {
+                if (!providerEnabled(provider) && (flags & MATCH_DISABLED_COMPONENTS) == 0) continue;
+                for (String declared : provider.authority.split(";")) {
+                    if (authority.equals(declared)) {
+                        try { return providerInfo(provider, flags); }
+                        catch (NameNotFoundException failure) { return null; }
+                    }
+                }
+            }
+            return SharedPackages.provider(authority);
+        }
+    }
+
+    @Override
+    public ProviderInfo getProviderInfo(ComponentName component, int flags) throws NameNotFoundException {
+        synchronized (SystemPackageManager.class) {
+            if (component != null && !sPackageName.equals(component.getPackageName())) {
+                ProviderInfo shared = SharedPackages.provider(component, flags);
+                if (shared != null) return shared;
+                throw new NameNotFoundException(component.toString());
+            }
+            ProviderInfo provider = component != null && sPackageName.equals(component.getPackageName())
+                    ? sProviders.get(component.getClassName()) : null;
+            if (provider == null || (!providerEnabled(provider) && (flags & MATCH_DISABLED_COMPONENTS) == 0))
+                throw new NameNotFoundException(component == null ? "null component" : component.toString());
+            return providerInfo(provider, flags);
+        }
+    }
+
+    public static synchronized void registerPackageProcess(String processName) {
+        sProcessName = processName == null || processName.isEmpty() ? sPackageName : processName;
+    }
+
+    public static synchronized void registerProvider(String name, String authorities, String processName,
+            int initOrder, boolean enabled, boolean exported, boolean grantUriPermissions,
+            boolean directBootAware, String readPermission, String writePermission) {
+        if (name == null || name.isEmpty() || authorities == null || authorities.isEmpty())
+            throw new IllegalArgumentException("Provider name and authorities are required");
+        ProviderInfo info = new ProviderInfo();
+        info.name = name;
+        info.packageName = sPackageName;
+        info.authority = authorities;
+        info.processName = processName == null || processName.isEmpty() ? sProcessName : processName;
+        info.initOrder = initOrder;
+        info.enabled = enabled;
+        info.exported = exported;
+        info.grantUriPermissions = grantUriPermissions;
+        info.directBootAware = directBootAware;
+        info.readPermission = readPermission == null || readPermission.isEmpty() ? null : readPermission;
+        info.writePermission = writePermission == null || writePermission.isEmpty() ? null : writePermission;
+        sProviders.put(name, info);
+    }
+
+    private boolean providerEnabled(ProviderInfo provider) {
+        return sApplicationEnabled && providerComponentEnabled(provider);
+    }
+
+    private boolean providerComponentEnabled(ProviderInfo provider) {
+        int state = getComponentEnabledSetting(new ComponentName(provider.packageName, provider.name));
+        return state == COMPONENT_ENABLED_STATE_ENABLED
+                || (state == COMPONENT_ENABLED_STATE_DEFAULT && provider.enabled);
+    }
+
+    private ProviderInfo providerInfo(ProviderInfo declared, int flags) throws NameNotFoundException {
+        ProviderInfo info = new ProviderInfo(declared);
+        info.applicationInfo = getApplicationInfo(info.packageName, flags);
+        info.enabled = providerComponentEnabled(declared);
+        android.os.Bundle data = sComponentMetaData.get(info.name);
+        info.metaData = (flags & GET_META_DATA) != 0 && data != null ? new android.os.Bundle(data) : null;
+        return info;
+    }
+
+    public static synchronized ProviderInfo[] providersForProcess() {
+        SystemPackageManager manager = new SystemPackageManager();
+        ArrayList<ProviderInfo> providers = new ArrayList<ProviderInfo>();
+        for (ProviderInfo provider : sProviders.values()) {
+            if (!manager.providerEnabled(provider) || !sProcessName.equals(provider.processName)) continue;
+            try { providers.add(manager.providerInfo(provider, GET_META_DATA)); }
+            catch (NameNotFoundException failure) { throw new IllegalStateException(failure); }
+        }
+        Collections.sort(providers, new java.util.Comparator<ProviderInfo>() {
+            public int compare(ProviderInfo first, ProviderInfo second) {
+                return Integer.compare(second.initOrder, first.initOrder);
+            }
+        });
+        return providers.toArray(new ProviderInfo[providers.size()]);
+    }
 
     @Override
     public String getNameForUid(int uid) {
@@ -329,7 +425,7 @@ public class SystemPackageManager extends PackageManager {
         if (info == null) throw new NullPointerException("info == null");
         synchronized (SystemPackageManager.class) {
             if (!sPackageName.equals(info.packageName) && !"android".equals(info.packageName))
-                throw new NameNotFoundException(info.packageName);
+                return SharedPackages.resources(getApplicationInfo(info.packageName, GET_META_DATA));
         }
         return android.content.res.Resources.getSystem();
     }
@@ -345,12 +441,23 @@ public class SystemPackageManager extends PackageManager {
                     // Only packages with available metadata are listed.
                 }
             }
+            org.json.JSONArray records = SharedPackages.records();
+            for (int i = 0; i < records.length(); ++i) {
+                org.json.JSONObject record = records.optJSONObject(i);
+                if (record != null && !sPackageName.equals(record.optString("package", "")))
+                    packages.add(SharedPackages.packageInfo(record));
+            }
             return packages;
         }
     }
 
     @Override
     public PackageInfo getPackageInfo(String packageName, int flags) throws NameNotFoundException {
+        if (!sPackageName.equals(packageName)) {
+            PackageInfo installed = SharedPackages.packageInfo(SharedPackages.record(packageName, false));
+            if (installed == null) throw new NameNotFoundException(packageName);
+            return installed;
+        }
         PackageInfo pi = new PackageInfo();
         pi.packageName = packageName;
         pi.applicationInfo = getApplicationInfo(packageName, flags);
@@ -360,17 +467,33 @@ public class SystemPackageManager extends PackageManager {
         pi.versionCode = sVersionCode;
         pi.firstInstallTime = sFirstInstallTime;
         pi.lastUpdateTime = sLastUpdateTime;
-        Signature sig = new Signature(new byte[] { 0x30, (byte) 0x82, 0x01 });
-        pi.signatures = new Signature[] { sig };
+        PackageInfo installed = SharedPackages.packageInfo(SharedPackages.record(packageName, true));
+        pi.signatures = installed != null ? installed.signatures : new Signature[0];
         pi.signingInfo = new SigningInfo(pi.signatures);
+        if ((flags & GET_PROVIDERS) != 0 && sPackageName.equals(packageName)) {
+            synchronized (SystemPackageManager.class) {
+                ArrayList<ProviderInfo> providers = new ArrayList<ProviderInfo>();
+                for (ProviderInfo provider : sProviders.values()) {
+                    if (providerEnabled(provider) || (flags & MATCH_DISABLED_COMPONENTS) != 0)
+                        providers.add(providerInfo(provider, flags));
+                }
+                if (!providers.isEmpty()) pi.providers = providers.toArray(new ProviderInfo[providers.size()]);
+            }
+        }
         return pi;
     }
 
     @Override
     public ApplicationInfo getApplicationInfo(String packageName, int flags) throws NameNotFoundException {
+        if (!sPackageName.equals(packageName) && !"android".equals(packageName)) {
+            ApplicationInfo installed = SharedPackages.applicationInfo(SharedPackages.record(packageName, false));
+            if (installed == null) throw new NameNotFoundException(packageName);
+            return installed;
+        }
         ApplicationInfo ai = new ApplicationInfo();
         ai.packageName = packageName;
         ai.processName = packageName;
+        if (sPackageName.equals(packageName)) ai.processName = sProcessName;
         ai.enabled = !sPackageName.equals(packageName) || sApplicationEnabled;
         ai.dataDir = "/data/data/" + packageName;
         ai.sourceDir = "/data/app/" + packageName + "/base.apk";
@@ -424,6 +547,11 @@ public class SystemPackageManager extends PackageManager {
     public ServiceInfo getServiceInfo(ComponentName component, int flags)
             throws NameNotFoundException {
         if (component == null) throw new NameNotFoundException("null component");
+        if (!sPackageName.equals(component.getPackageName())) {
+            ServiceInfo shared = SharedPackages.service(component, flags);
+            if (shared == null) throw new NameNotFoundException(component.flattenToString());
+            return shared;
+        }
         synchronized (SystemPackageManager.class) {
             ServiceInfo declared = sServices.get(component.getClassName());
             if (declared == null || !declared.packageName.equals(component.getPackageName()))
@@ -442,7 +570,7 @@ public class SystemPackageManager extends PackageManager {
     }
 
     private boolean serviceEnabled(ServiceInfo info) {
-        if (!sApplicationEnabled) return false;
+        if (sPackageName.equals(info.packageName) ? !sApplicationEnabled : !info.applicationInfo.enabled) return false;
         int state = getComponentEnabledSetting(new ComponentName(info.packageName, info.name));
         return state == COMPONENT_ENABLED_STATE_ENABLED
                 || (state == COMPONENT_ENABLED_STATE_DEFAULT && info.enabled);
@@ -457,7 +585,7 @@ public class SystemPackageManager extends PackageManager {
             if (component != null) {
                 try {
                     ServiceInfo info = getServiceInfo(component, flags);
-                    if (serviceEnabled(info)) {
+                    if (serviceEnabled(info) && (sPackageName.equals(info.packageName) || info.exported)) {
                         ResolveInfo resolved = new ResolveInfo();
                         resolved.serviceInfo = info;
                         result.add(resolved);
@@ -465,7 +593,7 @@ public class SystemPackageManager extends PackageManager {
                 } catch (NameNotFoundException ignored) {}
                 return result;
             }
-            if (intent.getPackage() != null && !sPackageName.equals(intent.getPackage())) return result;
+            if (intent.getPackage() != null && !sPackageName.equals(intent.getPackage())) return SharedPackages.queryServices(intent, flags);
             for (ServiceInfo declared : sServices.values()) {
                 if (!serviceEnabled(declared)) continue;
                 ServiceFilter best = null;
@@ -494,6 +622,7 @@ public class SystemPackageManager extends PackageManager {
                 result.add(resolved);
             }
         }
+        result.addAll(SharedPackages.queryServices(intent, flags));
         Collections.sort(result, new java.util.Comparator<ResolveInfo>() {
             public int compare(ResolveInfo a, ResolveInfo b) {
                 if (a.priority != b.priority) return a.priority > b.priority ? -1 : 1;
@@ -526,10 +655,10 @@ public class SystemPackageManager extends PackageManager {
         if (name == null) {
             return false;
         }
-        // The host exposes touch input rather than a television interface.
+        // Alternate device types and television interfaces are not exposed.
         if (name.equals("android.software.leanback") ||
                 name.equals("android.software.leanback_only") ||
-                name.equals("android.hardware.type.television")) {
+                name.startsWith("android.hardware.type.")) {
             return false;
         }
         // No input hardware is reachable; see android.hardware.input.InputManager, which

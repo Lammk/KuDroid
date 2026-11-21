@@ -406,11 +406,12 @@ static long long fault_steady_ns() {
 // close only, no heap. The fault-skip mirror and the episode report below share
 // it so a recovered fault and the fault it led to land in the same file.
 static void crashAppendLogLine(const char* line, int n) {
-    if (line == nullptr || n <= 0 || !g_logDir[0]) return;
+    const char* logDirectory = kudroid_current_log_dir();
+    if (line == nullptr || n <= 0 || !logDirectory[0]) return;
     char path[1200];
-    size_t dl = std::strlen(g_logDir);
+    size_t dl = std::strlen(logDirectory);
     if (dl >= sizeof(path) - 32) dl = sizeof(path) - 32;
-    std::memcpy(path, g_logDir, dl);
+    std::memcpy(path, logDirectory, dl);
     const char* suffix = "/kudroid_crash.log";
     std::memcpy(path + dl, suffix, std::strlen(suffix) + 1);
     const int fd = ::open(path, O_WRONLY | O_CREAT | O_APPEND, 0644);
@@ -489,6 +490,7 @@ static void store_drop_report(unsigned long long tid, unsigned long long pc,
 }
 
 static bool kudroid_try_skip_fault(int /*sig*/, siginfo_t* info, void* ucontext) {
+    const char* logDirectory = kudroid_current_log_dir();
     if (info == nullptr || ucontext == nullptr) return false;
     ucontext_t* uc = reinterpret_cast<ucontext_t*>(ucontext);
     uint64_t newPc = 0;
@@ -554,7 +556,7 @@ static bool kudroid_try_skip_fault(int /*sig*/, siginfo_t* info, void* ucontext)
         static std::atomic<unsigned> s_skipLog{0};
         const unsigned seen = s_skipLog.fetch_add(1, std::memory_order_relaxed);
         if (seen < 8 || (seen % 16) == 0) {
-            if (g_logDir[0]) {
+            if (logDirectory[0]) {
                 // Which mapping the fault came from decides the fix: a region
                 // that exists with insufficient cur protection is a commit we
                 // failed to make, while no region at all (or one whose max

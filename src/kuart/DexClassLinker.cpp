@@ -22,6 +22,12 @@ namespace kudroid {
 namespace kuart {
 
 namespace {
+thread_local DexClassLinker* current_linker = nullptr;
+thread_local uint32_t current_loader = 1;
+
+std::string ClassKey(uint32_t loader, const char* descriptor) {
+    return std::to_string(loader) + ":" + descriptor;
+}
 
 // Count DexValue slots; long/double take 2, others take 1.
 uint16_t CountArgWords(const char* shorty, bool is_static) {
@@ -61,17 +67,12 @@ bool IsPlatformDescriptor(const char* descriptor) {
 
 // Missing-class log path set by KuArtRuntime; absolute so tests do not litter CWD.
 std::mutex g_missing_class_log_mtx;
-std::vector<std::string> g_missing_class_log_paths;
+std::string g_missing_class_log_path;
 
 // Append one timestamped line; shared by missing-class/field/method logs.
 void AppendMissingLog(const char* kind, const std::string& detail) {
-    std::vector<std::string> paths;
-    {
-        std::lock_guard<std::mutex> lock(g_missing_class_log_mtx);
-        paths = g_missing_class_log_paths;
-    }
-    // No path configured (host tests, or before kuart_init) -> log to stderr only.
-    if (paths.empty()) return;
+    std::lock_guard<std::mutex> lock(g_missing_class_log_mtx);
+    if (g_missing_class_log_path.empty()) return;
 
     const auto now = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
     char timeBuf[64] = {0};
@@ -83,13 +84,10 @@ void AppendMissingLog(const char* kind, const std::string& detail) {
 #endif
     std::strftime(timeBuf, sizeof(timeBuf), "%Y-%m-%d %H:%M:%S", &tm_buf);
 
-    for (const auto& path : paths) {
-        if (path.empty()) continue;
-        std::ofstream logFile(path, std::ios::app);
-        if (logFile.is_open()) {
-            logFile << "[" << timeBuf << "] " << kind << ": " << detail << "\n";
-            logFile.flush();
-        }
+    std::ofstream logFile(g_missing_class_log_path, std::ios::app);
+    if (logFile.is_open()) {
+        logFile << "[" << timeBuf << "] " << kind << ": " << detail << "\n";
+        logFile.flush();
     }
 }
 
@@ -106,20 +104,49 @@ void DexClassLinker::LogMissingMember(const char* kind, const std::string& detai
 
 void DexClassLinker::SetMissingClassLogPath(const char* path) {
     std::lock_guard<std::mutex> lock(g_missing_class_log_mtx);
-    if (path == nullptr || path[0] == '\0') {
-        g_missing_class_log_paths.clear();
-        return;
-    }
-    std::string s(path);
-    if (std::find(g_missing_class_log_paths.begin(), g_missing_class_log_paths.end(), s) == g_missing_class_log_paths.end()) {
-        g_missing_class_log_paths.push_back(s);
-    }
+    g_missing_class_log_path = path ? path : "";
 }
 
 DexClassLinker::DexClassLinker() {
     for (auto& entry : registered_class_cache_) entry.store(nullptr, std::memory_order_relaxed);
 }
 DexClassLinker::~DexClassLinker() { ClearFastResolutionCaches(); }
+
+DexClassLinker::LoaderScope::LoaderScope(DexClassLinker* linker, uint32_t loader)
+    : previous_linker_(current_linker), previous_loader_(current_loader) {
+    current_linker = linker;
+    current_loader = loader;
+}
+
+DexClassLinker::LoaderScope::~LoaderScope() {
+    current_linker = previous_linker_;
+    current_loader = previous_loader_;
+}
+
+uint32_t DexClassLinker::CurrentLoader() const {
+    return current_linker == this ? current_loader : 1;
+}
+
+DexClassLinker* DexClassLinker::ActiveLinker() { return current_linker; }
+uint32_t DexClassLinker::ActiveLoader() { return current_loader; }
+void DexClassLinker::RestoreLoader(DexClassLinker* linker, uint32_t loader) {
+    current_linker = linker;
+    current_loader = loader;
+}
+
+uint32_t DexClassLinker::LoaderForPackage(const std::string& package) {
+    std::lock_guard<std::recursive_mutex> lock(class_load_mutex_);
+    auto found = package_loaders_.find(package);
+    return found == package_loaders_.end() ? 0 : found->second;
+}
+
+std::string DexClassLinker::PackageForLoader(uint32_t loader) {
+    std::lock_guard<std::recursive_mutex> lock(class_load_mutex_);
+    for (const auto& entry : package_loaders_) {
+        if (entry.second == loader) return entry.first;
+    }
+    return {};
+}
 
 bool DexClassLinker::AddDexFile(const uint8_t* bytes, size_t size,
                                 const std::string& location, std::string* error_msg,
@@ -136,12 +163,13 @@ bool DexClassLinker::AddDexFile(const uint8_t* bytes, size_t size,
         return false;
     }
     if (boot_class_path) boot_dex_files_.insert(dex_file.get());
+    dex_loaders_[dex_file.get()] = boot_class_path ? 0 : 1;
     dex_files_.push_back(std::move(dex_file));
     return true;
 }
 
 bool DexClassLinker::AddOwnedDexFiles(std::vector<std::vector<uint8_t>> buffers,
-                                      std::string* error_msg) {
+                                      std::string* error_msg, const std::string& package) {
     std::lock_guard<std::recursive_mutex> load_lock(class_load_mutex_);
     std::vector<std::unique_ptr<const art::DexFile>> pending;
     const art::DexFileLoader loader;
@@ -197,8 +225,16 @@ bool DexClassLinker::AddOwnedDexFiles(std::vector<std::vector<uint8_t>> buffers,
     // Reserve both registries before publishing; vector moves preserve byte addresses.
     owned_dex_bytes_.reserve(owned_dex_bytes_.size() + buffers.size());
     dex_files_.reserve(dex_files_.size() + pending.size());
+    uint32_t loader_id = 1;
+    if (!package.empty()) {
+        auto inserted = package_loaders_.emplace(package, static_cast<uint32_t>(package_loaders_.size()) + 2);
+        loader_id = inserted.first->second;
+    }
     for (auto& bytes : buffers) owned_dex_bytes_.push_back(std::move(bytes));
-    for (auto& dex : pending) dex_files_.push_back(std::move(dex));
+    for (auto& dex : pending) {
+        dex_loaders_[dex.get()] = loader_id;
+        dex_files_.push_back(std::move(dex));
+    }
     return true;
 }
 
@@ -222,22 +258,27 @@ DexClass* DexClassLinker::CreatePrimitiveClass(const char* descriptor,
     klass->is_primitive = true;
     klass->primitive_type = type;
     klass->status = DexClass::Status::kInitialized;
-    classes_[descriptor] = klass;
+    classes_[ClassKey(0, descriptor)] = klass;
     live_classes_.insert(klass);
     return klass;
 }
 
 DexClass* DexClassLinker::CreateArrayClass(const char* descriptor) {
+    DexClass* component = FindClass(descriptor + 1);
+    if (component == nullptr) return nullptr;
+    const auto key = ClassKey(component->loader_id, descriptor);
+    auto existing = classes_.find(key);
+    if (existing != classes_.end()) return existing->second;
     auto* klass = heap_.New<DexClass>();
     if (klass == nullptr) return nullptr;
     klass->descriptor = heap_.InternString(descriptor);
     klass->access_flags = art::kAccPublic | art::kAccFinal;
     klass->is_array = true;
-    // Register before resolving the component: the nested array ("[[I") will return here.
-    classes_[descriptor] = klass;
+    klass->loader_id = component->loader_id;
+    classes_[key] = klass;
     live_classes_.insert(klass);
 
-    klass->component_type = FindClass(descriptor + 1);
+    klass->component_type = component;
     klass->superclass = FindClass("Ljava/lang/Object;");
     klass->status = DexClass::Status::kLinked;
     if (klass->superclass != nullptr) {
@@ -275,10 +316,9 @@ DexClass* DexClassLinker::FindClassImpl(const char* descriptor, bool allow_stub)
     if (descriptor == nullptr || descriptor[0] == '\0') return nullptr;
     std::lock_guard<std::recursive_mutex> load_lock(class_load_mutex_);
 
-    auto it = classes_.find(descriptor);
-    if (it != classes_.end()) return it->second;
-
     if (IsPrimitiveDescriptor(descriptor)) {
+        auto found = classes_.find(ClassKey(0, descriptor));
+        if (found != classes_.end()) return found->second;
         return CreatePrimitiveClass(descriptor, art::Primitive::GetType(descriptor[0]));
     }
     if (descriptor[0] == '[') {
@@ -290,25 +330,40 @@ DexClass* DexClassLinker::FindClassImpl(const char* descriptor, bool allow_stub)
         return CreateArrayClass(descriptor);
     }
 
-    // Guard against inheritance loops to avoid infinite recursion.
-    if (std::find(loading_.begin(), loading_.end(), descriptor) != loading_.end()) {
+    const auto key = ClassKey(CurrentLoader(), descriptor);
+    const auto bootKey = ClassKey(0, descriptor);
+    const bool bundledLibrary = !IsPlatformDescriptor(descriptor);
+    if (!bundledLibrary) {
+        auto found = classes_.find(bootKey);
+        if (found != classes_.end()) return found->second;
+    }
+    auto cached = classes_.find(key);
+    if (cached != classes_.end()) return cached->second;
+
+    // Guard against inheritance loops within the defining loader.
+    if (std::find(loading_.begin(), loading_.end(), key) != loading_.end()) {
         last_error_ = std::string("inherit loop when loading ") + descriptor;
         return nullptr;
     }
 
     // Bundled libraries take precedence over optional framework copies.
-    const bool bundledLibrary = !IsPlatformDescriptor(descriptor);
     for (int pass = 0; pass < 2; ++pass) {
         const bool wantBoot = bundledLibrary ? pass == 1 : pass == 0;
         for (const auto& dex_file : dex_files_) {
             if ((boot_dex_files_.count(dex_file.get()) != 0) != wantBoot) continue;
+            if (!wantBoot && dex_loaders_.at(dex_file.get()) != CurrentLoader()) continue;
             const art::dex::TypeId* type_id = dex_file->FindTypeId(descriptor);
             if (type_id == nullptr) continue;
             const art::dex::TypeIndex type_idx = dex_file->GetIndexForTypeId(*type_id);
             const art::dex::ClassDef* class_def = dex_file->FindClassDef(type_idx);
             if (class_def == nullptr) continue;
 
-            loading_.push_back(descriptor);
+            const uint32_t loader = dex_loaders_.at(dex_file.get());
+            const auto definingKey = ClassKey(loader, descriptor);
+            auto loaded = classes_.find(definingKey);
+            if (loaded != classes_.end()) return loaded->second;
+            LoaderScope scope(this, loader);
+            loading_.push_back(definingKey);
             DexClass* klass = LoadClassFromDexFile(*dex_file, *class_def, descriptor);
             loading_.pop_back();
             return klass;
@@ -336,20 +391,14 @@ DexClass* DexClassLinker::FindClassImpl(const char* descriptor, bool allow_stub)
     const size_t descLen = std::strlen(descriptor);
     if (allow_stub && isBootClasspathDescriptor(descriptor) && descLen > 2 &&
         descriptor[descLen - 1] == ';') {
-        static std::mutex s_log_mtx;
-        static std::set<std::string> s_logged_classes;
-        {
-            std::lock_guard<std::mutex> lock(s_log_mtx);
-            if (s_logged_classes.insert(descriptor).second) {
-                std::string dotted = descriptor;
-                dotted = dotted.substr(1, dotted.size() - 2);
-                std::replace(dotted.begin(), dotted.end(), '/', '.');
-
-                std::fprintf(stderr, "[KuART][AUTO-STUB] ⚠ Auto-stubbed missing framework class: %s (%s) -> logged to classes.log\n",
-                             dotted.c_str(), descriptor);
-                AppendMissingClassLog(dotted, descriptor);
-            }
-        }
+        auto existing = classes_.find(bootKey);
+        if (existing != classes_.end()) return existing->second;
+        std::string dotted = descriptor;
+        dotted = dotted.substr(1, dotted.size() - 2);
+        std::replace(dotted.begin(), dotted.end(), '/', '.');
+        std::fprintf(stderr, "[KuART][AUTO-STUB] Missing framework class: %s (%s)\n",
+                     dotted.c_str(), descriptor);
+        AppendMissingClassLog(dotted, descriptor);
 
         auto* stub = heap_.New<DexClass>();
         if (stub != nullptr) {
@@ -358,7 +407,7 @@ DexClass* DexClassLinker::FindClassImpl(const char* descriptor, bool allow_stub)
             // Marked initialized with no clinit; flagged as stub. See DexClass::is_stub.
             stub->status = DexClass::Status::kInitialized;
             stub->is_stub = true;
-            classes_[descriptor] = stub;
+            classes_[bootKey] = stub;
             live_classes_.insert(stub);
 
             stub->superclass = FindClass("Ljava/lang/Object;");
@@ -383,9 +432,10 @@ DexClass* DexClassLinker::LoadClassFromDexFile(const art::DexFile& dex_file,
     klass->access_flags = class_def.access_flags_;
     klass->dex_file = &dex_file;
     klass->class_def = &class_def;
+    klass->loader_id = dex_loaders_.at(&dex_file);
 
     // Cache before resolving superclass to handle self-references.
-    classes_[descriptor] = klass;
+    classes_[ClassKey(klass->loader_id, descriptor)] = klass;
     live_classes_.insert(klass);
 
     if (class_def.superclass_idx_.IsValid()) {
@@ -718,7 +768,7 @@ DexClass* DexClassLinker::GetOrCreateProxyClass(const std::vector<DexClass*>& in
     std::string key;
     for (const DexClass* iface : interfaces) {
         if (iface == nullptr || iface->descriptor == nullptr) continue;
-        key += iface->descriptor;
+        key += std::to_string(reinterpret_cast<uintptr_t>(iface)) + ":";
     }
 
     auto cached = proxy_classes_.find(key);
@@ -734,6 +784,7 @@ DexClass* DexClassLinker::GetOrCreateProxyClass(const std::vector<DexClass*>& in
     proxy->superclass = proxy_base;
     proxy->interfaces = interfaces;
     proxy->is_proxy = true;
+    proxy->loader_id = CurrentLoader();
     // Inherit Proxy layout so the h field stays reachable.
     proxy->object_size = proxy_base->object_size;
     // No clinit to run; mark initialized.
@@ -741,7 +792,7 @@ DexClass* DexClassLinker::GetOrCreateProxyClass(const std::vector<DexClass*>& in
     // Share superclass vtable so inherited Object methods stay reachable.
     proxy->vtable = proxy_base->vtable;
 
-    classes_[descriptor] = proxy;
+    classes_[ClassKey(proxy->loader_id, descriptor.c_str())] = proxy;
     live_classes_.insert(proxy);
     proxy_classes_[key] = proxy;
     return proxy;

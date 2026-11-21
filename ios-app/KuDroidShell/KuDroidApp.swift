@@ -264,12 +264,17 @@ private struct GuestEdgeGestures: ViewModifier {
 struct KuDroidApp: App {
     @UIApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
     @AppStorage("shellAppearance") private var appearance = ShellAppearance.system.rawValue
+    @AppStorage("appMemoryBudgetSetupCompleted") private var memorySetupCompleted = false
+    @AppStorage("microGSetupCompleted") private var microGSetupCompleted = false
+    @ObservedObject private var memoryOnboarding = AppMemoryOnboarding.shared
+    @State private var pendingOpenURL: URL?
     @StateObject private var session = AppSession()
     @ObservedObject private var dataReset = AppDataResetModel.shared
     @ObservedObject private var installer = APKInstallModel.shared
     @StateObject private var documentImport = ExternalAPKImportModel()
 
     init() {
+        AppMemorySettings.apply()
         if StandaloneConfiguration.isStandalone,
            let documents = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first {
             kudroid_set_log_paths(documents.path, StandaloneStorage.logs.path)
@@ -279,6 +284,7 @@ struct KuDroidApp: App {
         kudroid_log_vm_startup_probe()
         IOSDiagnostics.shared.start()
         IOSDiagnostics.shared.applicationPhase("app-init")
+        if #available(iOS 26.0, *) { JITSetupModel.shared.registerBackgroundPairing() }
         kudroid_gpu_prepare_egl()
         activateAudioSession()
         KuDroidNetworkMonitor.shared.start()
@@ -369,6 +375,8 @@ struct KuDroidApp: App {
             }
             .preferredColorScheme((ShellAppearance(rawValue: appearance) ?? .system).colorScheme)
             .tint(ShellStyle.ink)
+            .jitStartup(suspended: documentImport.presented || installer.busy || memoryOnboarding.active ||
+                ((!memorySetupCompleted || !microGSetupCompleted) && !StandaloneConfiguration.isStandalone))
             .alert("Could not install APK", isPresented: $installer.showError) {
                 Button("OK", role: .cancel) {}
             } message: { Text(installer.error) }
@@ -381,30 +389,20 @@ struct KuDroidApp: App {
                 Button("OK", role: .cancel) { session.shortcutError = nil }
             } message: { Text(session.shortcutError ?? "") }
             .onOpenURL { url in
-                guard !StandaloneConfiguration.isStandalone else { return }
-                if APKFileTypes.accepts(url) {
-                    guard session.activeGuestApp.isEmpty, !session.isSoRunning,
-                          !session.libraryBusy, !dataReset.busy else {
-                        session.shortcutError = "Close the running app and wait for any file operation to finish before installing an APK."
-                        return
-                    }
-                    documentImport.open(url)
+                if #available(iOS 26.0, *), JITSetupModel.shared.handleURL(url) { return }
+                if (!memorySetupCompleted || !microGSetupCompleted || memoryOnboarding.active) && !StandaloneConfiguration.isStandalone {
+                    pendingOpenURL = url
                     return
                 }
-                guard !documentImport.presented,
-                      let id = InstalledAppStorage.id(from: url),
-                      !session.isSoRunning else { return }
-                guard !session.libraryBusy else {
-                    session.shortcutError = "Wait for the app installation or deletion to finish."
-                    return
-                }
-                guard session.activeGuestApp.isEmpty else {
-                    if session.activeGuestApp != id { session.shortcutError = "Close the current app before opening another app shortcut." }
-                    return
-                }
-                session.shortcutLaunch?.cancel()
-                session.shortcutLaunch = ShortcutLaunchModel(appID: id)
+                handleAppURL(url)
             }
+            .onChange(of: memorySetupCompleted) { completed in
+                if completed && microGSetupCompleted && !memoryOnboarding.active { handlePendingURL() }
+            }
+            .onChange(of: microGSetupCompleted) { completed in
+                if completed && memorySetupCompleted && !memoryOnboarding.active { handlePendingURL() }
+            }
+            .onReceive(memoryOnboarding.didFinish) { handlePendingURL() }
             .onReceive(installer.$busy) { busy in
                 session.libraryBusy = busy || session.libraryDeletionInProgress
             }
@@ -420,14 +418,41 @@ struct KuDroidApp: App {
             .onAppear {
                 if !StandaloneConfiguration.isStandalone { dataReset.processStartup() }
                 IOSDiagnostics.shared.applicationPhase("window-on-appear")
-                RemoteDebugClient.shared.configure(session: session)
-                let savedIP = UserDefaults.standard.string(forKey: "kdb_server_ip") ?? ""
-                if !savedIP.isEmpty {
-                    RemoteDebugClient.shared.connect(host: savedIP)
-                }
             }
             .animation(.easeInOut(duration: 0.25), value: session.isSoRunning)
             .animation(.easeInOut(duration: 0.25), value: session.crashInfo != nil)
         }
+    }
+
+    private func handleAppURL(_ url: URL) {
+        guard !StandaloneConfiguration.isStandalone else { return }
+        if APKFileTypes.accepts(url) {
+            guard session.activeGuestApp.isEmpty, !session.isSoRunning,
+                  !session.libraryBusy, !dataReset.busy else {
+                session.shortcutError = "Close the running app and wait for any file operation to finish before installing an APK."
+                return
+            }
+            documentImport.open(url)
+            return
+        }
+        guard !documentImport.presented,
+              let id = InstalledAppStorage.id(from: url),
+              !session.isSoRunning else { return }
+        guard !session.libraryBusy else {
+            session.shortcutError = "Wait for the app installation or deletion to finish."
+            return
+        }
+        guard session.activeGuestApp.isEmpty else {
+            if session.activeGuestApp != id { session.shortcutError = "Close the current app before opening another app shortcut." }
+            return
+        }
+        session.shortcutLaunch?.cancel()
+        session.shortcutLaunch = ShortcutLaunchModel(appID: id)
+    }
+
+    private func handlePendingURL() {
+        guard memorySetupCompleted, let url = pendingOpenURL else { return }
+        pendingOpenURL = nil
+        handleAppURL(url)
     }
 }

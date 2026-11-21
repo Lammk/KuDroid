@@ -1,0 +1,101 @@
+# Licensing and distribution
+
+Project-authored runtime, bridge and tooling code uses MIT. Imported sources and
+generated artifacts retain their component licenses; neither a directory name
+nor the `.h`, `.dex` or `.ipa` extension changes those terms. [NOTICE](../NOTICE)
+identifies the framework components and [LICENSE](../LICENSE) states the scope
+of the MIT grant.
+
+## Embedded OpenJDK components
+
+The framework currently contains twelve Java source files with GPLv2 plus the
+Classpath Exception: seven utility/collection files and five concurrency files.
+The imported `include/jni.h` and `include/jni_md.h` headers also carry these terms.
+Consult individual file headers and the concurrency provenance record in
+`framework/licenses/openjdk-concurrency-README.md`.
+
+The [Classpath Exception](https://www.gnu.org/software/classpath/license.html)
+allows linking the covered library with independent modules to produce an
+executable under chosen terms. It defines an independent module as one not
+derived from or based on the library. It does not require the library to be
+distributed as a separate file. The exception does not convert covered code to
+MIT or waive the source obligations on that code. Whether particular modules
+are independent depends on their derivation, not just how D8 packages them.
+
+`framework/build/framework.dex` and `include/kudroid/framework_dex_bytes.h`
+therefore contain multiple licensed components. The same obligations travel
+with binaries and exported launchers that embed them. Extracting the DEX into
+another file would make attribution easier but would not itself resolve the
+source-distribution requirements.
+
+For binary releases, use the corresponding-source route in GPLv2 section 3:
+
+1. Provide the actual GPL-covered sources used for that build, including local
+   modifications, necessary interfaces and the scripts controlling compilation.
+2. Provide the applicable license texts, copyright notices and modification
+   notices. The generated framework license resources are packaged in the app.
+3. Distribute the matching source archive alongside the binary download. Keep
+   it available with that release; a link to the current repository branch can
+   point to different source and is not a substitute for matching source.
+4. Apply this procedure to standalone exports as well as the main IPA. The
+   embedded license resources must remain in exported apps, and distributors
+   must make the matching source available to their recipients.
+
+`scripts/package-framework-source.py` creates the framework source archive with
+source hashes and the current DEX hash. It includes the Java sources, imported
+JNI headers, framework licenses and build scripts. The archive is generated
+from the build checkout, including its modifications; its manifest does not
+claim that an uncommitted build equals the current Git commit. Separate native
+dependencies retain their own distribution requirements and notices.
+
+Removing GPL-covered framework code is a separate implementation project.
+Replacing only the seven utility files leaves the five concurrency files and
+imported JNI headers to audit. AOSP provenance alone does not imply Apache-2.0:
+its `ojluni` imports retain OpenJDK licenses. Any replacement needs verified
+per-file provenance or an independently written implementation, followed by
+behavioral regression checks. Merely renaming or rewriting copied expressions
+does not establish independence.
+
+## Apache-2.0 modifications
+
+[Apache-2.0 section 4(b)](https://www.apache.org/licenses/LICENSE-2.0.txt)
+requires prominent notices in modified files. Preserve the original license
+header and put the modification notice immediately after it. The importer adds
+that notice when it changes the source and leaves unchanged imports untouched.
+Existing imports are compared against available upstream files before adding
+notices; imports without available provenance need a separate audit.
+
+Apache-2.0 section 4(d) also requires retaining applicable upstream NOTICE
+attributions. Giving a component an MIT wrapper does not erase these duties.
+
+## Patents
+
+MIT contains no express patent grant or patent-litigation termination clause.
+This difference from Apache-2.0 is a licensing choice, not an MIT compliance
+defect. Apache-2.0 section 3 grants only applicable contributor patent rights
+and terminates the patent licenses for the work when its specified litigation
+condition is met. It does not provide blanket protection against third-party
+patents or automatically terminate all copyright permissions.
+
+If explicit patent terms are desired for future project-owned code, consider
+Apache-2.0 after reviewing the rights of all relevant contributors. Adding
+Apache-2.0 beside MIT as a choice still permits recipients to choose MIT.
+Previously distributed MIT copies retain their granted permissions; a notice
+cannot retrospectively revoke them or relicense third-party code.
+
+## Branding
+
+Describe the project as an independent compatibility layer and avoid claims
+of Google/Apple affiliation, endorsement or certification. Android is a
+trademark of Google LLC. References to compatibility do not grant permission
+to use third-party logos as project branding.
+
+The current `icon.png` uses XNU letterforms on modified Android robot artwork;
+the Apple logo has been removed. Google permits robot reproductions and
+modifications with the required Creative Commons 3.0 attribution, now included
+in the README, NOTICE, app notices and website footer. Google retains trademark
+rights to the robot and its derivatives. Review Google's
+[Android brand guidelines](https://developer.android.com/distribute/marketing-tools/brand-guidelines)
+and Apple's [trademark guidelines](https://www.apple.com/legal/intellectual-property/guidelinesfor3rdparties.html)
+for any retained use of their artwork. Documentation statements do not replace
+required artwork attribution or permission.

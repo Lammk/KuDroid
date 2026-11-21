@@ -23,11 +23,16 @@ struct AppsView: View {
     @State private var showAPKPicker = false
     @ObservedObject private var installer = APKInstallModel.shared
     @ObservedObject private var dataReset = AppDataResetModel.shared
+    @ObservedObject private var icons = AppIcons.shared
+    @ObservedObject private var memoryHardware = AppMemoryHardware.shared
+    @State private var memoryBudgetApp: AppItem?
     @State private var reverseApp: AppItem?
     @State private var shortcutApp: AppItem?
     @State private var resetApp: AppItem?
     @State private var showDataReset = false
     @State private var showRenameAlert = false
+    @State private var appToDelete: AppItem?
+    @State private var showDeleteConfirmation = false
     // App deletion status — shows progress instead of freeze UI.
     @State private var deletingApp: String? = nil
     @State private var deletePhase = ""
@@ -57,6 +62,8 @@ struct AppsView: View {
                             Text("YOUR ANDROID LIBRARY")
                                 .font(.system(size: 10, weight: .semibold))
                                 .tracking(2).foregroundColor(.secondary)
+                            Text(appVersionDisplay())
+                                .font(.caption).foregroundColor(.secondary)
                         }
                         Spacer()
                         Button { showAPKPicker = true } label: {
@@ -129,52 +136,21 @@ struct AppsView: View {
                                             .foregroundColor(.primary)
                                             .cornerRadius(6)
                                     }
+                                    if AppMemorySettings.configuration(for: app.id).enabled {
+                                        Text(memoryHardware.maxLabel(AppMemorySettings.configuration(for: app.id).percent))
+                                            .font(.caption2).foregroundColor(.secondary)
+                                    }
                                 }
                                 
                                 Spacer()
                                 
-                                Button(action: {
-                                    if dataReset.canLaunch(app.id) { session.activeGuestApp = app.id }
-                                }) {
-                                    Text(dataReset.pending.contains(app.id) ? "Pending" : "Open")
-                                        .font(.caption.bold())
-                                        .padding(.horizontal, 16)
-                                        .padding(.vertical, 8)
-                                        .background(ShellStyle.ink)
-                                        .foregroundColor(ShellStyle.inverse)
-                                        .cornerRadius(16)
-                                }.disabled(!dataReset.canLaunch(app.id))
-                                .buttonStyle(.borderless)
+                                JITLaunchButton(allowed: dataReset.canLaunch(app.id) && !installer.busy && deletingApp == nil) {
+                                    if dataReset.canLaunch(app.id) {
+                                        session.shortcutLaunch = ShortcutLaunchModel(appID: app.id)
+                                    }
+                                }
                                 Menu {
-                                    Button { reverseApp = app } label: {
-                                        Label("Reverse app", systemImage: "arrow.triangle.2.circlepath")
-                                    }
-                                    Button { shortcutApp = app } label: {
-                                        Label("Create a home shortcut", systemImage: "plus.app")
-                                    }
-                                    Button(role: .destructive) {
-                                        resetApp = app
-                                        showDataReset = true
-                                    } label: {
-                                        Label("Delete all app data", systemImage: "trash.slash")
-                                    }
-                                    Button {
-                                        renamingAppId = app.id
-                                        newAppName = app.displayName
-                                        showRenameAlert = true
-                                    } label: {
-                                        Label("Rename", systemImage: "pencil")
-                                    }
-                                    Button(role: .destructive) {
-                                        clearAppCache(name: app.id)
-                                    } label: {
-                                        Label("Clear Cache", systemImage: "trash")
-                                    }
-                                    Button(role: .destructive) {
-                                        deleteApp(name: app.id)
-                                    } label: {
-                                        Label("Delete App", systemImage: "xmark.bin")
-                                    }
+                                    appActions(app)
                                 } label: {
                                     Image(systemName: "ellipsis")
                                         .font(.system(size: 18, weight: .semibold))
@@ -185,14 +161,15 @@ struct AppsView: View {
                                 .accessibilityLabel("Actions for " + app.displayName)
                             }
                             .padding(.vertical, 12)
+                            .contextMenu {
+                                appActions(app)
+                            }
                             .background(ImmediateScrollTouches().allowsHitTesting(false))
                             .listRowBackground(ShellStyle.surface)
                         }
                         .listStyle(.insetGrouped)
                         .onAppear {
-                            DispatchQueue.global(qos: .userInitiated).async {
-                                _ = kudroid_is_jit_enabled()
-                            }
+                            JITStatusModel.shared.refresh()
                             // Keep the grouped background visible.
                             UITableView.appearance().backgroundColor = .clear
                         }
@@ -236,6 +213,11 @@ struct AppsView: View {
                 ReverseView(installedAppID: app.id, installedName: app.displayName)
             }
             .sheet(item: $shortcutApp) { app in HomeShortcutView(app: app) }
+            .sheet(item: $memoryBudgetApp) { app in
+                MemoryBudgetEditor(title: app.displayName, configuration: AppMemorySettings.configuration(for: app.id), appID: app.id) {
+                    AppMemorySettings.save(appID: app.id, enabled: $0, percent: $1)
+                }
+            }
             .alert("Delete all app data?", isPresented: $showDataReset) {
                 Button("Cancel", role: .cancel) { resetApp = nil }
                 Button("Delete Data", role: .destructive) {
@@ -245,13 +227,23 @@ struct AppsView: View {
             } message: {
                 Text("This deletes saves, settings, accounts and cache for \(resetApp?.displayName ?? "this app"). The installed app stays. If a restart is needed, deletion finishes when KuDroid reopens.")
             }
-            .fileImporter(isPresented: $showAPKPicker, allowedContentTypes: APKFileTypes.supported) { result in
+            .apkPicker(isPresented: $showAPKPicker) { result in
                 switch result {
                 case .success(let url): installer.install(url)
                 case .failure(let error): installer.report(error.localizedDescription)
                 }
             }
             .onReceive(installer.$busy) { busy in session.libraryBusy = busy || deletingApp != nil }
+            .onReceive(icons.$revision.dropFirst()) { _ in loadInstalledApps() }
+            .alert("Delete app?", isPresented: $showDeleteConfirmation, presenting: appToDelete) { app in
+                Button("Cancel", role: .cancel) { appToDelete = nil }
+                Button("Delete", role: .destructive) {
+                    deleteApp(name: app.id)
+                    appToDelete = nil
+                }
+            } message: { app in
+                Text("Delete \(app.displayName) and its data? This cannot be undone.")
+            }
             .onReceive(installer.$result) { log in
                 guard let log = log else { return }
                 fullLog = log
@@ -269,12 +261,51 @@ struct AppsView: View {
         }
     }
 
+    @ViewBuilder
+    private func appActions(_ app: AppItem) -> some View {
+        Button { memoryBudgetApp = app } label: {
+            Label("Configure", systemImage: "slider.horizontal.3")
+        }
+        Button { reverseApp = app } label: {
+            Label("Reverse app", systemImage: "arrow.triangle.2.circlepath")
+        }
+        Button { shortcutApp = app } label: {
+            Label("Create a home shortcut", systemImage: "plus.app")
+        }
+        Button {
+            renamingAppId = app.id
+            newAppName = app.displayName
+            showRenameAlert = true
+        } label: {
+            Label("Rename", systemImage: "pencil")
+        }
+        Button(role: .destructive) {
+            resetApp = app
+            showDataReset = true
+        } label: {
+            Label("Clear app data", systemImage: "trash.slash")
+        }
+        Button(role: .destructive) {
+            clearAppCache(name: app.id)
+        } label: {
+            Label("Clear Cache", systemImage: "trash")
+        }
+        Button(role: .destructive) {
+            appToDelete = app
+            showDeleteConfirmation = true
+        } label: {
+            Label("Delete App", systemImage: "xmark.bin")
+        }
+    }
+
     private func loadInstalledApps() {
+        memoryHardware.refresh()
         guard let url = androidRootAppsURL else { return }
         do {
             let contents = try FileManager.default.contentsOfDirectory(at: url, includingPropertiesForKeys: [.isDirectoryKey])
             var items: [AppItem] = []
             for folder in contents.filter({ $0.hasDirectoryPath }) {
+                if FileManager.default.fileExists(atPath: folder.appendingPathComponent(".kudroid-shared-service").path) { continue }
                 var folderName = folder.lastPathComponent
                 var currentFolderURL = folder
                 
@@ -337,6 +368,8 @@ struct AppsView: View {
                 let iconURL = currentFolderURL.appendingPathComponent("app_icon.png")
                 if FileManager.default.fileExists(atPath: iconURL.path) {
                     iconImg = UIImage(contentsOfFile: iconURL.path)
+                } else {
+                    icons.repair(currentFolderURL)
                 }
                 
                 items.append(AppItem(id: folderName, displayName: displayName, version: version, iconImage: iconImg))
@@ -420,6 +453,8 @@ struct AppsView: View {
         // interruptions or backgrounding long before the user taps an app,
         // and an inactive session plays AudioQueue output silently.
         activateAudioSession()
+        AppMemorySettings.apply(for: name)
+        MicroGSettings.apply(for: name)
         guard let cString = kudroid_run_apk(name) else {
             fullLog = "[kudroid_core] ERROR: null result from kudroid_run_apk"
             return
@@ -434,7 +469,9 @@ struct AppsView: View {
     }
     
     private func deleteApp(name: String) {
-        guard deletingApp == nil else { return } // Deleting another app
+        guard deletingApp == nil, !installer.busy, !dataReset.busy,
+              session.activeGuestApp.isEmpty, !session.isSoRunning,
+              InstalledAppStorage.validID(name) else { return }
         deletingApp = name
         session.libraryDeletionInProgress = true
         session.libraryBusy = true
@@ -494,7 +531,10 @@ struct AppsView: View {
                 self.fullLog += success == 1
                     ? "\n[uninstall] DONE \(name) in \(elapsed)s"
                     : "\n[uninstall] FAILED \(name) after \(elapsed)s"
-                if success == 1 { self.dataReset.forget(name) }
+                if success == 1 {
+                    self.dataReset.forget(name)
+                    AppMemorySettings.removeApp(name)
+                }
                 self.deletingApp = nil
                 self.session.libraryDeletionInProgress = false
                 self.session.libraryBusy = self.installer.busy

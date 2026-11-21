@@ -39,14 +39,7 @@ final class ExternalAPKImportModel: ObservableObject {
             do {
                 try fm.createDirectory(at: work, withIntermediateDirectories: true)
                 let local = work.appendingPathComponent("source." + url.pathExtension.lowercased())
-                var coordinationError: NSError?
-                var copyError: Error?
-                NSFileCoordinator().coordinate(readingItemAt: url, options: [], error: &coordinationError) { source in
-                    do { try fm.copyItem(at: source, to: local) }
-                    catch { copyError = error }
-                }
-                if let error = coordinationError { throw error }
-                if let error = copyError { throw error }
+                try ProviderDocument.copy(url, to: local)
                 if progress.isCancelled { try? fm.removeItem(at: work); return }
                 let metadata = work.appendingPathComponent("Preview", isDirectory: true)
                 var failure: UnsafeMutablePointer<CChar>?

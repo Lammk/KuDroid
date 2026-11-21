@@ -75,6 +75,9 @@ public:
     // Replay cached capabilities after a run resets its log files.
     static void LogState();
 
+    // Bounded read-only census of the largest mapped memory regions.
+    static void LogMemoryRegions();
+
     // True when the TXM regime is present AND a debugger is attached — the only
     // state in which the prepare handshake can be attempted. Attempting a
     // protocol brk without an attached script raises a real SIGTRAP.

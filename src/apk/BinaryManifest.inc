@@ -63,6 +63,17 @@ static std::vector<std::string> parseStringPool(const std::vector<std::uint8_t>&
     return stringPool;
 }
 
+static void finalizeManifestProviders(ManifestInfo& info) {
+    if (info.applicationProcess.empty()) info.applicationProcess = info.packageName;
+    else if (info.applicationProcess.front() == ':') info.applicationProcess = info.packageName + info.applicationProcess;
+    const int targetSdk = info.targetSdkVersion > 0 ? info.targetSdkVersion : info.minSdkVersion;
+    for (auto& provider : info.providers) {
+        if (provider.processName.empty()) provider.processName = info.applicationProcess;
+        else if (provider.processName.front() == ':') provider.processName = info.packageName + provider.processName;
+        if (!provider.exportedSpecified) provider.exported = targetSdk < 17;
+    }
+}
+
 static ManifestInfo parseAxml(const std::vector<std::uint8_t>& data) {
     ManifestInfo info;
     // Diagnostics: The actual manifest of some APK repacks has been parsed and is empty
@@ -130,6 +141,12 @@ static ManifestInfo parseAxml(const std::vector<std::uint8_t>& data) {
     ServiceEntry currentService;
     bool serviceExportedSet = false;
     bool servicePermissionSet = false;
+    int providerDepth = -1;
+    ProviderEntry currentProvider;
+    std::string providerPermission;
+    bool providerPermissionSet = false;
+    bool providerReadPermissionSet = false;
+    bool providerWritePermissionSet = false;
 
     // Meta-data attributes arrive in any order and android:value may be absent when
     // the manifest uses android:resource instead, so accumulate then commit.
@@ -231,6 +248,11 @@ static ManifestInfo parseAxml(const std::vector<std::uint8_t>& data) {
                     serviceDepth = elementDepth;
                     currentService = ServiceEntry{};
                     serviceExportedSet = servicePermissionSet = false;
+                } else if (tagName == "provider" && elementDepth == applicationDepth + 1) {
+                    providerDepth = elementDepth;
+                    currentProvider = ProviderEntry{};
+                    providerPermission.clear();
+                    providerPermissionSet = providerReadPermissionSet = providerWritePermissionSet = false;
                 } else if (tagName == "application") {
                     applicationDepth = elementDepth;
                 } else if (tagName == "intent-filter") {
@@ -297,9 +319,17 @@ static ManifestInfo parseAxml(const std::vector<std::uint8_t>& data) {
                         if (attrName == "package" && info.packageName.empty()) info.packageName = attrVal;
                         if (attrName == "versionName" && info.versionName.empty()) info.versionName = attrVal;
                         if (attrName == "versionCode" && info.versionCode.empty()) info.versionCode = attrVal;
+                    } else if (tagName == "uses-permission" || tagName == "uses-permission-sdk-23") {
+                        if (attrName == "name" && !attrVal.empty()) info.requestedPermissions.push_back(attrVal);
+                    } else if (tagName == "uses-sdk") {
+                        try {
+                            if (attrName == "minSdkVersion") info.minSdkVersion = std::stoi(attrVal);
+                            if (attrName == "targetSdkVersion") info.targetSdkVersion = std::stoi(attrVal);
+                        } catch (...) {}
                     } else if (tagName == "application") {
                         if (attrName == "enabled") info.applicationEnabled = attrVal != "false" && attrVal != "0";
                         if (attrName == "permission") info.applicationPermission = attrVal;
+                        if (attrName == "process") info.applicationProcess = attrVal;
                         if (attrName == "theme") info.applicationTheme = attrVal;
                         if (attrName == "icon") info.appIcon = attrVal;
                         if (attrName == "label" && info.appLabel.empty() && !attrVal.empty()) info.appLabel = attrVal;
@@ -310,6 +340,25 @@ static ManifestInfo parseAxml(const std::vector<std::uint8_t>& data) {
                             !attrVal.empty()) {
                             info.appComponentFactory = attrVal;
                         }
+                    } else if (tagName == "provider" && providerDepth >= 0) {
+                        if (attrName == "name") currentProvider.name = attrVal;
+                        if (attrName == "authorities") currentProvider.authorities = attrVal;
+                        if (attrName == "process") currentProvider.processName = attrVal;
+                        if (attrName == "enabled") currentProvider.enabled = attrVal != "false" && attrVal != "0";
+                        if (attrName == "exported") {
+                            currentProvider.exportedSpecified = true;
+                            currentProvider.exported = attrVal == "true" || attrVal == "1";
+                        }
+                        if (attrName == "grantUriPermissions") currentProvider.grantUriPermissions = attrVal == "true" || attrVal == "1";
+                        if (attrName == "directBootAware") currentProvider.directBootAware = attrVal == "true" || attrVal == "1";
+                        if (attrName == "initOrder") {
+                            if (attrType >= 0x10 && attrType <= 0x1f)
+                                currentProvider.initOrder = static_cast<int32_t>(read32(data, attrCur + 16));
+                            else { try { currentProvider.initOrder = std::stoi(attrVal); } catch (...) {} }
+                        }
+                        if (attrName == "permission") { providerPermission = attrVal; providerPermissionSet = true; }
+                        if (attrName == "readPermission") { currentProvider.readPermission = attrVal; providerReadPermissionSet = true; }
+                        if (attrName == "writePermission") { currentProvider.writePermission = attrVal; providerWritePermissionSet = true; }
                     } else if (tagName == "service" && serviceDepth >= 0) {
                         if (attrName == "name") currentService.name = attrVal;
                         if (attrName == "enabled") currentService.enabled = attrVal != "false" && attrVal != "0";
@@ -421,7 +470,9 @@ static ManifestInfo parseAxml(const std::vector<std::uint8_t>& data) {
                                            && metaResource != "@0x00000000";
                         entry.value = entry.isResource ? metaResource : metaValue;
                         entry.valueType = entry.isResource ? metaResourceType : metaValueType;
-                        if (serviceDepth >= 0) {
+                        if (providerDepth >= 0) {
+                            if (elementDepth == providerDepth + 1) currentProvider.metaData.push_back(entry);
+                        } else if (serviceDepth >= 0) {
                             currentService.metaData.push_back(entry);
                         } else if (activityDepth >= 0) {
                             bool dup = false;
@@ -448,6 +499,12 @@ static ManifestInfo parseAxml(const std::vector<std::uint8_t>& data) {
                     if (!servicePermissionSet) currentService.permission = info.applicationPermission;
                     if (!currentService.name.empty()) info.services.push_back(currentService);
                     serviceDepth = serviceFilterDepth = -1;
+                } else if (tagName == "provider" && providerDepth >= 0) {
+                    const std::string permission = providerPermissionSet ? providerPermission : info.applicationPermission;
+                    if (!providerReadPermissionSet) currentProvider.readPermission = permission;
+                    if (!providerWritePermissionSet) currentProvider.writePermission = permission;
+                    if (!currentProvider.name.empty()) info.providers.push_back(currentProvider);
+                    providerDepth = -1;
                 } else if (tagName == "activity" || tagName == "activity-alias") {
                     // </activity>: if intent-filter MAIN+LAUNCHER appears between
                     // Apparently this is the launcher activity.
@@ -495,6 +552,8 @@ static ManifestInfo parseAxml(const std::vector<std::uint8_t>& data) {
     qualify(info.appComponentFactory);
     for (ActivityEntry& e : info.activities) qualify(e.name);
     for (ServiceEntry& e : info.services) qualify(e.name);
+    for (ProviderEntry& e : info.providers) qualify(e.name);
+    finalizeManifestProviders(info);
 
     return info;
 }

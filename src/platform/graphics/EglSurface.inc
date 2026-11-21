@@ -265,8 +265,7 @@ extern "C" EGLContext bionic_eglCreateContext(EGLDisplay dpy, EGLConfig config,
     auto f = eglFn<EGLContext(EGLDisplay, EGLConfig, EGLContext, const EGLint*)>("eglCreateContext");
     if (!f) { EGL_FORWARD_ERR("eglCreateContext", ""); return EGL_NO_CONTEXT; }
     log_context_request(attrib_list);
-    // The driver stops at ES 3.0: a 3.1+ request for an opted-in package gets the
-    // 3.0 context it can make, and the version strings are raised to match.
+    // Retain the opted-in context downgrade; report the actual backend version.
     EGLint patched[64];
     if (es31_compat_enabled() && attrib_list) {
         int n = 0;
@@ -449,7 +448,7 @@ static void gpu_diag_dump_framebuffer(void* readPixelsFn, int w, int h, uint64_t
     auto readPixels = reinterpret_cast<PFN_ReadPixels>(readPixelsFn);
     if (!readPixels || w <= 0 || h <= 0 || w > 8192 || h > 8192) return;
     const char* dir = std::getenv("KUDROID_GPU_DIAG_DIR");
-    if ((!dir || !*dir) && &g_kudroid_log_dir_ptr && g_kudroid_log_dir_ptr) dir = g_kudroid_log_dir_ptr;
+    if ((!dir || !*dir) && kudroid_current_log_dir) dir = kudroid_current_log_dir();
     char path[1024];
     std::snprintf(path, sizeof(path), "%s/fb_swap%llu.ppm", dir && *dir ? dir : ".",
                   static_cast<unsigned long long>(swapIndex));

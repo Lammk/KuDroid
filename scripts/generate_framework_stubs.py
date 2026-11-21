@@ -67,8 +67,7 @@ def find_log(explicit):
     sys.exit(
         "error: no classes.log found. Looked for: "
         + ", ".join(DEFAULT_LOG_PATHS)
-        + "\n       Pass a path explicitly, or pull one off a device with:\n"
-        + "         node tools/kdb/kdb.js  then  dump classes.log"
+        + "\n       Copy per-app classes.log from Documents/logs/<package>/ and pass its path."
     )
 
 

@@ -1,4 +1,5 @@
 static void crashHandler(int sig, siginfo_t* info, void* ucontext) {
+    const char* logDirectory = kudroid_current_log_dir();
     if (sig == SIGSYS && bionic_handle_guest_syscall_trap(ucontext)) {
         return;
     }
@@ -532,9 +533,9 @@ static void crashHandler(int sig, siginfo_t* info, void* ucontext) {
                     kudroid_persistent_breadcrumb(note);
                     // Also append to kudroid_crash.log itself.
                     char path[1200];
-                    size_t dl = std::strlen(g_logDir);
+                    size_t dl = std::strlen(logDirectory);
                     if (dl >= sizeof(path) - 32) dl = sizeof(path) - 32;
-                    std::memcpy(path, g_logDir, dl);
+                    std::memcpy(path, logDirectory, dl);
                     std::memcpy(path + dl, "/kudroid_crash.log", 19);
                     const int fd = ::open(path, O_WRONLY | O_CREAT | O_APPEND, 0644);
                     if (fd >= 0) {
@@ -662,12 +663,12 @@ host_fatal_path:;
         }
     }
 
-    if (g_logDir[0]) {
+    if (logDirectory[0]) {
         // construct '<dir>/kudroid_crash.log' path without heap allocation.
         char path[1200];
-        size_t dl = strlen(g_logDir);
+        size_t dl = strlen(logDirectory);
         if (dl >= sizeof(path) - 32) dl = sizeof(path) - 32;
-        memcpy(path, g_logDir, dl);
+        memcpy(path, logDirectory, dl);
         const char* suffix = "/kudroid_crash.log";
         memcpy(path + dl, suffix, strlen(suffix) + 1);
 
@@ -1114,9 +1115,9 @@ host_fatal_path:;
             // Also dump the stderr tail; all calls are async-signal-safe.
             {
                 char errPath[1200];
-                size_t dl = strlen(g_logDir);
+                size_t dl = strlen(logDirectory);
                 if (dl < sizeof(errPath) - 32) {
-                    memcpy(errPath, g_logDir, dl);
+                    memcpy(errPath, logDirectory, dl);
                     memcpy(errPath + dl, "/stderr.log", 12);
                     int errFd = open(errPath, O_RDONLY);
                     if (errFd >= 0) {

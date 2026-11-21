@@ -37,6 +37,7 @@ public class Build {
     public static final String BRAND = "kudroid";
     public static final String MODEL = "KuDroid";
     public static final String BOOTLOADER = "unknown";
+    @Deprecated public static final String RADIO = UNKNOWN;
     public static final String HARDWARE = "kudroid";
     public static final String SERIAL = "unknown";
     public static final String TYPE = "user";
@@ -69,6 +70,7 @@ public class Build {
 
 
         public static final int SDK_INT = 29;
+        @Deprecated public static final String SDK = Integer.toString(SDK_INT);
         public static final int PREVIEW_SDK_INT = 0;
         public static final String CODENAME = "REL";
     }

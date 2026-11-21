@@ -7,6 +7,8 @@
 namespace kudroid {
 
 bool SymmetricCryptoAvailable();
+bool CryptoDigest(const char* algorithm, const uint8_t* input, size_t length,
+                  std::vector<uint8_t>* output);
 bool Pkcs12Sha1Key(const uint16_t* password, size_t password_length,
                   const uint8_t* salt, size_t salt_length, int iterations,
                   std::vector<uint8_t>* output);

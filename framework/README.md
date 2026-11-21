@@ -14,22 +14,24 @@ This framework provides real working implementations of core data structures, gr
 
 ## 📦 Architecture & License Breakdown
 
-The framework comprises 778 Java source files organized into three tiers based on provenance and license terms:
+The framework combines project-authored sources with imported components whose
+individual headers determine their licenses:
 
 | Tier | Package Scope | Provenance | License |
 | :--- | :--- | :--- | :--- |
 | **KuDroid Core** | `android.app`, `android.view`, `android.widget`, `android.content`, `java.lang.*` | Custom Written | **MIT** |
 | **AOSP Core** | `android.util.*`, `android.graphics.*`, `android.os.*`, `com.android.internal.*`, `libcore.*` | Android 10 (AOSP `android-10.0.0_r47`) | **Apache-2.0** |
 | **Harmony Core** | `java.math.*`, `java.util.regex.*`, `java.text.*`, `java.util.Calendar`, `org.apache.harmony.*` | Apache Harmony (`libcore/luni`) | **Apache-2.0** |
-| **OpenJDK Core** | `java.util.BitSet`, `java.util.Optional*`, `java.util.PriorityQueue`, `java.util.StringJoiner` | OpenJDK (`libcore/ojluni`) | **GPLv2 + Classpath Exception** |
+| **OpenJDK Core** | `java.util.BitSet`, `java.util.Optional*`, `java.util.PriorityQueue`, `java.util.StringJoiner`, selected `java.util.concurrent` classes | OpenJDK (`libcore/ojluni`) | **GPLv2 + Classpath Exception** |
 
 ---
 
 ## 🛡️ License Compliance
 
 - **Root License**: KuDroid native C++ core, iOS bridge, and custom Java framework files are licensed under the **MIT License**.
-- **Apache 2.0 Components**: All original headers and copyright notices from the Android Open Source Project (AOSP) and the Apache Software Foundation are preserved verbatim.
-- **GPLv2 + Classpath Exception**: As granted by Oracle's Classpath Exception, compiling or linking OpenJDK utility files into `framework.dex` or embedding them in `include/kudroid/framework_dex_bytes.h` does not subject the surrounding KuDroid codebase or host applications to copyleft restrictions.
+- **Apache 2.0 Components**: Preserve original license/copyright headers and add prominent notices to modified imports.
+- **GPLv2 + Classpath Exception**: Covered source and compiled code retain these terms. The exception permits linking independent modules, subject to its conditions; embedding does not convert the framework to MIT or remove corresponding-source requirements.
+- **Generated artifacts**: `framework.dex` and `include/kudroid/framework_dex_bytes.h` contain multiple licensed components. See [release obligations](../docs/licensing.md) before distributing them or executables that embed them.
 - For complete license texts and attributions, see `NOTICE`, `LICENSE-APACHE-2.0`, and `LICENSE-GPLv2-CPE` at the repository root.
 
 ---

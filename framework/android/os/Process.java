@@ -26,6 +26,10 @@ public class Process {
     public static final int myPid() { return 10000; }
     public static final int myTid() { return 10000; }
     public static final int myUid() { return 10000; }
+    public static final boolean isIsolated() {
+        int appId = myUid() % 100000;
+        return appId >= 90000 && appId <= 99999;
+    }
     public static final UserHandle myUserHandle() { return new UserHandle(0); }
     public static final boolean is64Bit() { return true; }
     public static final void setThreadPriority(int priority) {}

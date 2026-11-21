@@ -1,8 +1,12 @@
 version: 1
 bundleID: com.kudroid.shell
+product: KuDroidShell
 iconPath: ../../icon.png
 infoPath: Info.plist
 entitlementsPath: ../entitlements.plist
+extensions:
+  - product: KuDroidJITHelper
+    infoPath: JITHelper/Info.plist
 resources:
   - ../entitlements.plist
   - Resources/runtime

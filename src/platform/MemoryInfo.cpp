@@ -1,3 +1,4 @@
+#include "kudroid/platform/AppMemoryBudget.h"
 #include "kudroid/platform/MemoryInfo.h"
 
 #include <cstdio>
@@ -238,7 +239,11 @@ SystemMemory query_system_memory() {
 }
 
 int memory_class_mb() {
-    const SystemMemory mem = query_system_memory();
+    const SystemMemory mem = query_android_memory();
+    if (app_memory_budget_active()) {
+        const uint64_t budget = mem.total_bytes / kMiB;
+        return static_cast<int>(budget > 512 ? 512 : budget);
+    }
 
     // When the platform reports a per-process limit, that IS the heap budget: it is
     // the number that gets the process killed when exceeded.
@@ -248,7 +253,7 @@ int memory_class_mb() {
         // Keep it inside the range Android itself uses. Values outside it are not
         // something apps are written to handle: a huge memory class makes them
         // preallocate absurd caches, a tiny one makes them refuse to run.
-        if (budget < 32) return 32;
+        if (budget < 32) return app_memory_budget_active() ? static_cast<int>(budget) : 32;
         if (budget > 512) return 512;
         return static_cast<int>(budget);
     }
@@ -268,7 +273,7 @@ int large_memory_class_mb() {
     // largeHeap raises the cap; Android's factor is roughly 2-3x, capped by what the
     // device physically has.
     const int base = memory_class_mb();
-    const SystemMemory mem = query_system_memory();
+    const SystemMemory mem = query_android_memory();
     const int by_ram = static_cast<int>((mem.total_bytes / kMiB) / 4);
     int large = base * 3;
     if (by_ram > 0 && large > by_ram) large = by_ram;

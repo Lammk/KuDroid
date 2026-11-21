@@ -1,0 +1,4 @@
+module JITSupport {
+    header "JITSupport.h"
+    export *
+}

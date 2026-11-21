@@ -50,6 +50,7 @@ public class TextView extends View {
             super(source);
         }
 
+        // All edit overloads reach this replacement entry point.
         @Override
         public android.text.SpannableStringBuilder replace(int st, int en, CharSequence source,
                                                            int start, int end) {
@@ -57,29 +58,6 @@ public class TextView extends View {
             super.replace(st, en, source, start, end);
             changed(before, st, en);
             return this;
-        }
-
-        @Override
-        public android.text.SpannableStringBuilder replace(int st, int en, CharSequence text) {
-            final String before = toString();
-            super.replace(st, en, text);
-            changed(before, st, en);
-            return this;
-        }
-
-        @Override
-        public android.text.SpannableStringBuilder delete(int st, int en) {
-            final String before = toString();
-            super.delete(st, en);
-            changed(before, st, en);
-            return this;
-        }
-
-        @Override
-        public void clear() {
-            final String before = toString();
-            super.clear();
-            changed(before, 0, before.length());
         }
 
         /** [st, en) of |before| was replaced; report it to the watchers. */

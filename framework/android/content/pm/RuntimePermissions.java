@@ -16,6 +16,11 @@ public final class RuntimePermissions {
 
     public static int check(String packageName, String permission) {
         if (permission == null) return PackageManager.PERMISSION_DENIED;
+        if ("android.permission.FAKE_PACKAGE_SIGNATURE".equals(permission)) {
+            org.json.JSONObject record = SharedPackages.record(packageName, false);
+            return record != null && record.optBoolean("spoofGranted", false)
+                ? PackageManager.PERMISSION_GRANTED : PackageManager.PERMISSION_DENIED;
+        }
         if (!CAMERA.equals(permission) && !RECORD_AUDIO.equals(permission)) {
             return PackageManager.PERMISSION_GRANTED;
         }

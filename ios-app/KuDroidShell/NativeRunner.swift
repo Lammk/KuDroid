@@ -58,11 +58,12 @@ private func onKuDroidOpenURL(_ urlC: UnsafePointer<CChar>?) {
         guard let url = URL(string: text),
               let scheme = url.scheme?.lowercased(),
               !["file", "content", "javascript", "data"].contains(scheme) else {
-            NSLog("[KuDroid] refused to open url: %@", text)
+            NSLog("[KuDroid] refused unsupported URL")
             return
         }
-        NSLog("[KuDroid] opening url: %@", text)
-        UIApplication.shared.open(url, options: [:], completionHandler: nil)
+        NSLog("[KuDroid] opening URL scheme=%@ host=%@", scheme, url.host ?? "")
+        if ["http", "https"].contains(scheme) { KuDroidWebViewBridge.shared.open(url) }
+        else { UIApplication.shared.open(url, options: [:], completionHandler: nil) }
     }
 }
 
@@ -213,6 +214,13 @@ class NativeMetalViewController: UIViewController {
         syncDarkMode()
     }
 
+    override func didReceiveMemoryWarning() {
+        super.didReceiveMemoryWarning()
+        guard Self.sCurrentRunnerVC === self else { return }
+        kuart_post_memory_warning()
+        NSLog("[KuDroidMemory] host memory warning queued")
+    }
+
     override func viewDidLoad() {
         super.viewDidLoad()
         syncDarkMode()
@@ -243,6 +251,7 @@ class NativeMetalViewController: UIViewController {
         KuDroidSensorBridge.shared.register()
 
         NativeMetalViewController.sCurrentRunnerVC = self
+        KuDroidWebViewBridge.shared.register(self)
 
         // Soft keyboard: the guest's InputMethodManager reaches these, and they make
         // the Metal view first responder so iOS shows the system keyboard. Registered
@@ -321,6 +330,7 @@ class NativeMetalViewController: UIViewController {
         keyboardObservers = []
         kudroid_set_soft_input_callbacks(nil, nil)
         kudroid_set_open_url_callback(nil)
+        KuDroidWebViewBridge.shared.detach()
         metalView?.cancelActiveTouches()
         metalView?.resignFirstResponder()
         kudroid_set_soft_input_visible(0)
@@ -338,6 +348,7 @@ class NativeMetalViewController: UIViewController {
 
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
+        KuDroidWebViewBridge.shared.layout()
         guard !didCleanup else { return }
         if let metalLayer = metalView?.layer as? CAMetalLayer {
             let scale = metalView.guestDisplayScale
@@ -493,6 +504,8 @@ class NativeMetalViewController: UIViewController {
         let guestMainThread = Thread { [weak self] in
             guard let self = self else { return }
             NSLog("[KuDroid] Starting kudroid_run_apk(%@)...", self.appName)
+            AppMemorySettings.apply(for: self.appName)
+            MicroGSettings.apply(for: self.appName)
             let cString = kudroid_run_apk(self.appName)
             var logOutput = ""
             if let cString = cString {

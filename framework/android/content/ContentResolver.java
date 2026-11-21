@@ -37,8 +37,8 @@ public class ContentResolver {
 
     public final ContentProviderClient acquireContentProviderClient(String name) {
         if (name == null) throw new NullPointerException("name");
-        // No content provider is registered.
-        return null;
+        ContentProvider provider = LocalContentProviders.get(name);
+        return provider == null ? null : new ContentProviderClient(provider);
     }
 
     public final ContentProviderClient acquireUnstableContentProviderClient(android.net.Uri uri) {
@@ -49,8 +49,8 @@ public class ContentResolver {
 
     public final ContentProviderClient acquireUnstableContentProviderClient(String name) {
         if (name == null) throw new NullPointerException("name");
-        // No content provider is registered.
-        return null;
+        ContentProvider provider = LocalContentProviders.get(name);
+        return provider == null ? null : new ContentProviderClient(provider);
     }
 
     // Observers, kept so registration succeeds and unregistration is symmetric.
@@ -112,21 +112,24 @@ public class ContentResolver {
     public android.database.Cursor query(android.net.Uri uri, String[] projection,
                                          String selection, String[] selectionArgs,
                                          String sortOrder) {
-        return null;
+        ContentProvider provider = localProvider(uri);
+        return provider == null ? null : provider.query(uri, projection, selection, selectionArgs, sortOrder);
     }
 
     /**
      * insert a row. currently returns null.
      */
     public android.net.Uri insert(android.net.Uri url, android.content.ContentValues values) {
-        return null;
+        ContentProvider provider = localProvider(url);
+        return provider == null ? null : provider.insert(url, values);
     }
 
     /**
      * delete rows. currently returns 0.
      */
     public int delete(android.net.Uri url, String where, String[] selectionArgs) {
-        return 0;
+        ContentProvider provider = localProvider(url);
+        return provider == null ? 0 : provider.delete(url, where, selectionArgs);
     }
 
     /**
@@ -134,7 +137,31 @@ public class ContentResolver {
      */
     public int update(android.net.Uri uri, android.content.ContentValues values,
                       String where, String[] selectionArgs) {
-        return 0;
+        ContentProvider provider = localProvider(uri);
+        return provider == null ? 0 : provider.update(uri, values, where, selectionArgs);
+    }
+
+    private static ContentProvider localProvider(android.net.Uri uri) {
+        return uri != null && SCHEME_CONTENT.equals(uri.getScheme())
+                ? LocalContentProviders.get(uri.getAuthority()) : null;
+    }
+
+    public final android.os.Bundle call(android.net.Uri uri, String method, String argument,
+                                        android.os.Bundle extras) {
+        if (uri == null) throw new NullPointerException("uri");
+        if (method == null) throw new NullPointerException("method");
+        ContentProvider provider = localProvider(uri);
+        if (provider == null) throw new IllegalArgumentException("Unknown URI " + uri);
+        return provider.call(method, argument, extras);
+    }
+
+    public final android.os.Bundle call(String authority, String method, String argument,
+                                        android.os.Bundle extras) {
+        if (authority == null) throw new NullPointerException("authority");
+        if (method == null) throw new NullPointerException("method");
+        ContentProvider provider = LocalContentProviders.get(authority);
+        if (provider == null) throw new IllegalArgumentException("Unknown authority " + authority);
+        return provider.call(method, argument, extras);
     }
 
     public android.content.res.AssetFileDescriptor openAssetFileDescriptor(
@@ -142,6 +169,8 @@ public class ContentResolver {
         if (uri == null) {
             throw new java.io.FileNotFoundException("null uri");
         }
+        ContentProvider provider = localProvider(uri);
+        if (provider != null) return provider.openAssetFile(uri, mode);
         final String scheme = uri.getScheme();
         final String path = uri.getPath();
 
@@ -232,6 +261,7 @@ public class ContentResolver {
     }
 
     public String getType(android.net.Uri uri) {
-        return null;
+        ContentProvider provider = localProvider(uri);
+        return provider == null ? null : provider.getType(uri);
     }
 }

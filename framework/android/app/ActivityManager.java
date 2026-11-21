@@ -46,6 +46,7 @@ public class ActivityManager {
     private static native int nativeLargeMemoryClass();
 
     public ActivityManager() {}
+    public boolean isBackgroundRestricted() { return false; }
 
     /**
      * Device memory state.

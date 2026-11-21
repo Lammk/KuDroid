@@ -8,6 +8,7 @@
 
 #include <cstdlib>
 #include <cstring>
+#include <algorithm>
 
 #include <atomic>
 #include <cstdio>
@@ -54,11 +55,13 @@ jclass ToJClass(DexClass* k) { return reinterpret_cast<jclass>(k); }
 
 std::string ToDescriptor(const char* jni_name) {
     if (jni_name == nullptr) return std::string();
-    if (jni_name[0] == '[') return jni_name;
-    const size_t len = std::strlen(jni_name);
-    if (len > 1 && jni_name[0] == 'L' && jni_name[len - 1] == ';') return jni_name;
+    std::string normalized(jni_name);
+    std::replace(normalized.begin(), normalized.end(), '.', '/');
+    if (!normalized.empty() && normalized[0] == '[') return normalized;
+    const size_t len = normalized.size();
+    if (len > 1 && normalized[0] == 'L' && normalized[len - 1] == ';') return normalized;
     std::string d = "L";
-    d += jni_name;
+    d += normalized;
     d += ';';
     return d;
 }

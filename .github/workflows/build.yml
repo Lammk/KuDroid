@@ -273,6 +273,11 @@ jobs:
           distribution: 'zulu'
           java-version: '17'
 
+      - name: Set up Rust for device pairing
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-apple-ios
+
       - name: Build and embed framework.dex
         run: |
           # Runner của GitHub có Android SDK sẵn; build.sh tự tìm d8 qua
@@ -335,6 +340,9 @@ jobs:
           cp ios-app/entitlements.plist KuDroidShell.app/entitlements.plist
           echo "Embedded entitlements.plist into app bundle"
 
+      - name: Package matching framework source
+        run: python3 scripts/run-command.py --timeout 120 python3 scripts/package-framework-source.py KuDroid-framework-source.zip
+
       - name: Package unsigned IPA
         run: |
           mkdir -p Payload
@@ -349,3 +357,4 @@ jobs:
           path: |
             KuDroidShell.ipa
             build-ios/Release-iphoneos/libkudroid_core.a
+            KuDroid-framework-source.zip

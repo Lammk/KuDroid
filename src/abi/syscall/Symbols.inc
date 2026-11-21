@@ -125,6 +125,7 @@ const SymbolEntry kSyscallSymbols[] = {
     {"sprintf", reinterpret_cast<void*>(&sprintf)},
 #endif
     {"memcpy", reinterpret_cast<void*>(&memcpy)},
+    {"memset", reinterpret_cast<void*>(&bionic_memset)},
 
     {"malloc", reinterpret_cast<void*>(&bionic_malloc)},
     {"calloc", reinterpret_cast<void*>(&calloc)},

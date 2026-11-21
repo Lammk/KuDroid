@@ -234,11 +234,13 @@ extern "C" ssize_t bionic_write(int fd, const void* buf, size_t count) {
     return net_result(ret);
 }
 
-// poll() takes the host path unchanged (same pollfd layout and event bits); the shim only
-// reports results for sockets, since a connect that never completes shows up here.
+// Preserve host polling and restore readable entropy-device readiness on Darwin.
 extern "C" int bionic_poll(struct pollfd* fds, unsigned long nfds, int timeout) {
     const int rc = ::poll(fds, static_cast<nfds_t>(nfds), timeout);
     const int hostErr = errno;
+#if defined(__APPLE__)
+    kudroid::NormalizeEntropyPollReadiness(fds, static_cast<nfds_t>(nfds), rc);
+#endif
     if (fds && nfds == 1 && !net_fd(fds[0].fd)) {
         struct stat status{};
         static std::atomic<unsigned> devicePolls{0};

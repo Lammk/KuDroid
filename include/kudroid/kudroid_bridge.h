@@ -4,6 +4,15 @@
 extern "C" {
 #endif
 
+// Configure the memory budget reported on the next app launch.
+void kudroid_configure_app_memory_budget(int enabled, int percent);
+unsigned long long kudroid_app_memory_budget_estimate(int percent);
+unsigned long long kudroid_hardware_memory_bytes(void);
+unsigned long long kudroid_available_app_memory_bytes(void);
+void kudroid_configure_shared_packages(int enabled);
+const char* kudroid_android_root_path(void);
+const char* kudroid_android_root_path(void);
+
 ///self-test entry point for kudroid_core library.
 /// returns 0 on success, non-zero on failure.
 int kudroid_self_test(void);
@@ -50,6 +59,8 @@ void kudroid_clear_all_logs(void);
 void kudroid_set_documents_dir(const char* dir);
 void kudroid_set_standalone_root(const char* dir);
 void kudroid_set_log_paths(const char* documents, const char* logs);
+const char* kudroid_current_log_dir(void);
+const char* kudroid_host_log_dir(void);
 void kudroid_set_thermal_status(int status);
 int kudroid_debugger_attached(void);
 int kudroid_has_jit_entitlement(void);

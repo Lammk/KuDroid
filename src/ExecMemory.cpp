@@ -7,6 +7,8 @@
 #include <cstring>
 #include <mutex>
 #include <string>
+#include <chrono>
+#include <thread>
 
 #include <signal.h>
 #include <sys/mman.h>
@@ -42,8 +44,7 @@ namespace {
 // One probe page is enough: the test function is two instructions.
 constexpr size_t kProbeSize = 4096;
 
-// Virtual reservation for the prepared exec arena. Only touched pages commit, so
-// the size covers every guest exec prefix plus JIT code at no resident cost.
+// Prepared executable pool for native images and compiled methods.
 constexpr size_t kArenaSize = 512ull << 20;
 constexpr size_t kGuestArenaSize = 64ull << 20;
 
@@ -151,6 +152,34 @@ extern "C" __attribute__((naked, noinline)) void* kudroid_jit26_prepare(void*, s
         "ret\n");
 }
 
+struct AllocatedExecRegion {
+    void* address;
+    uintptr_t receipt;
+};
+
+constexpr uintptr_t kIncrementalPreparation = 0x4b444a495443484bull;
+
+bool DebuggerConnected() {
+    int query[] = {CTL_KERN, KERN_PROC, KERN_PROC_PID, ::getpid()};
+    struct kinfo_proc process{};
+    size_t size = sizeof(process);
+    return ::sysctl(query, 4, &process, &size, nullptr, 0) == 0 &&
+           size == sizeof(process) && (process.kp_proc.p_flag & P_TRACED) != 0;
+}
+
+extern "C" __attribute__((naked, noinline)) AllocatedExecRegion kudroid_jit26_allocate(size_t) {
+    __asm__ volatile(
+        "mov x1, x0\n"
+        "mov x0, #0\n"
+        "mov x2, #0x484b\n"
+        "movk x2, #0x5443, lsl #16\n"
+        "movk x2, #0x4a49, lsl #32\n"
+        "movk x2, #0x4b44, lsl #48\n"
+        "mov x16, #1\n"
+        "brk #0xf00d\n"
+        "ret\n");
+}
+
 extern "C" __attribute__((naked, noinline)) void kudroid_jit26_detach(void) {
     __asm__ volatile(
         "mov x16, #0\n"
@@ -162,12 +191,14 @@ extern "C" __attribute__((naked, noinline)) void kudroid_jit26_detach(void) {
 // debug script for preparation. Returns false only when the call clearly did not
 // prepare (wrong address back, or no script) — the caller still has to fetch-probe.
 bool PrepareExecRegion(void* alias, size_t size) {
-    if (alias == nullptr || size == 0) return false;
+    if (alias == nullptr || size == 0 || !DebuggerConnected()) return false;
     void* got = kudroid_jit26_prepare(alias, size);
     return got == alias;
 }
 
-void DetachJitScript() { kudroid_jit26_detach(); }
+void DetachJitScript() {
+    if (DebuggerConnected()) kudroid_jit26_detach();
+}
 
 // Ask the debug script to allocate the executable region (x0=0 -> server
 // `_M<size>,rx`). On iOS 26/27 only memory the debug server allocates is actually
@@ -175,7 +206,23 @@ void DetachJitScript() { kudroid_jit26_detach(); }
 // the engine must not allocate the exec side itself. Returns the RX address, or
 // nullptr when no script is attached.
 void* PrepareRegionAlloc(size_t size) {
-    return kudroid_jit26_prepare(nullptr, size);
+    if (!DebuggerConnected()) return nullptr;
+    const AllocatedExecRegion region = kudroid_jit26_allocate(size);
+    if (region.address && region.receipt == kIncrementalPreparation) {
+        constexpr size_t batchSize = 8ull << 20;
+        for (size_t offset = 0; offset < size;) {
+            const size_t remaining = size - offset;
+            const size_t length = remaining < batchSize ? remaining : batchSize;
+            // Let other threads run between debugger stops.
+            std::this_thread::sleep_for(std::chrono::milliseconds(16));
+            if (!PrepareExecRegion(static_cast<char*>(region.address) + offset, length)) {
+                ::munmap(region.address, size);
+                return nullptr;
+            }
+            offset += length;
+        }
+    }
+    return region.address;
 }
 
 // Writable alias of `src` sharing its physical pages at a new virtual address.
@@ -246,6 +293,7 @@ struct PreparedArena {
     void* alias = nullptr;    // RX view, prepared
     size_t size = 0;
     std::atomic<size_t> used{0};
+    bool reusable = false;
     bool active = false;
 };
 
@@ -309,6 +357,13 @@ bool ArenaCarve(size_t size, void** outWrite, void** outExec, size_t* outSize) {
     const size_t rounded = RoundUp(size, PageSize());
     size_t offset = 0;
     if (!ClaimArenaBytes(a.used, a.size, rounded, &offset)) return false;
+    // Make owned pages nonreclaimable before any caller reads or writes them.
+    if (a.reusable) {
+        const int savedErrno = errno;
+        if (::madvise(static_cast<char*>(a.backing) + offset, rounded,
+                      MADV_FREE_REUSE) != 0) return false;
+        errno = savedErrno;
+    }
     *outWrite = static_cast<char*>(a.backing) + offset;
     *outExec = static_cast<char*>(a.alias) + offset;
     *outSize = rounded;
@@ -611,6 +666,7 @@ bool CreatePreparedArena(size_t size) {
     if (!RemapWritable(rx, size, &rw)) {
         std::fprintf(stderr, "[KuDroidExecMem] arena: rw alias of exec region failed\n");
         DetachJitScript();
+        ::munmap(rx, size);
         return false;
     }
     PrintProt("arena write alias", rw);
@@ -686,6 +742,12 @@ bool CreatePreparedArena(size_t size) {
     a.alias = rx;     // fetches go here
     a.size = size - (protectGuestPool ? guestSize : PageSize());
     a.used = 0;
+    const int savedErrno = errno;
+    a.reusable = ::madvise(a.backing, a.size, MADV_FREE_REUSABLE) == 0;
+    const int reclaimError = a.reusable ? 0 : errno;
+    errno = savedErrno;
+    std::fprintf(stderr, "[KuDroidExecMem] unused prepared pages reusable=%d size=%zu error=%d\n",
+                 a.reusable ? 1 : 0, a.size, reclaimError);
     a.active = true;
     if (stable) {
         status.stage = "ready";
@@ -952,6 +1014,21 @@ void ExecMemory::LogState() {
                  ModeName(), state.fetchable.load(std::memory_order_acquire) ? 1 : 0,
                  GuestReservationsAvailable() ? 1 : 0, RuntimeSummaryInner());
 #if defined(__APPLE__)
+    const PreparedArena& arena = ArenaState();
+    task_vm_info_data_t memory{};
+    mach_msg_type_number_t memoryCount = TASK_VM_INFO_COUNT;
+    if (task_info(mach_task_self(), TASK_VM_INFO,
+                  reinterpret_cast<task_info_t>(&memory), &memoryCount) == KERN_SUCCESS) {
+        std::fprintf(stderr,
+                     "[KuDroidExecMem] memory footprint=%llu internal=%llu compressed=%llu device=%llu reusable=%llu prepared_used=%zu prepared_capacity=%zu prepared_reusable=%d\n",
+                     static_cast<unsigned long long>(memory.phys_footprint),
+                     static_cast<unsigned long long>(memory.internal),
+                     static_cast<unsigned long long>(memory.compressed),
+                     static_cast<unsigned long long>(memory.device),
+                     static_cast<unsigned long long>(memory.reusable),
+                     arena.used.load(std::memory_order_relaxed), arena.size,
+                     arena.reusable ? 1 : 0);
+    }
     const GuestProbeStatus& status = LastGuestProbe();
     std::fprintf(stderr,
                  "[KuDroidExecMem] guest capability stage=%s prot=0x%x ret=%d errno=%d before_cur=0x%x before_max=0x%x cur=0x%x max=0x%x\n",
@@ -960,6 +1037,108 @@ void ExecMemory::LogState() {
                  status.current, status.maximum);
     for (size_t i = 0; i < status.transitionCount; ++i) {
         PrintGuestTransition(status.transitions[i]);
+    }
+#endif
+}
+
+void ExecMemory::LogMemoryRegions() {
+#if defined(__APPLE__)
+    struct RegionSample {
+        mach_vm_address_t address = 0;
+        mach_vm_size_t size = 0;
+        kudroid_vm_region_extended_info_t info{};
+        uint64_t pages = 0;
+    } largest[12]{};
+    struct TagTotal {
+        uint64_t resident = 0;
+        uint64_t compressed = 0;
+        uint64_t reusable = 0;
+        unsigned regions = 0;
+    } tags[256]{};
+    task_vm_info_data_t task{};
+    mach_msg_type_number_t count = TASK_VM_INFO_COUNT;
+    if (task_info(mach_task_self(), TASK_VM_INFO, reinterpret_cast<task_info_t>(&task),
+                  &count) != KERN_SUCCESS || count < TASK_VM_INFO_REV2_COUNT ||
+        task.min_address >= task.max_address) return;
+    uintptr_t prepared[2][2]{};
+    {
+        std::lock_guard<std::recursive_mutex> lock(ProbeMutex());
+        const PreparedArena& arena = ArenaState();
+        if (arena.active) {
+            prepared[0][0] = reinterpret_cast<uintptr_t>(arena.backing);
+            prepared[1][0] = reinterpret_cast<uintptr_t>(arena.alias);
+            prepared[0][1] = prepared[0][0] + arena.size;
+            prepared[1][1] = prepared[1][0] + arena.size;
+        }
+    }
+    const auto start = std::chrono::steady_clock::now();
+    const uint64_t page = task.page_size > 0 ? task.page_size : PageSize();
+    mach_vm_address_t cursor = task.min_address;
+    unsigned scanned = 0;
+    bool complete = false;
+    while (scanned < 65536 && cursor < task.max_address) {
+        if (std::chrono::steady_clock::now() - start > std::chrono::milliseconds(250)) break;
+        mach_vm_address_t address = cursor;
+        mach_vm_size_t size = 0;
+        kudroid_vm_region_extended_info_t info{};
+        mach_msg_type_number_t regionCount = KUDROID_VM_REGION_EXTENDED_INFO_COUNT;
+        mach_port_t object = MACH_PORT_NULL;
+        const kern_return_t result = mach_vm_region(mach_task_self(), &address, &size,
+            KUDROID_VM_REGION_EXTENDED_INFO_FLAVOR,
+            reinterpret_cast<vm_region_info_t>(&info), &regionCount, &object);
+        if (object != MACH_PORT_NULL) mach_port_deallocate(mach_task_self(), object);
+        if (result == KERN_INVALID_ADDRESS ||
+            (result == KERN_SUCCESS && address >= task.max_address)) {
+            complete = true;
+            break;
+        }
+        if (result != KERN_SUCCESS || size == 0 || address > UINT64_MAX - size ||
+            address + size <= cursor) break;
+        ++scanned;
+        cursor = address + size;
+        bool skip = false;
+        for (const auto& range : prepared) {
+            if (address >= range[0] && address < range[1]) {
+                cursor = range[1];
+                skip = true;
+                break;
+            }
+        }
+        if (skip) continue;
+        const unsigned tag = info.user_tag < 256 ? info.user_tag : 255;
+        tags[tag].resident += static_cast<uint64_t>(info.pages_resident) * page;
+        tags[tag].compressed += static_cast<uint64_t>(info.pages_swapped_out) * page;
+        tags[tag].reusable += static_cast<uint64_t>(info.pages_reusable) * page;
+        ++tags[tag].regions;
+        const uint64_t pages = static_cast<uint64_t>(info.pages_resident) + info.pages_swapped_out;
+        unsigned smallest = 0;
+        for (unsigned i = 1; i < 12; ++i) {
+            if (largest[i].pages < largest[smallest].pages) smallest = i;
+        }
+        if (pages > largest[smallest].pages) largest[smallest] = {address, size, info, pages};
+    }
+    complete = complete || cursor >= task.max_address;
+    std::fprintf(stderr, "[KuDroidMemoryRegions] scanned=%u complete=%d page=%llu prepared_excluded=1\n",
+                 scanned, complete ? 1 : 0, static_cast<unsigned long long>(page));
+    for (unsigned tag = 0; tag < 256; ++tag) {
+        const TagTotal& total = tags[tag];
+        if (total.resident + total.compressed < (1u << 20)) continue;
+        std::fprintf(stderr,
+                     "[KuDroidMemoryRegions] tag=%u mappings=%u mapped_resident=%llu mapped_compressed=%llu mapped_reusable=%llu\n",
+                     tag, total.regions, static_cast<unsigned long long>(total.resident),
+                     static_cast<unsigned long long>(total.compressed),
+                     static_cast<unsigned long long>(total.reusable));
+    }
+    for (const RegionSample& sample : largest) {
+        if (sample.pages == 0) continue;
+        std::fprintf(stderr,
+                     "[KuDroidMemoryRegions] addr=0x%llx size=%llu tag=%u resident=%llu compressed=%llu reusable=%llu prot=0x%x shared=%u file_backed=%u\n",
+                     static_cast<unsigned long long>(sample.address),
+                     static_cast<unsigned long long>(sample.size), sample.info.user_tag,
+                     static_cast<unsigned long long>(sample.info.pages_resident) * page,
+                     static_cast<unsigned long long>(sample.info.pages_swapped_out) * page,
+                     static_cast<unsigned long long>(sample.info.pages_reusable) * page,
+                     sample.info.protection, sample.info.share_mode, sample.info.external_pager);
     }
 #endif
 }

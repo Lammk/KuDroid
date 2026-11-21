@@ -85,6 +85,10 @@ void kuart_register_package(const char* package_name,
                             int activity_count);
 void kuart_register_package_with_state(const char* package_name, const char* const* activities,
                                        int activity_count, int application_enabled);
+void kuart_register_package_process(const char* process_name);
+void kuart_register_provider(const char* name, const char* authorities, const char* process_name,
+                             int init_order, int enabled, int exported, int grant_uri_permissions,
+                             int direct_boot_aware, const char* read_permission, const char* write_permission);
 
 // An empty component names the application theme.
 void kuart_register_theme(const char* component_name, unsigned int resource_id);
@@ -143,6 +147,10 @@ void kuart_surface_drain_pending(void);
 void kuart_post_dark_mode(int is_dark);
 void kuart_dark_mode_drain_pending(void);
 
+// Queue host memory warnings and deliver them on the guest main Looper.
+void kuart_post_memory_warning(void);
+void kuart_memory_warning_drain_pending(void);
+
 // Hand pending camera frames, photos and errors to the guest. Main Looper thread only.
 void kuart_camera_drain_pending(void);
 
@@ -154,6 +162,7 @@ void kuart_media_drain_pending(void);
 
 // Apply queued keyboard input and permission results. Main Looper thread only.
 void kuart_host_events_drain(void);
+void kuart_webview_drain_pending(void);
 
 // Take the in-flight Java exception of the CALLING thread, if any, and clear it.
 

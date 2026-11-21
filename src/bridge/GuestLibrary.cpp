@@ -23,6 +23,8 @@
 #include "kudroid/platform/SystemFonts.h"
 #include "kudroid/Log.h"
 #include "kudroid/ExecMemory.h"
+#include "kudroid/platform/AppMemoryBudget.h"
+#include "kudroid/platform/SharedPackages.h"
 
 #include <cstdio>
 #include <chrono>
@@ -225,6 +227,11 @@ extern "C" int kudroid_find_native_library(const char* name, char* out,
         const std::filesystem::path candidate = std::filesystem::path(dir) / filename;
         if (std::filesystem::exists(candidate, ec)) return emit(candidate.string());
     }
+    for (const auto& directory : kudroid::shared_package_directories()) {
+        std::error_code ec;
+        const auto candidate = std::filesystem::path(directory) / "lib" / KUDROID_DEVICE_ABI / filename;
+        if (std::filesystem::is_regular_file(candidate, ec)) return emit(candidate.string());
+    }
     return 0;
 }
 
@@ -380,6 +387,7 @@ extern "C" const char* kudroid_run_apk(const char* appName) {
 
     struct RunCompletionGuard {
         ~RunCompletionGuard() {
+            kudroid::end_app_memory_budget();
             kudroid_thermal_reset();
             kudroid_looper_reset_main();
             kudroid::frame_pacer_reset_for_relaunch();
@@ -397,7 +405,121 @@ extern "C" const char* kudroid_run_apk(const char* appName) {
                       "[kudroid_core] Please restart KuDroidShell, then run again.\n");
     }
 
-    // Clear all old logs before launching guest app so logs start fresh for this run
+    if (!appName || !*appName || std::filesystem::path(appName).filename() != appName ||
+        std::strcmp(appName, ".") == 0 || std::strcmp(appName, "..") == 0 ||
+        std::strchr(appName, '\\')) {
+        return strdup("[kudroid_core] ERROR: invalid app identifier\n");
+    }
+    auto& remapper = kudroid::VFSPathRemapper::getInstance();
+    std::string resolvedAppName = appName;
+    std::filesystem::path appDir = std::filesystem::path(remapper.androidRoot()) / "data/app" / resolvedAppName;
+
+    std::string logPackage = appName;
+
+    // Standardize the install dir to the real package ID.
+    {
+        const auto mfPath = appDir / "AndroidManifest.xml";
+        std::string pkgId;
+        if (std::filesystem::exists(mfPath)) {
+            std::ifstream mf(mfPath, std::ios::binary);
+            if (mf) {
+                std::vector<std::uint8_t> axml(
+                    (std::istreambuf_iterator<char>(mf)),
+                    std::istreambuf_iterator<char>());
+                kudroid::ManifestInfo mi =
+                    kudroid::APKExtractor::parse_manifest(axml.data(), axml.size());
+                if (mi.packageName.empty() && axml.size() > 4 && axml[0] == '<') {
+                    mi = kudroid::APKExtractor::parse_manifest_text(
+                        reinterpret_cast<const char*>(axml.data()), axml.size());
+                }
+                pkgId = mi.packageName;
+                if (!pkgId.empty() && !bridgeValidPackageIdentifier(pkgId.c_str())) {
+                    return strdup("[kudroid_core] ERROR: invalid manifest package identifier\n");
+                }
+                if (!pkgId.empty()) logPackage = pkgId;
+            }
+        }
+
+        if (!pkgId.empty() && pkgId != resolvedAppName) {
+            const auto cleanAppDir =
+                std::filesystem::path(remapper.androidRoot()) / "data/app" / pkgId;
+            std::error_code renEc;
+            bool movedApp = false;
+            if (!std::filesystem::exists(cleanAppDir)) {
+                std::filesystem::rename(appDir, cleanAppDir, renEc);
+                movedApp = !renEc;
+            }
+            // Keep the translated-code cache aligned with the package directory.
+            const auto oldCache = std::filesystem::path(remapper.androidRoot()) /
+                                  "data/dalvik-cache" / resolvedAppName;
+            const auto newCache = std::filesystem::path(remapper.androidRoot()) /
+                                  "data/dalvik-cache" / pkgId;
+            if (std::filesystem::exists(oldCache) && !std::filesystem::exists(newCache)) {
+                std::error_code cacheEc;
+                std::filesystem::rename(oldCache, newCache, cacheEc);
+            }
+            if (movedApp) {
+                resolvedAppName = pkgId;
+                appDir = cleanAppDir;
+            } else if (std::filesystem::exists(cleanAppDir)) {
+                // Already standard; keep as is.
+            }
+        }
+    }
+
+    // Fallback: when the manifest is unreadable, use the package ID from app_info.json.
+    if (std::filesystem::exists(appDir)) {
+        std::filesystem::path infoPath = appDir / "app_info.json";
+        if (std::filesystem::exists(infoPath)) {
+            std::ifstream f(infoPath);
+            std::string line;
+            while (std::getline(f, line)) {
+                auto pos = line.find("\"package\": \"");
+                if (pos != std::string::npos) {
+                    auto start = pos + 12;
+                    auto end = line.find("\"", start);
+                    if (end != std::string::npos) {
+                        std::string pkg = line.substr(start, end - start);
+                        if (!pkg.empty() && !bridgeValidPackageIdentifier(pkg.c_str())) {
+                            return strdup("[kudroid_core] ERROR: invalid package metadata\n");
+                        }
+                        if (!pkg.empty()) logPackage = pkg;
+                        if (!pkg.empty() && pkg != resolvedAppName) {
+                            std::filesystem::path cleanTarget = std::filesystem::path(remapper.androidRoot()) / "data/app" / pkg;
+                            std::error_code ec;
+                            std::filesystem::rename(appDir, cleanTarget, ec);
+                            if (!ec) {
+                                resolvedAppName = pkg;
+                                appDir = cleanTarget;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    } else {
+        auto uIdx = resolvedAppName.find('_');
+        if (uIdx != std::string::npos) {
+            std::string base = resolvedAppName.substr(0, uIdx);
+            std::filesystem::path baseDir = std::filesystem::path(remapper.androidRoot()) / "data/app" / base;
+            if (std::filesystem::exists(baseDir)) {
+                resolvedAppName = base;
+                logPackage = base;
+                appDir = baseDir;
+            }
+        }
+    }
+
+    std::error_code appPathError;
+    const auto appStatus = std::filesystem::symlink_status(appDir, appPathError);
+    if (appPathError || !std::filesystem::is_directory(appStatus)) {
+        return strdup("[kudroid_core] ERROR: application directory is unavailable\n");
+    }
+    if (!bridgeSelectAppLogDirectory(logPackage.c_str())) {
+        return strdup("[kudroid_core] ERROR: cannot prepare application log directory\n");
+    }
+
+    // Reset only this application before initializing its runtime.
     kudroid_clear_all_logs();
     kudroid_log_vm_startup_probe();
     kudroid_probe_virtual_memory("guest-start");
@@ -450,12 +572,15 @@ extern "C" const char* kudroid_run_apk(const char* appName) {
 
     kudroid::ExecMemory::LogState();
     kudroid_boot_mark("jit-ready");
+    kudroid::begin_app_memory_budget();
     log += "[kudroid_core] Phase: init LibraryManager\n";
 
     if (!appName || !*appName) {
         log += "[kudroid_core] ERROR: null or empty app name\n";
     } else {
-        auto& remapper = kudroid::VFSPathRemapper::getInstance();
+        if (!remapper.init_pseudo_files()) {
+            std::fprintf(stderr, "[kudroid_core] failed to refresh memory profile\n");
+        }
         const auto fontSource = kudroid::bundledSystemFontsPath();
         if (!fontSource.empty()) {
             std::string fontError;
@@ -468,95 +593,6 @@ extern "C" const char* kudroid_run_apk(const char* appName) {
                 logCoreLine(2, "[kudroid_core] System fonts ready");
             }
         }
-        std::string resolvedAppName = appName;
-        std::filesystem::path appDir = std::filesystem::path(remapper.androidRoot()) / "data/app" / resolvedAppName;
-
-        // Standardize the install dir to the real package ID.
-        {
-            const auto mfPath = appDir / "AndroidManifest.xml";
-            std::string pkgId;
-            if (std::filesystem::exists(mfPath)) {
-                std::ifstream mf(mfPath, std::ios::binary);
-                if (mf) {
-                    std::vector<std::uint8_t> axml(
-                        (std::istreambuf_iterator<char>(mf)),
-                        std::istreambuf_iterator<char>());
-                    kudroid::ManifestInfo mi =
-                        kudroid::APKExtractor::parse_manifest(axml.data(), axml.size());
-                    if (mi.packageName.empty() && axml.size() > 4 && axml[0] == '<') {
-                        mi = kudroid::APKExtractor::parse_manifest_text(
-                            reinterpret_cast<const char*>(axml.data()), axml.size());
-                    }
-                    pkgId = mi.packageName;
-                }
-            }
-
-            if (!pkgId.empty() && pkgId != resolvedAppName) {
-                const auto cleanAppDir =
-                    std::filesystem::path(remapper.androidRoot()) / "data/app" / pkgId;
-                std::error_code renEc;
-                bool movedApp = false;
-                if (!std::filesystem::exists(cleanAppDir)) {
-                    std::filesystem::rename(appDir, cleanAppDir, renEc);
-                    movedApp = !renEc;
-                }
-                // Dalvik-cache c ca ng dex2jar phi theo tn mi bc
-                // dn dp after ny tm thy v remove c.
-                const auto oldCache = std::filesystem::path(remapper.androidRoot()) /
-                                      "data/dalvik-cache" / resolvedAppName;
-                const auto newCache = std::filesystem::path(remapper.androidRoot()) /
-                                      "data/dalvik-cache" / pkgId;
-                if (std::filesystem::exists(oldCache) && !std::filesystem::exists(newCache)) {
-                    std::error_code cacheEc;
-                    std::filesystem::rename(oldCache, newCache, cacheEc);
-                }
-                if (movedApp) {
-                    resolvedAppName = pkgId;
-                    appDir = cleanAppDir;
-                } else if (std::filesystem::exists(cleanAppDir)) {
-                    // Already standard; keep as is.
-                }
-            }
-        }
-
-        // Fallback: when the manifest is unreadable, use the package ID from app_info.json.
-        if (std::filesystem::exists(appDir)) {
-            std::filesystem::path infoPath = appDir / "app_info.json";
-            if (std::filesystem::exists(infoPath)) {
-                std::ifstream f(infoPath);
-                std::string line;
-                while (std::getline(f, line)) {
-                    auto pos = line.find("\"package\": \"");
-                    if (pos != std::string::npos) {
-                        auto start = pos + 12;
-                        auto end = line.find("\"", start);
-                        if (end != std::string::npos) {
-                            std::string pkg = line.substr(start, end - start);
-                            if (!pkg.empty() && pkg != resolvedAppName) {
-                                std::filesystem::path cleanTarget = std::filesystem::path(remapper.androidRoot()) / "data/app" / pkg;
-                                std::error_code ec;
-                                std::filesystem::rename(appDir, cleanTarget, ec);
-                                if (!ec) {
-                                    resolvedAppName = pkg;
-                                    appDir = cleanTarget;
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        } else {
-            auto uIdx = resolvedAppName.find('_');
-            if (uIdx != std::string::npos) {
-                std::string base = resolvedAppName.substr(0, uIdx);
-                std::filesystem::path baseDir = std::filesystem::path(remapper.androidRoot()) / "data/app" / base;
-                if (std::filesystem::exists(baseDir)) {
-                    resolvedAppName = base;
-                    appDir = baseDir;
-                }
-            }
-        }
-
         kudroid_boot_mark("manifest-ready");
 
         // Android standard environment variables
@@ -1108,6 +1144,7 @@ extern "C" const char* kudroid_run_apk(const char* appName) {
                                                    actPtrs.empty() ? nullptr : actPtrs.data(),
                                                    static_cast<int>(actPtrs.size()),
                                                    manifestInfo.applicationEnabled);
+                            kuart_register_package_process(manifestInfo.applicationProcess.c_str());
                             {
                                 int vcode = 1;
                                 try {
@@ -1182,6 +1219,13 @@ extern "C" const char* kudroid_run_apk(const char* appName) {
                             registerMeta(std::string(), manifestInfo.applicationMetaData);
                             for (const auto& a : manifestInfo.activities) {
                                 registerMeta(a.name, a.metaData);
+                            }
+                            for (const auto& provider : manifestInfo.providers) {
+                                kuart_register_provider(provider.name.c_str(), provider.authorities.c_str(),
+                                    provider.processName.c_str(), provider.initOrder, provider.enabled,
+                                    provider.exported, provider.grantUriPermissions, provider.directBootAware,
+                                    provider.readPermission.c_str(), provider.writePermission.c_str());
+                                registerMeta(provider.name, provider.metaData);
                             }
                             for (const auto& service : manifestInfo.services) {
                                 kuart_register_service(service.name.c_str(), service.enabled,

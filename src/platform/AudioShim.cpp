@@ -20,7 +20,7 @@
 #include <string>
 
 // Log directory owned by the bridge; weak so the shim also links on its own.
-extern const char* g_kudroid_log_dir_ptr __attribute__((weak));
+extern "C" const char* kudroid_current_log_dir(void) __attribute__((weak));
 
 #if defined(__APPLE__)
 #include <AudioToolbox/AudioToolbox.h>
@@ -490,8 +490,8 @@ static void dump_pcm(AudioPlayer* p, const int16_t* pcm, size_t bytes) {
             return;
         }
         const char* dir = std::getenv("KUDROID_AUDIO_DUMP_DIR");
-        if ((!dir || !*dir) && &g_kudroid_log_dir_ptr && g_kudroid_log_dir_ptr) {
-            dir = g_kudroid_log_dir_ptr;
+        if ((!dir || !*dir) && kudroid_current_log_dir) {
+            dir = kudroid_current_log_dir();
         }
         char path[1024];
         std::snprintf(path, sizeof(path), "%s/audio_dump_%p.wav", dir && *dir ? dir : ".",

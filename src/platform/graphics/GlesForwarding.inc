@@ -833,8 +833,6 @@ extern "C" void bionic_glGetIntegerv(unsigned int pname, int* params) {
         return;
     }
     if (f) f(pname, params);
-    if (f && params && pname == 0x821C /* GL_MINOR_VERSION */ && es31_compat_enabled() && *params == 0)
-        *params = 1;
     if (f && params && pname == 0x87ff) {
         int count = 0;
         f(0x87fe, &count);

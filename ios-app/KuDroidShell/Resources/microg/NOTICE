@@ -1,0 +1,12 @@
+microG runtime distributions
+
+GmsCore / microG Companion: https://github.com/microg/GmsCore
+Release v0.3.18.252432, Apache License 2.0.
+
+Services Framework Proxy: https://github.com/microg/GsfProxy
+Release v0.1.0, Apache License 2.0.
+
+The official APKs are downloaded unchanged only after the user chooses installation.
+Their embedded third-party notices remain in the original APKs.
+No upstream implementation source is copied into the runtime.
+See LICENSE and the upstream distributions for license terms and attribution.

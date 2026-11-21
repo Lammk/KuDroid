@@ -8,6 +8,7 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 AOSP = os.path.join(ROOT, 'third_party', 'aosp', 'platform_frameworks_base')
 ROOTS = ['core/java', 'graphics/java', 'media/java', 'location/java', 'opengl/java', 'sax/java']
 DEST = os.path.join(ROOT, 'framework')
+MODIFICATION_NOTICE = '// Modified: adapted for runtime compatibility.\n'
 
 # Annotations that only exist for the platform build.
 DROP = ['UnsupportedAppUsage', 'TestApi', 'SystemApi', 'RemotableViewMethod', 'InspectableProperty',
@@ -17,6 +18,7 @@ DROP = ['UnsupportedAppUsage', 'TestApi', 'SystemApi', 'RemotableViewMethod', 'I
 
 
 def clean(text):
+    original = text
     for name in DROP:
         text = re.sub(r'[ \t]*@' + name + r'(\((?:[^()]|\([^()]*\))*\))?[ \t]*\n', '', text)
         text = re.sub(r'@' + name + r'(\((?:[^()]|\([^()]*\))*\))?[ \t]*', '', text)
@@ -30,6 +32,13 @@ def clean(text):
     text = re.sub(r'(?s)\s*/\*\* @hide \*/\s*@Override\s*public long createNativeInterpolator\(\)\s*\{.*?\n    \}\n',
                   '\n', text)
     text = re.sub(r'(?s)\s*@Override\s*public long createNativeInterpolator\(\)\s*\{.*?\n    \}\n', '\n', text)
+    if text != original:
+        header = re.match(r'\s*/\*.*?\*/', text, re.DOTALL)
+        if header is None or 'Apache License' not in header.group():
+            raise ValueError('Modified import is missing its Apache license header')
+        if MODIFICATION_NOTICE.strip() not in text:
+            end = header.end()
+            text = text[:end] + '\n' + MODIFICATION_NOTICE + text[end:]
     return text
 
 
@@ -51,4 +60,5 @@ def main():
         print('imported', rel)
 
 
-main()
+if __name__ == '__main__':
+    main()

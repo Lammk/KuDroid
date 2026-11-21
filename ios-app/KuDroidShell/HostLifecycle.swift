@@ -123,6 +123,14 @@ func appVersion() -> String {
     return "0.0.0"
 }
 
+func appVersionDisplay() -> String {
+    let version = appVersion()
+    if version.hasPrefix("P") {
+        return "V" + String(version.dropFirst()) + " (Pre-release)"
+    }
+    return "V" + version
+}
+
 func setupLogDir() {
     // Resolved through the process's container, never hardcoded.
 

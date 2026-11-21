@@ -57,7 +57,7 @@ extern float g_metalLayerDensity;
 extern "C" void kudroid_note_frame_presented(void);
 
 // Log directory owned by the bridge; weak so the shim also links on its own.
-extern const char* g_kudroid_log_dir_ptr __attribute__((weak));
+extern "C" const char* kudroid_current_log_dir(void) __attribute__((weak));
 
 #include "graphics/NativeWindows.inc"
 #include "graphics/ProcedureLookup.inc"

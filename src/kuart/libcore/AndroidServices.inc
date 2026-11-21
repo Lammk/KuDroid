@@ -600,11 +600,11 @@ bool Invoke_kudroid_memory(Interpreter* /*interp*/, const char* name,
                            DexValue* result) {
     if (std::strcmp(name, "nativeTotalMemory") == 0) {
         *result = DexValue::Long(
-            static_cast<int64_t>(kudroid::query_system_memory().total_bytes));
+            static_cast<int64_t>(kudroid::query_android_memory().total_bytes));
         return true;
     }
     if (std::strcmp(name, "nativeAvailableMemory") == 0) {
-        const kudroid::SystemMemory mem = kudroid::query_system_memory();
+        const kudroid::SystemMemory mem = kudroid::query_android_memory();
         // Prefer per-process headroom; system-wide invites jetsam kills.
         const uint64_t value = mem.process_available_bytes > 0
                                    ? mem.process_available_bytes
@@ -614,7 +614,7 @@ bool Invoke_kudroid_memory(Interpreter* /*interp*/, const char* name,
     }
     if (std::strcmp(name, "nativeSystemAvailableMemory") == 0) {
         *result = DexValue::Long(
-            static_cast<int64_t>(kudroid::query_system_memory().available_bytes));
+            static_cast<int64_t>(kudroid::query_android_memory().available_bytes));
         return true;
     }
     if (std::strcmp(name, "nativeProcessResidentMemory") == 0) {
@@ -623,7 +623,7 @@ bool Invoke_kudroid_memory(Interpreter* /*interp*/, const char* name,
         return true;
     }
     if (std::strcmp(name, "nativeIsLowMemory") == 0) {
-        *result = DexValue::Int(kudroid::query_system_memory().low_memory ? 1 : 0);
+        *result = DexValue::Int(kudroid::query_android_memory().low_memory ? 1 : 0);
         return true;
     }
     if (std::strcmp(name, "nativeMemoryClass") == 0) {
@@ -637,7 +637,7 @@ bool Invoke_kudroid_memory(Interpreter* /*interp*/, const char* name,
 
     // Heap figures use the process budget; keep total + free == max.
     if (std::strcmp(name, "maxMemory") == 0) {
-        const kudroid::SystemMemory mem = kudroid::query_system_memory();
+        const kudroid::SystemMemory mem = kudroid::query_android_memory();
         const uint64_t ceiling = mem.process_available_bytes > 0
                                      ? mem.process_resident_bytes + mem.process_available_bytes
                                      : mem.total_bytes;
@@ -645,7 +645,7 @@ bool Invoke_kudroid_memory(Interpreter* /*interp*/, const char* name,
         return true;
     }
     if (std::strcmp(name, "totalMemory") == 0) {
-        const kudroid::SystemMemory mem = kudroid::query_system_memory();
+        const kudroid::SystemMemory mem = kudroid::query_android_memory();
         // What the process has taken so far.
         uint64_t taken = mem.process_resident_bytes;
         if (taken == 0) taken = mem.total_bytes - mem.available_bytes;
@@ -653,7 +653,7 @@ bool Invoke_kudroid_memory(Interpreter* /*interp*/, const char* name,
         return true;
     }
     if (std::strcmp(name, "freeMemory") == 0) {
-        const kudroid::SystemMemory mem = kudroid::query_system_memory();
+        const kudroid::SystemMemory mem = kudroid::query_android_memory();
         const uint64_t free_bytes = mem.process_available_bytes > 0
                                         ? mem.process_available_bytes
                                         : mem.available_bytes;

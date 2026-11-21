@@ -136,7 +136,7 @@ extern "C" long bionic_sysconf(int name) {
             long pz = ::sysconf(_SC_PAGESIZE);
             if (pz <= 0) pz = 16384;
             // The real device figure, not a constant. This said 8 GB on every device.
-            return static_cast<long>(kudroid::query_system_memory().total_bytes /
+            return static_cast<long>(kudroid::query_android_memory().total_bytes /
                                      static_cast<uint64_t>(pz));
         }
         case 86: // _SC_AVPHYS_PAGES (glibc)
@@ -144,7 +144,7 @@ extern "C" long bionic_sysconf(int name) {
         {
             long pz = ::sysconf(_SC_PAGESIZE);
             if (pz <= 0) pz = 16384;
-            return static_cast<long>(kudroid::query_system_memory().available_bytes /
+            return static_cast<long>(kudroid::query_android_memory().available_bytes /
                                      static_cast<uint64_t>(pz));
         }
         default:

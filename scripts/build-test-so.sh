@@ -66,9 +66,4 @@ if [[ "$built" -eq 0 ]]; then
     exit 0
 fi
 
-echo "Run on device with kdb:"
-for src in "$SRC_DIR"/*.c; do
-    [[ -e "$src" ]] || continue
-    echo "  so $(realpath --relative-to="$PWD" "$OUT_DIR/$(basename "$src" .c).so" 2>/dev/null \
-                 || echo "$OUT_DIR/$(basename "$src" .c).so")"
-done
+echo "Shared-library probes are available in $OUT_DIR"

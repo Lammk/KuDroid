@@ -1,5 +1,13 @@
 Third-party notices
 
+Android robot artwork
+
+The Android robot is reproduced or modified from work created and shared by Google
+and used according to terms described in the Creative Commons 3.0 Attribution License.
+
+Source: https://developer.android.com/distribute/marketing-tools/brand-guidelines
+License: https://creativecommons.org/licenses/by/3.0/
+
 V8 9.4.146.24 source-based cage adapter
 
 Source: https://github.com/v8/v8/tree/9.4.146.24

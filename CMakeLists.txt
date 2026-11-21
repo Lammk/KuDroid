@@ -84,6 +84,10 @@ if(Java_FOUND AND KUDROID_D8_JAR)
         DEPENDS ${KUDROID_FRAMEWORK_JAVA} ${KUDROID_FRAMEWORK_KOTLIN}
             "${KUDROID_D8_JAR}"
             "${CMAKE_CURRENT_SOURCE_DIR}/framework/build.sh"
+            "${CMAKE_CURRENT_SOURCE_DIR}/framework/build.py"
+            "${CMAKE_CURRENT_SOURCE_DIR}/scripts/fetch-legacy-http.py"
+            "${CMAKE_CURRENT_SOURCE_DIR}/scripts/framework-return-bridges.py"
+            "${CMAKE_CURRENT_SOURCE_DIR}/scripts/ReturnTypeBridges.java"
             "${CMAKE_CURRENT_SOURCE_DIR}/scripts/embed_framework_dex.py"
         WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
         COMMENT "Building and embedding Java framework"
@@ -117,6 +121,7 @@ include(cmake/MediaCodecs.cmake)
 
 add_library(kudroid_core STATIC
     src/APKExtractor.cpp
+    src/ApkSigning.cpp
     src/BionicShim.cpp
     src/VFSPathRemapper.cpp
     src/platform/ProcessMaps.cpp
@@ -172,6 +177,7 @@ add_library(kudroid_core STATIC
     src/platform/JavaCanvasRenderer.cpp
     src/platform/VectorRasterizer.cpp
     src/bridge/BridgeState.cpp
+    src/bridge/LogPaths.cpp
     src/bridge/BridgeShared.cpp
     src/bridge/CrashHandling.cpp
     src/bridge/ShellUI.cpp
@@ -201,7 +207,10 @@ add_library(kudroid_core STATIC
     src/kuart/LibTls.cpp
     src/kuart/LibZip.cpp
     src/kuart/LibSecurity.cpp
+    src/kuart/LibWebView.cpp
     src/platform/RsaSignature.cpp
+    src/platform/EcCrypto.cpp
+    src/platform/WebViewHost.cpp
     src/platform/SymmetricCrypto.cpp
     src/kuart/JitCache.cpp
     src/kuart/JitCompiler.cpp
@@ -209,6 +218,8 @@ add_library(kudroid_core STATIC
     # JIT objects in the static archive so GNU ld extracts it when linking the
     # minimal KuART test targets as well as the full shell.
     src/platform/MemoryInfo.cpp
+    src/platform/AppMemoryBudget.cpp
+    src/platform/SharedPackages.cpp
     # Same reasoning: the VFS pseudo-file writer and the syscall shims both derive
     # their CPU figures from here, so it must be extracted for every target that
     # links either of them.
@@ -319,6 +330,21 @@ target_compile_options(kudroid_core PRIVATE
 
 if(CMAKE_SYSTEM_NAME STREQUAL "iOS")
     enable_language(Swift)
+    if(NOT CMAKE_OBJCXX_COMPILER)
+        set(CMAKE_OBJCXX_COMPILER "${CMAKE_CXX_COMPILER}")
+        set(CMAKE_OBJCXX_FLAGS_INIT "${CMAKE_CXX_FLAGS}")
+    endif()
+    enable_language(OBJCXX)
+    add_library(kudroid_jit_support STATIC ios-app/KuDroidShell/JITSupport/JITBridge.mm)
+    add_library(kudroid_jit_notifications STATIC ios-app/KuDroidShell/JITNotifications/JITNotifications.c)
+    target_include_directories(kudroid_jit_notifications PUBLIC ios-app/KuDroidShell/JITNotifications/include)
+    target_compile_options(kudroid_jit_support PRIVATE -fobjc-arc)
+    target_include_directories(kudroid_jit_support PUBLIC ios-app/KuDroidShell/JITSupport/include PRIVATE include)
+    add_custom_target(kudroid_ios_jit_inputs
+        COMMAND python3 "${CMAKE_CURRENT_SOURCE_DIR}/scripts/build-ios-jit.py" --sdk "${CMAKE_OSX_SYSROOT}"
+        BYPRODUCTS "${CMAKE_CURRENT_SOURCE_DIR}/ios-app/KuDroidShell/libs/libkudroid_pairing.a"
+            "${CMAKE_CURRENT_SOURCE_DIR}/ios-app/KuDroidShell/Resources/licenses/JIT-NOTICES.txt"
+        VERBATIM)
     add_custom_target(kudroid_flutter_runtime_check
         COMMAND timeout 120 python3 "${CMAKE_CURRENT_SOURCE_DIR}/scripts/flutter-runtime/verify-asset.py"
             --asset "${CMAKE_CURRENT_SOURCE_DIR}/ios-app/KuDroidShell/Resources/runtime"
@@ -337,6 +363,8 @@ if(CMAKE_SYSTEM_NAME STREQUAL "iOS")
     add_executable(KuDroidShell MACOSX_BUNDLE
         ios-app/KuDroidShell/KuDroidApp.swift
         ios-app/KuDroidShell/ContentView.swift
+        ios-app/KuDroidShell/AppMemorySettings.swift
+        ios-app/KuDroidShell/MemoryBudgetPolicy.swift
         ios-app/KuDroidShell/AppsView.swift
         ios-app/KuDroidShell/PermissionsView.swift
         ios-app/KuDroidShell/HostLifecycle.swift
@@ -347,23 +375,45 @@ if(CMAKE_SYSTEM_NAME STREQUAL "iOS")
         ios-app/KuDroidShell/DocumentImport.swift
         icon.png
         ios-app/KuDroidShell/ReverseHistory.swift
-        ios-app/KuDroidShell/RemoteDebugClient.swift
         ios-app/KuDroidShell/IOSDiagnostics.swift
         ios-app/KuDroidShell/CameraBridge.swift
         ios-app/KuDroidShell/MediaPlayerBridge.swift
         ios-app/KuDroidShell/SensorBridge.swift
         ios-app/KuDroidShell/NetworkBridge.swift
+        ios-app/KuDroidShell/JITProtocol/JITMessages.swift
+        ios-app/KuDroidShell/JITSetup.swift
+        ios-app/KuDroidShell/JITStartup.swift
+        ios-app/KuDroidShell/JITTutorial.swift
+        ios-app/KuDroidShell/PairingNotifications.swift
+        ios-app/KuDroidShell/JITBundleConfiguration.swift
+        ios-app/KuDroidShell/JITReadiness.swift
+        ios-app/KuDroidShell/Resources/licenses/JIT-NOTICES.txt
         ios-app/KuDroidShell/kudroid_bridge.h
         ios-app/KuDroidShell/THIRD_PARTY_NOTICES.txt
+        ios-app/KuDroidShell/Resources/licenses/framework/LICENSE
+        ios-app/KuDroidShell/Resources/licenses/framework/LICENSE-APACHE-2.0
+        ios-app/KuDroidShell/Resources/licenses/framework/LICENSE-GPLv2-CPE
+        ios-app/KuDroidShell/Resources/licenses/framework/NOTICE
         ${KUDROID_FLUTTER_RUNTIME_ASSETS}
         ${KUDROID_RUNTIME_ADAPTER_ASSETS}
         ios-app/KuDroidShell/Resources/system/etc/fonts.xml
         ios-app/KuDroidShell/Resources/system/fonts/NotoSans.ttf
         ios-app/KuDroidShell/Resources/system/NOTO_LICENSE.txt
     )
+    add_dependencies(KuDroidShell kudroid_ios_jit_inputs)
+    target_include_directories(KuDroidShell PRIVATE ios-app/KuDroidShell/JITSupport/include
+        ios-app/KuDroidShell/JITNotifications/include)
+    set_source_files_properties(ios-app/KuDroidShell/Resources/licenses/JIT-NOTICES.txt
+        PROPERTIES GENERATED TRUE HEADER_FILE_ONLY TRUE MACOSX_PACKAGE_LOCATION Resources/licenses)
 
     set_source_files_properties(icon.png ios-app/KuDroidShell/THIRD_PARTY_NOTICES.txt
         PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
+    set_source_files_properties(
+        ios-app/KuDroidShell/Resources/licenses/framework/LICENSE
+        ios-app/KuDroidShell/Resources/licenses/framework/LICENSE-APACHE-2.0
+        ios-app/KuDroidShell/Resources/licenses/framework/LICENSE-GPLv2-CPE
+        ios-app/KuDroidShell/Resources/licenses/framework/NOTICE
+        PROPERTIES MACOSX_PACKAGE_LOCATION Resources/licenses/framework HEADER_FILE_ONLY TRUE)
     foreach(asset IN LISTS KUDROID_FLUTTER_RUNTIME_ASSETS KUDROID_RUNTIME_ADAPTER_ASSETS)
         file(RELATIVE_PATH relative_asset
             "${CMAKE_CURRENT_SOURCE_DIR}/ios-app/KuDroidShell/Resources" "${asset}")
@@ -378,6 +428,7 @@ if(CMAKE_SYSTEM_NAME STREQUAL "iOS")
     set_source_files_properties(ios-app/KuDroidShell/Resources/system/NOTO_LICENSE.txt
         PROPERTIES MACOSX_PACKAGE_LOCATION Resources/system HEADER_FILE_ONLY TRUE)
     add_custom_command(TARGET KuDroidShell POST_BUILD
+        COMMAND python3 "${CMAKE_CURRENT_SOURCE_DIR}/scripts/build-ios-jit.py" --app "$<TARGET_BUNDLE_DIR:KuDroidShell>"
         COMMAND python3 "${CMAKE_CURRENT_SOURCE_DIR}/scripts/embed_standalone_launcher.py"
             "$<TARGET_BUNDLE_DIR:KuDroidShell>"
         VERBATIM)
@@ -401,6 +452,9 @@ if(CMAKE_SYSTEM_NAME STREQUAL "iOS")
 
     # Link standard frameworks and kudroid_core
     target_link_libraries(KuDroidShell PRIVATE
+        kudroid_jit_support
+        kudroid_jit_notifications
+        "${CMAKE_CURRENT_SOURCE_DIR}/ios-app/KuDroidShell/libs/libkudroid_pairing.a"
         kudroid_core
         "-framework Metal"
         "-framework QuartzCore"
@@ -413,6 +467,7 @@ if(CMAKE_SYSTEM_NAME STREQUAL "iOS")
         "-framework CoreVideo"
         "-framework Network"
         "-framework Security"
+        "-framework UserNotifications"
         # The guest's native code checks the framework's native method with
         # dlsym(dlopen(0), "Java_..."). Mach-O does not include symbols from static lib
         # dynamic symbol table so must export_dynamic. DO NOT use
@@ -1108,6 +1163,10 @@ if(NOT CMAKE_SYSTEM_NAME STREQUAL "iOS"
         endforeach()
     endif()
     if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+        add_executable(test_entropy_poll tests/test_entropy_poll.cpp)
+        target_include_directories(test_entropy_poll PRIVATE include)
+        add_test(NAME entropy_poll COMMAND test_entropy_poll)
+        set_tests_properties(entropy_poll PROPERTIES TIMEOUT 20)
         add_executable(test_gles_backend_probe tests/test_gles_backend_probe.cpp src/platform/GlesBackendProbe.cpp)
         target_include_directories(test_gles_backend_probe PRIVATE include third_party/ANGLE/include)
         target_include_directories(test_gles_backend_probe SYSTEM PRIVATE third_party/MoltenVK/MoltenVK/include)
@@ -1125,6 +1184,9 @@ if(NOT CMAKE_SYSTEM_NAME STREQUAL "iOS"
         add_executable(test_manifest_services tests/test_manifest_services.cpp)
         target_link_libraries(test_manifest_services PRIVATE kudroid_core)
         target_include_directories(test_manifest_services PRIVATE include)
+        add_executable(test_manifest_providers tests/test_manifest_providers.cpp)
+        target_link_libraries(test_manifest_providers PRIVATE kudroid_core)
+        target_include_directories(test_manifest_providers PRIVATE include)
     endif()
     add_executable(test_android_tts tests/test_android_tts.cpp)
     target_link_libraries(test_android_tts PRIVATE kudroid_core art_dex)

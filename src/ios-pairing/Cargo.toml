@@ -1,0 +1,19 @@
+[package]
+name = "kudroid_pairing"
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+
+[lib]
+crate-type = ["staticlib"]
+
+[dependencies]
+idevice = { version = "=0.1.68", default-features = false, features = ["remote_pairing", "ring"] }
+tokio = { version = "1", features = ["rt", "net", "time", "sync", "macros"] }
+serde_json = "1"
+base64 = "0.22"
+socket2 = "0.6"
+
+[profile.release]
+panic = "abort"
+strip = "debuginfo"

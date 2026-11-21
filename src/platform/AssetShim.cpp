@@ -66,6 +66,7 @@ namespace {
 
 static std::string g_assetsDir;
 static std::mutex g_assetsMtx;
+static thread_local std::string g_assetDirectoryOverride;
 
 extern "C" void kudroid_set_assets_dir(const char* dir) {
     if (!dir) return;
@@ -146,13 +147,26 @@ extern "C" const char* kudroid_get_assets_dir(void) {
 // on that staying true. Out here (not in the anonymous namespace above) so it
 // has external linkage.
 std::string kudroid_get_assets_dir_cpp(void) {
+    if (!g_assetDirectoryOverride.empty()) return g_assetDirectoryOverride;
     std::lock_guard<std::mutex> lock(g_assetsMtx);
     return g_assetsDir;
+}
+
+ScopedAssetDirectory::ScopedAssetDirectory(const std::string& directory) {
+    if (directory.empty()) return;
+    previous_ = std::move(g_assetDirectoryOverride);
+    g_assetDirectoryOverride = VFSPathRemapper::getInstance().remap(directory.c_str());
+    changed_ = true;
+}
+
+ScopedAssetDirectory::~ScopedAssetDirectory() {
+    if (changed_) g_assetDirectoryOverride = std::move(previous_);
 }
 
 namespace {
 
 static std::string current_assets_dir() {
+    if (!g_assetDirectoryOverride.empty()) return g_assetDirectoryOverride;
     std::lock_guard<std::mutex> lock(g_assetsMtx);
     return g_assetsDir;
 }

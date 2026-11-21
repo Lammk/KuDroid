@@ -5,6 +5,7 @@
 #include <stdint.h>
 #include "../../include/kudroid/platform/MediaPlayerHost.h"
 #include "../../include/kudroid/platform/SensorHost.h"
+#include "../../include/kudroid/platform/WebViewHost.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -12,6 +13,8 @@ extern "C" {
 
 void kudroid_set_standalone_root(const char* dir);
 void kudroid_set_log_paths(const char* documents, const char* logs);
+const char* kudroid_current_log_dir(void);
+const char* kudroid_host_log_dir(void);
 void kudroid_log_vm_startup_probe(void);
 void kudroid_gpu_prepare_egl(void);
 void kudroid_drain_trap_diagnostics(void);
@@ -83,6 +86,14 @@ void kudroid_ios_diagnostic_memory(const char* phase);
 /// sets the documents directory used by vfspathremapper.
 void kudroid_set_documents_dir(const char* dir);
 
+void kudroid_configure_app_memory_budget(int enabled, int percent);
+unsigned long long kudroid_app_memory_budget_estimate(int percent);
+unsigned long long kudroid_hardware_memory_bytes(void);
+unsigned long long kudroid_available_app_memory_bytes(void);
+void kudroid_configure_shared_packages(int enabled);
+const char* kudroid_android_root_path(void);
+const char* kudroid_android_root_path(void);
+
 ///set the cametallayer or uiview cursor used for anativewindow surface constraints.
 ///width/height is the actual pixel size (UIScreen.bounds * scale); density = scale
 /// (3.0 for @3x) — pushed to Java's DisplayMetrics at JVM initialization.
@@ -123,6 +134,7 @@ void kudroid_inject_touch_batch(int action, int primaryId, int count,
 
 /// send java application lifecycle events (101=pause, 102=resume) to ui stream
 void kudroid_send_lifecycle_event(int eventType);
+void kuart_post_memory_warning(void);
 
 // Load DEX files and enumerate their classes.
 

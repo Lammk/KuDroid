@@ -18,6 +18,17 @@ const SymbolEntry* get_asset_symbols(size_t* count);
 // Thread-safe copy of the assets dir; prefer over the C accessor below.
 std::string kudroid_get_assets_dir_cpp(void);
 
+class ScopedAssetDirectory {
+public:
+    explicit ScopedAssetDirectory(const std::string& directory);
+    ~ScopedAssetDirectory();
+    ScopedAssetDirectory(const ScopedAssetDirectory&) = delete;
+    ScopedAssetDirectory& operator=(const ScopedAssetDirectory&) = delete;
+private:
+    std::string previous_;
+    bool changed_ = false;
+};
+
 } // namespace
 
 #ifdef __cplusplus

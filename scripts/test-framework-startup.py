@@ -45,10 +45,12 @@ def manifest_fixture(source):
         chunks.extend(struct.pack("<II6H", 0xffffffff, index(element.tag), 20, 20, count, 0, 0, 0))
         for key, value in element.attrib.items():
             raw, kind, typed = index(value), 3, index(value)
-            if key.split("}")[-1] in ("enabled", "exported"):
+            if key.split("}")[-1] in ("enabled", "exported", "grantUriPermissions", "directBootAware"):
                 raw, kind, typed = 0xffffffff, 0x12, 0xffffffff if value == "true" else 0
-            elif key.split("}")[-1] == "priority":
+            elif key.split("}")[-1] in ("priority", "initOrder", "minSdkVersion", "targetSdkVersion"):
                 raw, kind, typed = 0xffffffff, 0x10, int(value) & 0xffffffff
+            elif key.split("}")[-1] == "resource" and value.startswith("@0x"):
+                raw, kind, typed = 0xffffffff, 1, int(value[1:], 16)
             chunks.extend(struct.pack("<IIIHBBI", 0xffffffff, index(key), raw,
                                       8, 0, kind, typed))
         for child in element:
@@ -76,7 +78,7 @@ def main():
     if not args.skip_build:
         run(["cmake", "-S", root, "-B", build, "-G", "Ninja",
              "-DCMAKE_BUILD_TYPE=Release", "-DKUDROID_BUILD_HOST_TESTS=OFF"])
-        run(["cmake", "--build", build, "--target", "test_framework_startup", "test_manifest_services", "-j1"], 240)
+        run(["cmake", "--build", build, "--target", "test_framework_startup", "test_manifest_services", "test_manifest_providers", "-j1"], 240)
     with tempfile.TemporaryDirectory(prefix="kudroid-framework-startup-") as temporary:
         directory = Path(temporary)
         fixture = root / "tests/fixtures/service_manifest.xml"
@@ -84,6 +86,10 @@ def main():
         binary.write_bytes(manifest_fixture(fixture))
         if not args.test:
             run([build / "test_manifest_services", binary, fixture], 30)
+            provider_fixture = root / "tests/fixtures/provider_manifest.xml"
+            provider_binary = directory / "providers.axml"
+            provider_binary.write_bytes(manifest_fixture(provider_fixture))
+            run([build / "test_manifest_providers", provider_binary, provider_fixture], 30)
         classes = directory / "classes"
         classes.mkdir()
         sources = [root / "kuart-tests/java" / name for name in
@@ -92,6 +98,7 @@ def main():
         service = root / "kuart-tests/java/android/app/ServiceBindingTests.java"
         if service.exists():
             sources.append(service)
+        sources.append(root / "tests/java/android/app/ProviderStartupTests.java")
         run(["javac", "-source", "8", "-target", "8", "-nowarn", "-bootclasspath",
              root / "framework/build/classes", "-d", classes, *sources])
         d8 = root / "third_party/d8/r8.jar"
@@ -102,7 +109,8 @@ def main():
              *sorted(classes.rglob("*.class"))])
         for test in args.test or ["SecurityStartupTests", "SymmetricCryptoTests",
                                   "LoadingFrameworkTests", "StartupFrameworkTests",
-                                  "OrderedCollectionTests", "android/app/ServiceBindingTests"]:
+                                  "OrderedCollectionTests", "android/app/ServiceBindingTests",
+                                  "android/app/ProviderStartupTests"]:
             run([build / "test_framework_startup", test, args.framework_dex.resolve(),
                  directory / "classes.dex"], 60, env=environment)
 

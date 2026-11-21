@@ -17,6 +17,9 @@
 #include "kudroid/abi/BlockingWaitRegistry.h"
 #include "kudroid/debug/ThreadSampler.h"
 #include "kudroid/platform/MemoryInfo.h"
+#include "kudroid/KuArtRuntime.h"
+#include "kudroid/ExecMemory.h"
+#include "kudroid/platform/AppMemoryBudget.h"
 
 extern "C" void kudroid_persistent_breadcrumb(const char* line);
 // SyscallShim: monotonic-ns of the last tracked I/O byte (read/pread/write).
@@ -342,6 +345,11 @@ void watchdog_main() {
     // Set once a fatal signal has been seen, so the announcement is made exactly once
     // while the loop itself keeps running.
     bool fatal_announced = false;
+#if defined(__APPLE__)
+    uint64_t memory_warning_run = 0;
+    bool memory_warning_posted = false;
+    bool budget_warning_posted = false;
+#endif
 
     while (g.started.load(std::memory_order_acquire)) {
         std::this_thread::sleep_for(std::chrono::milliseconds(250));
@@ -543,6 +551,30 @@ void watchdog_main() {
         }
 
         const SystemMemory memory = query_system_memory();
+#if defined(__APPLE__)
+        const uint64_t memory_run = kudroid_run_started_ns();
+        if (memory_warning_run != memory_run) {
+            memory_warning_run = memory_run;
+            memory_warning_posted = false;
+            budget_warning_posted = false;
+        }
+        if (memory_run && app_memory_budget_active() && !budget_warning_posted &&
+            query_android_memory().low_memory) {
+            budget_warning_posted = true;
+            kuart_post_memory_warning();
+            kudroid_persistent_breadcrumb("app-memory-budget-warning queued");
+            ExecMemory::LogState();
+            ExecMemory::LogMemoryRegions();
+        }
+        if (memory_run && memory.measured && memory.process_available_bytes > 0 &&
+            memory.low_memory && !memory_warning_posted) {
+            memory_warning_posted = true;
+            kuart_post_memory_warning();
+            kudroid_persistent_breadcrumb("process-memory-warning queued");
+            ExecMemory::LogState();
+            ExecMemory::LogMemoryRegions();
+        }
+#endif
         char inner[768] = {};
         if (report.native_stack_depth > 1) {
             std::snprintf(inner, sizeof(inner),

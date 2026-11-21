@@ -12,11 +12,12 @@
 
 namespace kudroid {
 namespace kuart {
-
 class Interpreter;
 class DexClassLinker;
 class DexObject;
 class DexArray;
+bool Invoke_android_webkit_WebView(Interpreter* interp, const char* name,
+    const DexValue* args, size_t count, DexValue* result);
 
 bool Invoke_libcore_io_Memory(Interpreter* interp, const char* name, const DexValue* args,
                              size_t num_args, DexValue* result);

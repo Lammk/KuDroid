@@ -1,3 +1,4 @@
+#include "kudroid/platform/AppMemoryBudget.h"
 #include "kudroid/platform/VectorRasterizer.h"
 #include "kudroid/platform/PixelColorFilter.h"
 #include <fstream>
@@ -44,6 +45,7 @@
 #include "kudroid/kuart/DexClassLinker.h"
 #include "kudroid/kuart/DexHeap.h"
 #include "kudroid/kuart/DexJniEnv.h"
+#include "kudroid/kuart/DexReflect.h"
 #include "kudroid/kuart/DexObject.h"
 #include "kudroid/kuart/DexString.h"
 #include "kudroid/kuart/Interpreter.h"
@@ -65,6 +67,7 @@
 #include "kudroid/platform/JavaCanvasRenderer.h"
 #include "kudroid/platform/GraphicsShim.h"
 #include "kudroid/KuArtRuntime.h"
+#include "kudroid/platform/SharedPackages.h"
 
 // Native side of MessageQueue's AOSP-style wake primitive and Looper-touch
 // drain (implemented in platform/InputShim.cpp and KuArtRuntime.cpp).
@@ -115,6 +118,8 @@ bool LibCoreInvoke(Interpreter* interp, const DexMethod* method, const DexValue*
 
     if (std::strcmp(desc, "Ljava/lang/Object;") == 0) return Invoke_java_lang_Object(interp, name, args, num_args, result);
     if (std::strcmp(desc, "Ljava/lang/Class;") == 0) return Invoke_java_lang_Class(interp, name, args, num_args, result);
+    if (std::strcmp(desc, "Ldalvik/system/PackageClassLoader;") == 0)
+        return Invoke_PackageClassLoader(interp, name, args, num_args, result);
     if (std::strcmp(desc, "Ljava/lang/System;") == 0) return Invoke_java_lang_System(interp, name, args, num_args, result);
     if (std::strcmp(desc, "Landroid/os/SystemClock;") == 0) {
         if (std::strcmp(name, "uptimeMillis") == 0) {
@@ -235,6 +240,8 @@ bool LibCoreInvoke(Interpreter* interp, const DexMethod* method, const DexValue*
         return Invoke_dalvik_system_InMemoryDexClassLoader(interp, name, args, num_args, result);
 
     if (std::strcmp(desc, "Landroid/util/Log;") == 0) return Invoke_android_util_Log(interp, name, args, num_args, result);
+    if (std::strcmp(desc, "Landroid/webkit/WebView;") == 0)
+        return Invoke_android_webkit_WebView(interp, name, args, num_args, result);
     if (std::strcmp(desc, "Landroid/graphics/drawable/VectorDrawable;") == 0)
         return Invoke_VectorDrawable(interp, name, args, num_args, result);
     if (std::strcmp(desc, "Landroid/graphics/Canvas;") == 0) return Invoke_android_graphics_Canvas(interp, name, args, num_args, result);
@@ -256,6 +263,20 @@ bool LibCoreInvoke(Interpreter* interp, const DexMethod* method, const DexValue*
     }
     if (std::strcmp(desc, "Landroid/content/pm/RuntimePermissions;") == 0) {
         return Invoke_android_content_pm_RuntimePermissions(interp, name, args, num_args, result);
+    }
+    if (std::strcmp(desc, "Landroid/content/pm/SharedPackages;") == 0) {
+        if (std::strcmp(name, "nativeGeneration") == 0 && num_args == 0) {
+            *result = DexValue::Int(static_cast<int32_t>(shared_packages_generation()));
+            return true;
+        }
+        std::string data;
+        if (std::strcmp(name, "nativePackageData") == 0 && num_args == 2) {
+            data = installed_package_record(GetStringUtf8(args[0]), args[1].i != 0);
+        } else if (std::strcmp(name, "nativeSharedPackages") == 0 && num_args == 0) {
+            data = shared_package_records();
+        } else return false;
+        *result = DexValue::Ref(reinterpret_cast<DexObject*>(interp->linker()->NewString(data.c_str())));
+        return true;
     }
     if (std::strcmp(desc, "Landroid/media/AudioRecord;") == 0) {
         return Invoke_android_media_AudioRecord(interp, name, args, num_args, result);
@@ -366,12 +387,44 @@ bool LibCoreHasMethod(const DexMethod* method) {
     if (method == nullptr || method->declaring_class == nullptr) return false;
     const char* desc = method->declaring_class->descriptor;
     if (desc == nullptr) return false;
+    if (std::strcmp(desc, "Ldalvik/system/PackageClassLoader;") == 0) {
+        return method->name && method->signature &&
+            std::strcmp(method->name, "findPackageClass") == 0 &&
+            std::strcmp(method->signature, "(Ljava/lang/String;Ljava/lang/String;)Ljava/lang/Class;") == 0;
+    }
+
+    if (std::strcmp(desc, "Landroid/content/res/AssetManager;") == 0) {
+        return method->name && method->signature &&
+            ((std::strcmp(method->name, "nativeGetAssetsDir") == 0 &&
+              std::strcmp(method->signature, "()Ljava/lang/String;") == 0) ||
+             ((std::strcmp(method->name, "nativeResolveAsset") == 0 ||
+               std::strcmp(method->name, "nativeResolvePackageResource") == 0) &&
+              std::strcmp(method->signature, "(Ljava/lang/String;Ljava/lang/String;)[Ljava/lang/Object;") == 0));
+    }
+
+    if (std::strcmp(desc, "Landroid/content/pm/SharedPackages;") == 0) {
+        return method->name && method->signature &&
+            ((std::strcmp(method->name, "nativeGeneration") == 0 && std::strcmp(method->signature, "()I") == 0) ||
+             (std::strcmp(method->name, "nativePackageData") == 0 &&
+              std::strcmp(method->signature, "(Ljava/lang/String;Z)Ljava/lang/String;") == 0) ||
+             (std::strcmp(method->name, "nativeSharedPackages") == 0 &&
+              std::strcmp(method->signature, "()Ljava/lang/String;") == 0));
+    }
+
+    if (std::strcmp(desc, "Landroid/os/SystemClock;") == 0) {
+        return method->signature && std::strcmp(method->signature, "()J") == 0 &&
+               method->name && (std::strcmp(method->name, "uptimeMillis") == 0 ||
+                                std::strcmp(method->name, "elapsedRealtime") == 0 ||
+                                std::strcmp(method->name, "elapsedRealtimeNanos") == 0 ||
+                                std::strcmp(method->name, "currentThreadTimeMillis") == 0);
+    }
 
     return (std::strncmp(desc, "Ljava/", 6) == 0 ||
             std::strcmp(desc, "Lsun/misc/Unsafe;") == 0 ||
             std::strcmp(desc, "Ldalvik/system/BaseDexClassLoader;") == 0 ||
             std::strcmp(desc, "Ldalvik/system/InMemoryDexClassLoader;") == 0 ||
             std::strcmp(desc, "Landroid/util/Log;") == 0 ||
+            std::strcmp(desc, "Landroid/webkit/WebView;") == 0 ||
             std::strcmp(desc, "Landroid/graphics/Canvas;") == 0 ||
             std::strcmp(desc, "Landroid/graphics/drawable/VectorDrawable;") == 0 ||
             std::strcmp(desc, "Landroid/app/Activity;") == 0 ||

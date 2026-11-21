@@ -1,3 +1,75 @@
+# Build artifacts
+/third_party/StikJIT/
+/src/ios-pairing/target/
+build/
+build-*/
+*.ipa
+*.apk
+*.o
+*.a
+*.dylib
+*.so
+!ios-app/KuDroidShell/Resources/runtime/libflutter.so
+!ios-app/KuDroidShell/Resources/runtime/*/libflutter.so
+!ios-app/KuDroidShell/Resources/runtime-adapters/*.so
+.bsp/
+.build/
+libs/
+xtool/
+ios-app/KuDroidShell/.build/
+ios-app/KuDroidShell/xtool/
+ios-app/KuDroidShell/libs/
+
+# Generated DEX files and headers
+framework/build/*
+!framework/build/framework.dex
+include/kudroid/framework_dex_bytes.h
+
+# Logs and runtime traces
+logs/
+logs*/
+*.log
+*.tmp
+crash_reports/
+core
+core.*
+
+# AI assistant artifacts & local planning
+task_plan.md
+WINDOWS_PROGRESS.md
+progress.md
+findings.md
+.claude/
+.freebuff/
+.planning/
+.codebuff/
+.gemini/
+.antigravity/
+.cursor/
+.cline/
+.roo/
+.chat/
+scratch/
+output/
+.tasks/
+docs/
+!/docs/
+/docs/*
+!/docs/licensing.md
+
 # Local test sources
 /tests/
 /kuart-tests/
+
+# Editor and OS files
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+.vscode/
+.idea/
+
+# Python cache
+__pycache__/
+*.pyc

@@ -21,12 +21,14 @@
 #include "kudroid/platform/NetworkState.h"
 #include "kudroid/platform/MediaShim.h"
 #include "kudroid/platform/MediaPlayerHost.h"
+#include "kudroid/platform/WebViewHost.h"
 #include "kudroid/kuart/VmLock.h"
 #include "kudroid/platform/ThermalShim.h"
 
 #include "dex/dex_file-inl.h"
 
 #include "kudroid/framework_dex_bytes.h"
+#include "kudroid/platform/SharedPackages.h"
 #include "kudroid/NativeCallTelemetry.h"
 #include "kudroid/platform/NativeTouchGate.h"
 #include "kudroid/kuart/DexClassLinker.h"
@@ -77,11 +79,13 @@ struct Runtime {
 Runtime* g_rt = nullptr;
 std::atomic<bool> g_surfaceChangePending{false};
 std::atomic<int> g_pendingDarkMode{-1};
+std::atomic<bool> g_memoryWarningPending{false};
 std::mutex g_mtx;
 std::string g_current_app_dir;
 void (*g_log_cb)(const char*) = nullptr;
 void* (*g_symbol_lookup)(const char*) = nullptr;
 std::string g_last_error;
+std::atomic<bool> g_missingLogConfigured{false};
 
 // Process-lifetime queue: UIKit injects into it at any point in the app
 // lifecycle, so it must outlive the per-run runtime.
@@ -277,6 +281,18 @@ extern "C" void kuart_camera_drain_pending(void) {
     }
 }
 
+extern "C" void kuart_post_memory_warning(void) {
+    g_memoryWarningPending.store(true, std::memory_order_release);
+    kudroid_looper_wake_main();
+}
+
+extern "C" void kuart_memory_warning_drain_pending(void) {
+    if (g_rt == nullptr || !g_rt->ready) return;
+    if (g_memoryWarningPending.exchange(false, std::memory_order_acq_rel)) {
+        CallActivityThreadStatic("postLowMemory", "()V", nullptr, 0);
+    }
+}
+
 extern "C" void kuart_network_drain_pending(void) {
     if (kudroid_network_has_pending()) {
         CallActivityThreadStatic("postNetworkChanged", "()V", nullptr, 0);
@@ -404,6 +420,21 @@ extern "C" void kuart_media_drain_pending(void) {
     }
 }
 
+extern "C" void kuart_webview_drain_pending(void) {
+    if (!g_rt || !g_rt->ready) return;
+    kudroid::WebViewEvent event;
+    while (kudroid::webview_take(&event)) {
+        if (!kudroid_webview_active(event.handle)) continue;
+        const DexValue args[6] = {DexValue::Long(event.handle), DexValue::Int(event.event),
+            DexValue::Long(event.request),
+            DexValue::Ref(reinterpret_cast<DexObject*>(g_rt->linker.NewString(event.text.c_str()))),
+            DexValue::Ref(reinterpret_cast<DexObject*>(g_rt->linker.NewString(event.detail.c_str()))),
+            DexValue::Int(event.flags)};
+        CallFrameworkStatic("Landroid/webkit/WebView;", "dispatchNativeEvent",
+            "(JIJLjava/lang/String;Ljava/lang/String;I)V", args, 6);
+    }
+}
+
 extern "C" void kuart_set_log_callback(void (*cb)(const char*)) { g_log_cb = cb; }
 
 extern "C" void kuart_set_symbol_lookup(void* (*fn)(const char*)) {
@@ -418,6 +449,7 @@ extern "C" void kuart_set_load_library_callback(int (*cb)(const char*)) {
 
 extern "C" void kuart_set_missing_class_log_path(const char* path) {
     kudroid::kuart::DexClassLinker::SetMissingClassLogPath(path);
+    g_missingLogConfigured.store(path && *path, std::memory_order_release);
 }
 
 extern "C" int kuart_init(const char* app_dir) {
@@ -434,10 +466,8 @@ extern "C" int kuart_init(const char* app_dir) {
 
     auto rt = std::make_unique<Runtime>();
 
-    // Record unresolvable framework classes next to the app's other logs, not in
-    // the process CWD (which on iOS is not writable, and in host tests is
-    // wherever the binary was started from).
-    if (app_dir != nullptr && app_dir[0] != '\0') {
+    // Preserve a host-selected sink; direct runtime callers use the app directory.
+    if (!g_missingLogConfigured.load(std::memory_order_acquire) && app_dir && *app_dir) {
         const std::string log_path = (std::filesystem::path(app_dir) / "classes.log").string();
         kudroid::kuart::DexClassLinker::SetMissingClassLogPath(log_path.c_str());
     }
@@ -505,6 +535,31 @@ extern "C" int kuart_init(const char* app_dir) {
         }
     }
 
+    for (const auto& directory : kudroid::shared_package_directories()) {
+        if (directory == requested_dir) continue;
+        std::error_code ec;
+        auto dexDirectory = std::filesystem::path(directory) / "oat";
+        if (!std::filesystem::is_directory(dexDirectory, ec)) dexDirectory = directory;
+        std::vector<std::filesystem::path> paths;
+        for (const auto& entry : std::filesystem::directory_iterator(dexDirectory, ec)) {
+            const auto name = entry.path().filename().string();
+            if (entry.is_regular_file(ec) && name.rfind("classes", 0) == 0 && entry.path().extension() == ".dex")
+                paths.push_back(entry.path());
+        }
+        std::sort(paths.begin(), paths.end());
+        std::vector<std::vector<uint8_t>> buffers;
+        for (const auto& path : paths) {
+            std::vector<uint8_t> bytes;
+            if (!ReadFile(path, &bytes)) { SetError("Cannot read shared DEX: " + path.string()); return 0; }
+            buffers.push_back(std::move(bytes));
+        }
+        const auto package = std::filesystem::path(directory).filename().string();
+        if (!buffers.empty() && !rt->linker.AddOwnedDexFiles(std::move(buffers), &error, package)) {
+            SetError("Cannot load shared DEX: " + error); return 0;
+        }
+        Log("shared package loaded: %s (%zu DEX files)", directory.c_str(), paths.size());
+    }
+
     rt->interpreter = std::make_unique<Interpreter>(&rt->linker);
     rt->jni = std::make_unique<DexJniEnv>(&rt->linker, rt->interpreter.get());
     rt->interpreter->set_jni_env(rt->jni.get());
@@ -543,6 +598,7 @@ extern "C" int kuart_init(const char* app_dir) {
 }
 
 extern "C" void kuart_shutdown(void) {
+    kudroid_webview_reset();
     kudroid_thermal_reset();
     kudroid::frame_pacer_reset_for_relaunch();
     TouchQueue().reset(false);
@@ -575,6 +631,7 @@ extern "C" void kuart_shutdown(void) {
     }
     delete g_rt;
     g_rt = nullptr;
+    g_memoryWarningPending.store(false, std::memory_order_release);
     g_current_app_dir.clear();
     // ResolveMethod's stub cache is keyed by DexClass* of the dead heap:
     // serving it to the next app is a use-after-free. Drop it with the heap.
@@ -765,6 +822,30 @@ extern "C" void kuart_register_service(const char* name, int enabled, int export
                              DexValue::Int(exported != 0), DexValue::Ref(required)};
     CallFrameworkStatic("Landroid/content/pm/SystemPackageManager;", "registerService",
                         "(Ljava/lang/String;ZZLjava/lang/String;)V", args, 4);
+}
+
+extern "C" void kuart_register_package_process(const char* process_name) {
+    if (g_rt == nullptr || !g_rt->ready) return;
+    const DexValue argument = DexValue::Ref(reinterpret_cast<DexObject*>(
+        g_rt->linker.NewString(process_name ? process_name : "")));
+    CallFrameworkStatic("Landroid/content/pm/SystemPackageManager;", "registerPackageProcess",
+                        "(Ljava/lang/String;)V", &argument, 1);
+}
+
+extern "C" void kuart_register_provider(const char* name, const char* authorities, const char* process_name,
+                                       int init_order, int enabled, int exported, int grant_uri_permissions,
+                                       int direct_boot_aware, const char* read_permission, const char* write_permission) {
+    if (g_rt == nullptr || !g_rt->ready) return;
+    const auto string = [](const char* value) {
+        return DexValue::Ref(reinterpret_cast<DexObject*>(g_rt->linker.NewString(value ? value : "")));
+    };
+    const DexValue arguments[10] = {
+        string(name), string(authorities), string(process_name), DexValue::Int(init_order),
+        DexValue::Int(enabled != 0), DexValue::Int(exported != 0), DexValue::Int(grant_uri_permissions != 0),
+        DexValue::Int(direct_boot_aware != 0), string(read_permission), string(write_permission)
+    };
+    CallFrameworkStatic("Landroid/content/pm/SystemPackageManager;", "registerProvider",
+        "(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;IZZZZLjava/lang/String;Ljava/lang/String;)V", arguments, 10);
 }
 
 extern "C" void kuart_register_service_intent_filter(const char* name, const char* const* actions,

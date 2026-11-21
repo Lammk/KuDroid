@@ -11,6 +11,9 @@ import UniformTypeIdentifiers
 struct ContentView: View {
     @State private var fullLog = "KuDroid Core Status"
     @ObservedObject private var dataReset = AppDataResetModel.shared
+    @AppStorage("appMemoryBudgetSetupCompleted") private var memorySetupCompleted = false
+    @AppStorage("microGSetupCompleted") private var microGSetupCompleted = false
+    @ObservedObject private var memoryOnboarding = AppMemoryOnboarding.shared
     
     var body: some View {
         TabView {
@@ -32,10 +35,14 @@ struct ContentView: View {
                 .tabItem { Label("Settings", systemImage: "gearshape") }
         }
         .tint(ShellStyle.ink)
+        .sheet(isPresented: $memoryOnboarding.presented, onDismiss: { memoryOnboarding.didDismiss() }) {
+            AppFirstOpenSetupView { memoryOnboarding.presented = false }
+        }
         .alert("App Data", isPresented: Binding(get: { AppDataResetModel.shared.message != nil }, set: { if !$0 { AppDataResetModel.shared.message = nil } })) {
             Button("OK", role: .cancel) { AppDataResetModel.shared.message = nil }
         } message: { Text(AppDataResetModel.shared.message ?? "") }
         .onAppear {
+            if !memorySetupCompleted || !microGSetupCompleted { memoryOnboarding.show() }
             setupLogDir()
             activateAudioSession()
             AppDelegate.restorePortraitIfIdle()

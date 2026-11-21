@@ -26,10 +26,16 @@ Third-Party and Framework Components Exception:
 The above MIT License applies to the core KuDroid C/C++ runtime, iOS bridge,
 tooling, and custom Java framework implementation files.
 
-Certain framework sources under framework/ and the compiled binary artifact
-include/kudroid/framework_dex_bytes.h incorporate third-party components licensed
+The MIT grant does not replace licenses on third-party-derived sources or data.
+Certain framework sources under framework/ and the generated binary artifacts
+framework/build/framework.dex and include/kudroid/framework_dex_bytes.h
+incorporate third-party components licensed
 under Apache 2.0 (AOSP, Apache Harmony, Kotlin Standard Library) and GNU GPLv2 with
 Classpath Exception (OpenJDK).
+
+Those components retain their licenses in embedded executables and exported apps.
+The generated header is not licensed under MIT alone. Redistribution must meet
+the applicable notice, license-text and corresponding-source requirements.
 
 
 For complete details, attributions, and license texts, please consult:

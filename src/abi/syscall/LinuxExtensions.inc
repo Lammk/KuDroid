@@ -88,14 +88,14 @@ extern "C" int bionic_get_nprocs_conf(void) {
 extern "C" long bionic_get_phys_pages(void) {
     long pz = ::sysconf(_SC_PAGESIZE);
     if (pz <= 0) pz = 16384;
-    return static_cast<long>(kudroid::query_system_memory().total_bytes /
+    return static_cast<long>(kudroid::query_android_memory().total_bytes /
                              static_cast<uint64_t>(pz));
 }
 
 extern "C" long bionic_get_avphys_pages(void) {
     long pz = ::sysconf(_SC_PAGESIZE);
     if (pz <= 0) pz = 16384;
-    return static_cast<long>(kudroid::query_system_memory().available_bytes /
+    return static_cast<long>(kudroid::query_android_memory().available_bytes /
                              static_cast<uint64_t>(pz));
 }
 

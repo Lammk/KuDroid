@@ -327,7 +327,7 @@ struct bionic_sysinfo_struct {
 extern "C" int bionic_sysinfo(struct bionic_sysinfo_struct* info) {
     if (!info) return -1;
     memset(info, 0, sizeof(*info));
-    const kudroid::SystemMemory mem = kudroid::query_system_memory();
+    const kudroid::SystemMemory mem = kudroid::query_android_memory();
     info->uptime = 3600;
     // The real device figures. These were constants — 4 GB total, 2 GB free — which
     // happened to match one test device and no other.

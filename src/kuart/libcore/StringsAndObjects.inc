@@ -455,8 +455,7 @@ bool UnboxValue(Interpreter* interp, const char* descriptor, DexObject* obj, Dex
 
 // Single shared ClassLoader; must be a real object, not null.
 DexObject* SystemClassLoaderObject(Interpreter* interp) {
-    static DexObject* loader = nullptr;
-    if (loader != nullptr) return loader;
+    DexObject* loader = nullptr;
 
     DexClass* klass = interp->linker()->FindClass("Ljava/lang/ClassLoader;");
     if (klass == nullptr || klass->is_stub) return nullptr;
@@ -477,6 +476,42 @@ DexObject* SystemClassLoaderObject(Interpreter* interp) {
     // still better than null, which crashes the caller outright.
     loader = interp->linker()->AllocObject(klass);
     return loader;
+}
+
+uint32_t ExplicitClassLoader(Interpreter* interp, DexObject* loader) {
+    if (loader == nullptr) return 0;
+    if (!loader->clazz || std::strcmp(loader->clazz->descriptor, "Ldalvik/system/PackageClassLoader;") != 0)
+        return 1;
+    const DexField* owner = loader->clazz->FindInstanceField("packageName", "Ljava/lang/String;");
+    if (owner == nullptr) return 1;
+    auto* package = loader->GetField<DexObject*>(owner->offset_or_slot);
+    const char* name = GetStringUtf8(DexValue::Ref(package));
+    return name ? interp->linker()->LoaderForPackage(name) : 0;
+}
+
+bool Invoke_PackageClassLoader(Interpreter* interp, const char* name, const DexValue* args,
+                               size_t num_args, DexValue* result) {
+    if (std::strcmp(name, "findPackageClass") != 0 || num_args != 2) return false;
+    const char* package = GetStringUtf8(args[0]);
+    const char* className = GetStringUtf8(args[1]);
+    if (className == nullptr) {
+        interp->ThrowException("Ljava/lang/NullPointerException;", "name");
+        return true;
+    }
+    const uint32_t loader = package ? interp->linker()->LoaderForPackage(package) : 0;
+    if (loader == 0) {
+        interp->ThrowException("Ljava/lang/ClassNotFoundException;", className);
+        return true;
+    }
+    DexClassLinker::LoaderScope scope(interp->linker(), loader);
+    const std::string descriptor = DexReflect::DottedToDescriptor(className);
+    DexClass* klass = interp->linker()->FindClassNoStub(descriptor.c_str());
+    if (!klass || klass->is_stub) {
+        interp->ThrowException("Ljava/lang/ClassNotFoundException;", className);
+    } else {
+        result->l = interp->linker()->GetClassObject(klass);
+    }
+    return true;
 }
 
 // java.lang.Class
@@ -533,6 +568,9 @@ bool Invoke_java_lang_Class(Interpreter* interp, const char* name, const DexValu
             }
             desc += ";";
         }
+        const uint32_t loader = num_args >= 3 ? ExplicitClassLoader(interp, args[2].l)
+            : interp->linker()->CurrentLoader();
+        DexClassLinker::LoaderScope scope(interp->linker(), loader);
         DexClass* klass = interp->linker()->FindClassNoStub(desc.c_str());
         // Recognize unresolved boot-classpath placeholders.
 
@@ -555,6 +593,7 @@ bool Invoke_java_lang_Class(Interpreter* interp, const char* name, const DexValu
     }
     DexClassLinker* linker = interp->linker();
     DexClass* klass = ClassOf(interp, self);
+    DexClassLinker::LoaderScope scope(linker, klass ? klass->loader_id : linker->CurrentLoader());
 
     if (std::strcmp(name, "getName") == 0) {
         std::string pretty = klass ? klass->PrettyName() : "java.lang.Object";
@@ -602,8 +641,18 @@ bool Invoke_java_lang_Class(Interpreter* interp, const char* name, const DexValu
         return true;
     }
     if (std::strcmp(name, "getClassLoader") == 0) {
-        // One shared loader; null would break obfuscated loadClass calls.
-        result->l = SystemClassLoaderObject(interp);
+        if (!klass || klass->loader_id == 0) {
+            result->l = nullptr;
+        } else if (klass->loader_id == 1) {
+            result->l = SystemClassLoaderObject(interp);
+        } else {
+            DexClass* type = linker->FindClass("Ldalvik/system/PackageClassLoader;");
+            DexMethod* get = type ? type->FindDirectMethod("get",
+                "(Ljava/lang/String;)Ldalvik/system/PackageClassLoader;") : nullptr;
+            if (!get || !interp->EnsureInitialized(type)) return true;
+            const DexValue package = DexValue::Ref(linker->NewString(linker->PackageForLoader(klass->loader_id)));
+            *result = interp->Execute(get, &package, 1);
+        }
         return true;
     }
     if (std::strcmp(name, "getComponentType") == 0) {

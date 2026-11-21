@@ -144,7 +144,6 @@ final class ShortcutLaunchModel: ObservableObject, Identifiable {
     private var checking = false
     private var requestedDebugger = false
     private var cancelled = false
-    private let worker = DispatchQueue(label: "kudroid.shortcut-jit", qos: .userInitiated)
 
     init(appID: String) { self.appID = appID }
     func cancel() { cancelled = true }
@@ -159,21 +158,29 @@ final class ShortcutLaunchModel: ObservableObject, Identifiable {
             return
         }
         checking = true
-        let modern = ProcessInfo.processInfo.operatingSystemVersion.majorVersion >= 26
-        worker.async {
-            let enabled = modern ? kudroid_is_jit_enabled() != 0 : kudroid_debugger_attached() != 0
-            DispatchQueue.main.async {
-                self.checking = false
-                guard !self.cancelled else { return }
-                if enabled { self.ready = true; self.error = nil; return }
+        JITStatusModel.shared.refresh { status in
+            self.checking = false
+            guard !self.cancelled else { return }
+            if #available(iOS 26.0, *), JITSetupModel.shared.launchBlocked {
                 self.waiting = true
-                if !self.requestedDebugger { self.requestedDebugger = true; self.openDebugger() }
+                return
             }
+            if status.ready { self.ready = true; self.error = nil; return }
+            self.waiting = true
+            if status.debuggerConnected { return }
+            if #available(iOS 26.0, *) {
+                let setup = JITSetupModel.shared
+                if !setup.hasCompletedSetup { setup.showSetup(); return }
+                self.error = setup.error
+                if setup.busy { return }
+            }
+            if !self.requestedDebugger { self.requestedDebugger = true; self.openDebugger() }
         }
     }
 
     func openDebugger() {
         error = nil
+        if #available(iOS 26.0, *) { JITSetupModel.shared.activate(); return }
         JITActivation.openStikDebug { opened in
             guard !self.cancelled else { return }
             if !opened { self.error = "Could not open StikDebug. Install it and try again." }
@@ -186,6 +193,7 @@ struct ShortcutLaunchView: View {
     let run: () -> Void
     let cancel: () -> Void
     @Environment(\.scenePhase) private var phase
+    @State private var showingJITSetup = false
     private let timer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
     var body: some View {
         ZStack {
@@ -194,7 +202,12 @@ struct ShortcutLaunchView: View {
                 VStack(spacing: 18) {
                     Text("Waiting for JIT").font(.headline)
                     if let error = model.error { Text(error).foregroundColor(.red).multilineTextAlignment(.center) }
-                    Button("Open StikDebug") { model.openDebugger() }
+                    if #available(iOS 26.0, *) {
+                        Button("Enable JIT") { model.openDebugger() }
+                        Button("JIT setup") { showingJITSetup = true }
+                    } else {
+                        Button("Open StikDebug") { model.openDebugger() }
+                    }
                     Button("Check JIT") { model.check() }
                     Button("Cancel", role: .cancel) { model.cancel(); cancel() }
                 }.padding(28)
@@ -205,6 +218,9 @@ struct ShortcutLaunchView: View {
         .onReceive(timer) { _ in if phase == .active { model.check() } }
         .onChange(of: model.ready) { if $0 { run() } }
         .onDisappear { model.cancel() }
+        .sheet(isPresented: $showingJITSetup) {
+            if #available(iOS 26.0, *) { JITSetupView() }
+        }
     }
 }
 

@@ -25,9 +25,7 @@ ShaderDowngrade gles31_downgrade_shader(std::string& source);
 // First token that makes a shader impossible to express in 3.0, or nullptr.
 const char* gles31_unsupported_feature(std::string_view source);
 
-// "OpenGL ES 3.0 ..." -> "OpenGL ES 3.1 ...", "... GLSL ES 3.00 ..." -> "... 3.10 ...".
-// `name` is GL_VERSION or GL_SHADING_LANGUAGE_VERSION; anything else, or a string that
-// is not exactly 3.0, comes back unchanged. The result is stable for the process.
+// Preserve the actual backend version and its feature limits.
 const char* gles31_advertise_version(const char* value, unsigned name);
 
 // True when `pkg` is listed in `listText` (one package per line, '#' starts a comment).

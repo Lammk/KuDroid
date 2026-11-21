@@ -37,7 +37,25 @@ public:
 
     // Validate all buffers before registering them; retain their bytes for class lookup.
     bool AddOwnedDexFiles(std::vector<std::vector<uint8_t>> buffers,
-                          std::string* error_msg);
+                          std::string* error_msg, const std::string& package = "");
+
+    // Restore the caller's class loader when an invocation completes.
+    class LoaderScope {
+    public:
+        LoaderScope(DexClassLinker* linker, uint32_t loader);
+        ~LoaderScope();
+        LoaderScope(const LoaderScope&) = delete;
+        LoaderScope& operator=(const LoaderScope&) = delete;
+    private:
+        DexClassLinker* previous_linker_;
+        uint32_t previous_loader_;
+    };
+    uint32_t CurrentLoader() const;
+    uint32_t LoaderForPackage(const std::string& package);
+    std::string PackageForLoader(uint32_t loader);
+    static DexClassLinker* ActiveLinker();
+    static uint32_t ActiveLoader();
+    static void RestoreLoader(DexClassLinker* linker, uint32_t loader);
 
     // Find class by descriptor ("Lcom/foo/Bar;", "[I", "I"). Returns nullptr if missing.
     DexClass* FindClass(const char* descriptor);
@@ -216,6 +234,8 @@ private:
     std::vector<std::vector<uint8_t>> owned_dex_bytes_;
     std::vector<std::unique_ptr<const art::DexFile>> dex_files_;
     std::unordered_set<const art::DexFile*> boot_dex_files_;
+    std::unordered_map<const art::DexFile*, uint32_t> dex_loaders_;
+    std::unordered_map<std::string, uint32_t> package_loaders_;
     std::unordered_map<std::string, DexClass*> classes_;
     std::unordered_map<std::string, DexString*> strings_;
     std::unordered_map<DexObject*, DexClass*> class_objects_;

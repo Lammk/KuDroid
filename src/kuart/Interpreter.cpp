@@ -383,6 +383,9 @@ DexValue Interpreter::Execute(const DexMethod* method, const DexValue* args, siz
         ThrowException("Ljava/lang/NullPointerException;", "method null");
         return result;
     }
+    const uint32_t loader = method->declaring_class && method->declaring_class->loader_id != 0
+        ? method->declaring_class->loader_id : linker_->CurrentLoader();
+    DexClassLinker::LoaderScope loader_scope(linker_, loader);
     if (depth_ >= kMaxCallDepth) {
         ThrowException("Ljava/lang/StackOverflowError;", "maximum call depth exceeded");
         return result;

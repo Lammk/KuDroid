@@ -226,7 +226,8 @@ def workspace(source):
     excluded = [".git", "/build/", "/build-*/", "/framework/build/*", ".build/", "xtool/", "libs/", "node_modules/",
                 "logs*", ".cache", ".claude", ".freebuff", ".planning", "__pycache__",
                 "third_party/angle-src", "third_party/flutter-runtime", "third_party/aosp",
-                "third_party/art_src", "third_party/build-tools", "sakayori-music", "androguard.db"]
+                "third_party/art_src", "third_party/build-tools", "third_party/StikJIT",
+                "src/ios-pairing/target", "sakayori-music", "androguard.db"]
     synchronization = ["rsync", "-a", "--delete", "--checksum", "--include=/framework/build/framework.dex",
                        *["--exclude=" + p for p in excluded],
                        str(source) + "/", str(target) + "/"]
@@ -289,17 +290,27 @@ def ios(args, root, source):
         input_file.write(recipe.encode())
         input_file.seek(0)
         command(["llvm-ar", "-M"], 120, stdin=input_file)
+    command(["python3", root / "scripts/build-ios-jit.py", "--sdk", sdks[-1]], 1500)
+    shutil.copy2(root / "src/ios-pairing/Cargo.lock", source / "src/ios-pairing/Cargo.lock")
+    notices = "ios-app/KuDroidShell/Resources/licenses/JIT-NOTICES.txt"
+    (source / notices).parent.mkdir(parents=True, exist_ok=True)
+    shutil.copy2(root / notices, source / notices)
     if args.run:
         run_ios_app(app, swift_configuration, args.build_timeout)
         return
     command(["xtool", "dev", "build", "--ipa", "-c", swift_configuration], args.build_timeout, cwd=app)
     ipa = app / "xtool/KuDroidShell.ipa"
+    command(["python3", root / "scripts/build-ios-jit.py", "--ipa", ipa], 120)
     command(["python3", root / "scripts/embed_standalone_launcher.py", ipa], 120)
+    command(["python3", root / "scripts/verify-ios-jit.py", ipa], 120)
     command(["python3", root / "scripts/flutter-runtime/verify-asset.py", ipa], 120)
     command(["python3", root / "scripts/verify-system-fonts.py", ipa], 120)
+    source_archive = app / "xtool/KuDroid-framework-source.zip"
+    command(["python3", root / "scripts/package-framework-source.py", source_archive], 120)
     destination = source / "ios-app/KuDroidShell/xtool/KuDroidShell.ipa"
     destination.parent.mkdir(parents=True, exist_ok=True)
     shutil.copy2(ipa, destination)
+    shutil.copy2(source_archive, destination.parent / source_archive.name)
     print(f"IPA copied to Windows checkout: {destination}")
 
 

@@ -1,0 +1,4 @@
+module JITNotifications {
+    header "JITNotifications.h"
+    export *
+}

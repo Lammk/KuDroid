@@ -52,7 +52,10 @@ ManifestInfo APKExtractor::parse_manifest_text(const char* data, std::size_t siz
         if (mpos != std::string::npos) {
             const std::size_t close = xml.find('>', mpos);
             if (close != std::string::npos) {
-                info.packageName = extractXmlAttr(xml.substr(mpos, close - mpos), "package");
+                const auto manifestTag = xml.substr(mpos, close - mpos);
+                info.packageName = extractXmlAttr(manifestTag, "package");
+                info.versionCode = extractXmlAttr(manifestTag, "versionCode");
+                info.versionName = extractXmlAttr(manifestTag, "versionName");
             }
         }
     }
@@ -74,6 +77,16 @@ ManifestInfo APKExtractor::parse_manifest_text(const char* data, std::size_t siz
     bool serviceInFilter = false;
     bool servicePermissionSet = false;
     bool serviceExportedSet = false;
+    ProviderEntry currentProvider;
+    bool inProvider = false;
+    int elementDepth = 0;
+    int applicationDepth = -1;
+    int providerDepth = -1;
+    auto commitProvider = [&]() {
+        if (!currentProvider.name.empty()) info.providers.push_back(currentProvider);
+        inProvider = false;
+        providerDepth = -1;
+    };
     auto commitService = [&]() {
         if (!serviceExportedSet) currentService.exported = !currentService.intentFilters.empty();
         if (!servicePermissionSet) currentService.permission = info.applicationPermission;
@@ -113,6 +126,8 @@ ManifestInfo APKExtractor::parse_manifest_text(const char* data, std::size_t siz
         const std::string tag = xml.substr(cur, end - cur + 1);
         const bool isClose = tag.size() > 1 && tag[1] == '/';
         const bool isSelfClose = tag.size() > 1 && tag[tag.size() - 2] == '/';
+        if (tag.size() > 1 && (tag[1] == '?' || tag[1] == '!')) { cur = end + 1; continue; }
+        const int currentDepth = isClose ? elementDepth : elementDepth + 1;
 
         // Card name: remove '<' or '</' and take the first token.
         std::string tagName;
@@ -124,7 +139,35 @@ ManifestInfo APKExtractor::parse_manifest_text(const char* data, std::size_t siz
             tagName = tag.substr(s, e - s);
         }
 
-        if (tagName == "service") {
+        if (tagName == "provider") {
+            if (!isClose && currentDepth == applicationDepth + 1) {
+                currentProvider = ProviderEntry{};
+                currentProvider.name = extractXmlAttr(tag, "name");
+                currentProvider.authorities = extractXmlAttr(tag, "authorities");
+                currentProvider.processName = extractXmlAttr(tag, "process");
+                const std::string enabled = extractXmlAttr(tag, "enabled");
+                currentProvider.enabled = enabled != "false" && enabled != "0";
+                const std::string exported = extractXmlAttr(tag, "exported");
+                currentProvider.exportedSpecified = !exported.empty();
+                currentProvider.exported = exported == "true" || exported == "1";
+                const auto trueAttribute = [&](const char* name) {
+                    const auto value = extractXmlAttr(tag, name);
+                    return value == "true" || value == "1";
+                };
+                currentProvider.grantUriPermissions = trueAttribute("grantUriPermissions");
+                currentProvider.directBootAware = trueAttribute("directBootAware");
+                try { currentProvider.initOrder = std::stoi(extractXmlAttr(tag, "initOrder")); } catch (...) {}
+                const std::string permission = tag.find("permission=") != std::string::npos
+                    ? extractXmlAttr(tag, "permission") : info.applicationPermission;
+                currentProvider.readPermission = tag.find("readPermission=") != std::string::npos
+                    ? extractXmlAttr(tag, "readPermission") : permission;
+                currentProvider.writePermission = tag.find("writePermission=") != std::string::npos
+                    ? extractXmlAttr(tag, "writePermission") : permission;
+                inProvider = true;
+                providerDepth = currentDepth;
+                if (isSelfClose) commitProvider();
+            } else if (isClose && inProvider && currentDepth == providerDepth) commitProvider();
+        } else if (tagName == "service") {
             if (!isClose) {
                 currentService = ServiceEntry{};
                 currentService.name = extractXmlAttr(tag, "name");
@@ -183,6 +226,24 @@ ManifestInfo APKExtractor::parse_manifest_text(const char* data, std::size_t siz
             }
         } else if (tagName == "data" && serviceInFilter && !isClose) {
             currentService.intentFilters.back().hasData = true;
+        } else if (tagName == "meta-data" && inProvider && !isClose && currentDepth == providerDepth + 1) {
+            MetaDataEntry entry;
+            entry.name = extractXmlAttr(tag, "name");
+            entry.value = extractXmlAttr(tag, "value");
+            entry.valueType = 3;
+            const std::string resource = extractXmlAttr(tag, "resource");
+            entry.isResource = !resource.empty();
+            if (entry.isResource) { entry.value = resource; entry.valueType = 1; }
+            else if (entry.value == "true" || entry.value == "false") entry.valueType = 0x12;
+            else {
+                try {
+                    size_t used = 0;
+                    const int base = entry.value.find("0x") == 0 || entry.value.find("-0x") == 0 ? 16 : 10;
+                    std::stoi(entry.value, &used, base);
+                    if (used == entry.value.size()) entry.valueType = 0x10;
+                } catch (...) {}
+            }
+            if (!entry.name.empty()) currentProvider.metaData.push_back(entry);
         } else if (tagName == "meta-data" && inService && !isClose) {
             MetaDataEntry entry;
             entry.name = extractXmlAttr(tag, "name");
@@ -192,11 +253,24 @@ ManifestInfo APKExtractor::parse_manifest_text(const char* data, std::size_t siz
             entry.isResource = !resource.empty();
             if (entry.isResource) { entry.value = resource; entry.valueType = 1; }
             if (!entry.name.empty()) currentService.metaData.push_back(entry);
+        } else if (tagName == "meta-data" && !isClose && currentDepth == applicationDepth + 1) {
+            MetaDataEntry entry;
+            entry.name = extractXmlAttr(tag, "name");
+            entry.value = extractXmlAttr(tag, "value");
+            entry.valueType = 3;
+            const auto resource = extractXmlAttr(tag, "resource");
+            entry.isResource = !resource.empty();
+            if (entry.isResource) { entry.value = resource; entry.valueType = 1; }
+            else if (!entry.value.empty() && entry.value.front() == '@') entry.valueType = 1;
+            else if (entry.value == "true" || entry.value == "false") entry.valueType = 0x12;
+            if (!entry.name.empty()) info.applicationMetaData.push_back(entry);
         } else if (tagName == "application") {
             if (!isClose) {
+                applicationDepth = currentDepth;
                 std::string enabled = extractXmlAttr(tag, "enabled");
                 info.applicationEnabled = enabled != "false" && enabled != "0";
                 info.applicationPermission = extractXmlAttr(tag, "permission");
+                info.applicationProcess = extractXmlAttr(tag, "process");
                 info.applicationTheme = extractXmlAttr(tag, "theme");
                 info.appLabel = extractXmlAttr(tag, "label");
                 info.appIcon = extractXmlAttr(tag, "icon");
@@ -207,6 +281,13 @@ ManifestInfo APKExtractor::parse_manifest_text(const char* data, std::size_t siz
             if (!isClose && info.appComponentFactory.empty()) {
                 info.appComponentFactory = extractXmlAttr(tag, "appComponentFactory");
             }
+            if (isClose || isSelfClose) applicationDepth = -1;
+        } else if ((tagName == "uses-permission" || tagName == "uses-permission-sdk-23") && !isClose) {
+            const auto permission = extractXmlAttr(tag, "name");
+            if (!permission.empty()) info.requestedPermissions.push_back(permission);
+        } else if (tagName == "uses-sdk" && !isClose) {
+            try { info.minSdkVersion = std::stoi(extractXmlAttr(tag, "minSdkVersion")); } catch (...) {}
+            try { info.targetSdkVersion = std::stoi(extractXmlAttr(tag, "targetSdkVersion")); } catch (...) {}
         } else if (tagName == "action") {
             if (serviceInFilter && !isClose)
                 currentService.intentFilters.back().actions.push_back(extractXmlAttr(tag, "name"));
@@ -217,6 +298,8 @@ ManifestInfo APKExtractor::parse_manifest_text(const char* data, std::size_t siz
             if (inIntentFilter && extractXmlAttr(tag, "name") == kCategoryLauncher) sawCategoryLauncher = true;
         }
 
+        if (isClose) { if (elementDepth > 0) --elementDepth; }
+        else if (!isSelfClose) ++elementDepth;
         cur = end + 1;
     }
 
@@ -233,6 +316,8 @@ ManifestInfo APKExtractor::parse_manifest_text(const char* data, std::size_t siz
     qualify(info.appComponentFactory);
     for (ActivityEntry& e : info.activities) qualify(e.name);
     for (ServiceEntry& e : info.services) qualify(e.name);
+    for (ProviderEntry& e : info.providers) qualify(e.name);
+    finalizeManifestProviders(info);
 
     return info;
 }

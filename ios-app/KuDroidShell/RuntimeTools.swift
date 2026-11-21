@@ -189,9 +189,15 @@ final class APKInstallModel: ObservableObject {
 
     func install(_ url: URL, completion: (() -> Void)? = nil) {
         guard !busy else { completion?(); return }
+        guard APKFileTypes.accepts(url) else {
+            report("Choose an APK, XAPK, APKS, or APKM file.")
+            completion?()
+            return
+        }
         busy = true
         result = nil
         stage = "Installing " + url.lastPathComponent + "…"
+        let previousApps = AppMemorySettings.installedIDs()
         let access = url.startAccessingSecurityScopedResource()
         worker.async {
             defer { if access { url.stopAccessingSecurityScopedResource() } }
@@ -201,9 +207,11 @@ final class APKInstallModel: ObservableObject {
             do {
                 try fm.createDirectory(at: work, withIntermediateDirectories: true)
                 let local = work.appendingPathComponent(url.lastPathComponent)
-                try fm.copyItem(at: url, to: local)
+                try ProviderDocument.copy(url, to: local)
                 let log = installAPK(at: local)
+                let newApps = AppMemorySettings.installedIDs().subtracting(previousApps)
                 DispatchQueue.main.async {
+                    for appID in newApps { AppMemorySettings.initializeNewApp(appID) }
                     self.busy = false
                     self.result = log
                     if log.contains("ERROR") { self.report(log) }

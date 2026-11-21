@@ -14,18 +14,8 @@
 #include <cstdint>
 #include <mutex>
 #include <string>
+#include "LogPaths.h"
 
-// Two directories, deliberately distinct:
-//
-//   g_docsDir - the app's Documents. Where installed apps, extracted APKs and
-//               the VFS root live; the host hands this in.
-//   g_logDir  - g_docsDir + "/logs". Every diagnostic file goes here.
-//
-// g_kudroid_log_dir_ptr aliases g_logDir for SyscallShim, which re-opens the
-// android-log sink whenever the directory changes.
-extern char g_docsDir[1024];
-extern char g_logDir[1024];
-extern const char* g_kudroid_log_dir_ptr;
 
 // Persist crash breadcrumbs before process termination.
 
@@ -49,9 +39,6 @@ unsigned long long currentThreadIdForCrash(void);
 // Append-only write(2) journal for diagnostics that must survive SIGKILL —
 // see BridgeState.cpp for why fsync is deliberately NOT used here.
 extern "C" void kudroid_persistent_breadcrumb(const char* line);
-// Close the cached breadcrumb descriptor so the next write reopens the file.
-// Called after the logs are cleared, which unlinks the file under it.
-extern "C" void kudroid_breadcrumb_invalidate_fd();
 
 // ── Thread registry ──────────────────────────────────────────────────────────
 //
@@ -87,11 +74,11 @@ const char* kudroid_crash_log_snapshot(void);
 // Every bridge unit writes its diagnostic files through these so the "where do
 // logs go" answer stays in one place.
 
-// Write (truncate) a named file inside g_logDir. No-op before set_log_dir.
+// Write a named file in the selected diagnostic directory.
 // These were internal to the old monolith; now shared across the bridge units.
 void writeLogFile(const char* name, const std::string& content);
 
-// Append to kudroid_crash.log in g_logDir.
+// Append to kudroid_crash.log in the selected directory.
 void appendCrashLogFile(const std::string& content);
 
 // Mirror a rendered crash report into the in-memory crash buffer.
